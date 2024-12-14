@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
 import Image from '@tiptap/extension-image'
 import { Button } from "@/components/ui/button"
+import { Loader2 } from 'lucide-react'
+import { toast } from "sonner"
+import { supabase } from '@/integrations/supabase/client'
+import { uploadFileToStorage } from '@/utils/fileStorage'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +36,7 @@ interface EditorProps {
 }
 
 const Editor: React.FC<EditorProps> = ({ content, onChange, onClear }) => {
+  const [isUploading, setIsUploading] = useState(false);
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -69,10 +74,50 @@ const Editor: React.FC<EditorProps> = ({ content, onChange, onClear }) => {
     }
   }, [editor, content])
 
-  const addImage = () => {
-    const url = window.prompt('הכנס את כתובת התמונה:');
-    if (url && editor) {
-      editor.chain().focus().setImage({ src: url }).run();
+  const addImage = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user?.id) {
+        toast.error("יש להתחבר כדי להוסיף תמונות");
+        return;
+      }
+
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        const file = target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          toast.error("נא להעלות קובץ תמונה בלבד");
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+          toast.error("גודל התמונה חייב להיות קטן מ-5MB");
+          return;
+        }
+
+        setIsUploading(true);
+        try {
+          const { publicUrl } = await uploadFileToStorage(file, session.session.user.id);
+          if (editor) {
+            editor.chain().focus().setImage({ src: publicUrl }).run();
+            toast.success("התמונה הועלתה בהצלחה!");
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          toast.error("שגיאה בהעלאת התמונה");
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      input.click();
+    } catch (error) {
+      console.error('Error in addImage:', error);
+      toast.error("שגיאה בהעלאת התמונה");
     }
   };
 
@@ -163,8 +208,13 @@ const Editor: React.FC<EditorProps> = ({ content, onChange, onClear }) => {
           size="sm"
           onClick={addImage}
           className="px-2"
+          disabled={isUploading}
         >
-          <ImageIcon className="h-4 w-4" />
+          {isUploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ImageIcon className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
