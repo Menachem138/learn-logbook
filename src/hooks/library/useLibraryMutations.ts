@@ -8,11 +8,12 @@ export const useLibraryMutations = () => {
   const queryClient = useQueryClient();
 
   const addItem = useMutation({
-    mutationFn: async ({ title, content, type, file }: { 
+    mutationFn: async ({ title, content, type, file, url }: {
       title: string;
       content: string;
       type: string;
       file?: File;
+      url?: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -37,6 +38,7 @@ export const useLibraryMutations = () => {
           title,
           content,
           type,
+          url: type === 'youtube' ? url : undefined,
           file_details: fileDetails,
           user_id: user.id,
         });
@@ -60,12 +62,13 @@ export const useLibraryMutations = () => {
   });
 
   const updateItem = useMutation({
-    mutationFn: async ({ id, title, content, type, file }: {
+    mutationFn: async ({ id, title, content, type, file, url }: {
       id: string;
       title: string;
       content: string;
       type: string;
       file?: File;
+      url?: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -90,6 +93,7 @@ export const useLibraryMutations = () => {
           title,
           content,
           type,
+          url: type === 'youtube' ? url : undefined,
           ...(fileDetails && { file_details: fileDetails }),
         })
         .eq('id', id);

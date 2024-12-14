@@ -30,6 +30,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     const formData = {
       ...data,
       file: selectedFile,
+      url: data.type === 'youtube' ? data.url : undefined,
     };
     onSubmit(formData);
     setSelectedFile(null);
@@ -65,6 +66,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
               <option value="video">וידאו</option>
+              <option value="youtube">YouTube</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
@@ -77,6 +79,19 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
+          {selectedType === 'youtube' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                קישור לסרטון YouTube
+              </label>
+              <Input
+                type="url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                {...register("url", { required: selectedType === 'youtube' })}
+              />
+            </div>
+          )}
+
           {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -86,10 +101,10 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' 
-                      ? "image/*" 
-                      : selectedType === 'video' 
-                      ? "video/*" 
+                    selectedType === 'image'
+                      ? "image/*"
+                      : selectedType === 'video'
+                      ? "video/*"
                       : "application/pdf"
                   }
                   onChange={handleFileChange}
