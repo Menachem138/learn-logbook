@@ -1,4 +1,4 @@
-export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question';
+export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question' | 'youtube';
 
 export interface LibraryItem {
   id: string;
@@ -10,6 +10,7 @@ export interface LibraryItem {
     name?: string;
     size?: number;
     type?: string;
+    youtube_id?: string;  // For storing YouTube video IDs
   };
   is_starred?: boolean;
   created_at?: string;

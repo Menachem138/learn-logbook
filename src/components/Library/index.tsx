@@ -9,6 +9,7 @@ import { LibraryItem, LibraryItemType } from "@/types/library";
 import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
+import { MediaViewer } from "./MediaViewer";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -22,6 +23,8 @@ const getIcon = (type: LibraryItemType) => {
       return <Video className="w-4 h-4" />;
     case 'whatsapp':
       return <MessageCircle className="w-4 h-4" />;
+    case 'youtube':
+      return <Video className="w-4 h-4 text-red-500" />;
     case 'pdf':
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
@@ -33,6 +36,7 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{ type: "image" | "video" | "youtube"; src: string; title: string } | null>(null);
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -73,7 +77,7 @@ const Library = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-xs"
           />
-          <Button 
+          <Button
             onClick={() => {
               setEditingItem(null);
               setIsDialogOpen(true);
@@ -127,6 +131,36 @@ const Library = () => {
                   type={item.type as "image" | "video" | "pdf"}
                   src={item.file_details.path}
                   title={item.title}
+                  onClick={() => {
+                    if (item.type === "image" || item.type === "video") {
+                      setSelectedMedia({
+                        type: item.type,
+                        src: item.file_details.path,
+                        title: item.title
+                      });
+                    }
+                  }}
+                />
+              </div>
+            )}
+            {item.type === 'youtube' && item.file_details?.youtube_id && (
+              <div className="mt-2">
+                <MediaCard
+                  type="youtube"
+                  src={item.file_details.youtube_id}
+                  title={item.title}
+                  onClick={() => {
+                    console.log('YouTube card clicked:', {
+                      id: item.id,
+                      youtube_id: item.file_details.youtube_id,
+                      title: item.title
+                    });
+                    setSelectedMedia({
+                      type: 'youtube',
+                      src: `https://www.youtube.com/watch?v=${item.file_details.youtube_id}`,
+                      title: item.title
+                    });
+                  }}
                 />
               </div>
             )}
@@ -143,6 +177,15 @@ const Library = () => {
           setEditingItem(null);
         }}
       />
+
+      {selectedMedia && (
+        <MediaViewer
+          isOpen={!!selectedMedia}
+          onClose={() => setSelectedMedia(null)}
+          url={selectedMedia.src}
+          title={selectedMedia.title}
+        />
+      )}
     </div>
   );
 };
