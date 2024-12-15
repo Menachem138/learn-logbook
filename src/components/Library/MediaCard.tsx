@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { FileText, Play } from "lucide-react";
-import { getYouTubeThumbnail } from "@/utils/youtube";
+import { getYouTubeThumbnail, getYouTubeVideoId } from "@/utils/youtube";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "youtube";
@@ -45,7 +45,10 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   if (type === "youtube") {
-    const thumbnailUrl = getYouTubeThumbnail(src); // src is now directly the video ID
+    const videoId = getYouTubeVideoId(src);
+    if (!videoId) return null;
+
+    const thumbnailUrl = getYouTubeThumbnail(videoId);
     return (
       <Card className="overflow-hidden relative group cursor-pointer">
         <img src={thumbnailUrl} alt={title} className="w-full h-auto" />
