@@ -28,13 +28,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Initial session:', session);
       setSession(session);
       setLoading(false);
+    }).catch(error => {
+      console.error('Auth error:', error);
+      setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', session);
+      console.log('Auth state changed:', _event, session);
       setSession(session);
       setLoading(false);
     });
@@ -43,10 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      session, 
+    <AuthContext.Provider value={{
+      session,
       user: session?.user ?? null,
-      loading 
+      loading
     }}>
       {children}
     </AuthContext.Provider>
