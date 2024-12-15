@@ -2,7 +2,7 @@ import React from "react";
 import { StudyTimer } from "@/components/StudyTimer";
 import MotivationalQuotes from "@/components/MotivationalQuotes";
 import CourseContent from "@/components/CourseContent";
-import Library from "@/components/Library";
+import { TabsLibrary } from "@/components/TabsLibrary";
 import Questions from "@/components/Questions";
 import ChatAssistant from "@/components/ChatAssistant";
 import CourseSchedule from "@/components/CourseSchedule";
@@ -22,7 +22,7 @@ export default function Index() {
         <MotivationalQuotes />
         <CourseContent />
         <CourseSchedule />
-        <Library />
+        <TabsLibrary />
         <Questions />
         <LearningJournal />
       </div>
