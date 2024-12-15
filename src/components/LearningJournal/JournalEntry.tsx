@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface JournalEntryProps {
   entry: {
@@ -41,7 +42,22 @@ export function JournalEntry({ entry, onEdit, onDelete }: JournalEntryProps) {
           </Button>
         </div>
       </div>
-      <p className="whitespace-pre-wrap">{entry.content}</p>
+      <div className="whitespace-pre-wrap" dir="rtl">
+        <ReactMarkdown
+          components={{
+            img: ({ node, ...props }) => (
+              <img
+                {...props}
+                className="max-w-full h-auto rounded-lg my-2"
+                loading="lazy"
+                alt={props.alt || ''}
+              />
+            ),
+          }}
+        >
+          {entry.content}
+        </ReactMarkdown>
+      </div>
       <p className="text-sm text-muted-foreground mt-2">
         {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString()}
       </p>
