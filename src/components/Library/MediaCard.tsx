@@ -45,13 +45,20 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   if (type === "youtube") {
-    const videoId = getYouTubeVideoId(src);
-    if (!videoId) return null;
-
+    const videoId = getYouTubeVideoId(src) || src;
     const thumbnailUrl = getYouTubeThumbnail(videoId);
+
     return (
       <Card className="overflow-hidden relative group cursor-pointer">
-        <img src={thumbnailUrl} alt={title} className="w-full h-auto" />
+        <img
+          src={thumbnailUrl}
+          alt={title}
+          className="w-full h-auto"
+          onError={(e) => {
+            console.error('Failed to load YouTube thumbnail:', thumbnailUrl);
+            e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+          }}
+        />
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all">
           <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all" />
         </div>

@@ -18,10 +18,10 @@ export function getYouTubeVideoId(url: string): string | null {
 
 /**
  * Generates the thumbnail URL for a YouTube video
- * Uses the maxresdefault quality for best resolution
+ * Uses the default thumbnail (0.jpg) which is always available
  */
 export function getYouTubeThumbnail(videoId: string): string {
-  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  return `https://img.youtube.com/vi/${videoId}/0.jpg`;
 }
 
 /**
