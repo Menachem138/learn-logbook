@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload } from "lucide-react";
+import { getYouTubeVideoId, isValidYouTubeUrl } from "@/utils/youtube";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -26,14 +26,37 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const selectedType = watch("type");
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
-  const onSubmitForm = (data: any) => {
-    const formData = {
-      ...data,
-      file: selectedFile,
-    };
-    onSubmit(formData);
-    setSelectedFile(null);
-    reset();
+  const onSubmitForm = async (data: any) => {
+    try {
+      let formData;
+
+      if (data.type === 'youtube') {
+        const videoId = getYouTubeVideoId(data.youtube_url);
+        if (!videoId) {
+          // Show error for invalid YouTube URL
+          return;
+        }
+        formData = {
+          ...data,
+          file_details: {
+            youtube_id: videoId,
+            path: `youtube/${videoId}`,
+            type: 'youtube'
+          }
+        };
+      } else {
+        formData = {
+          ...data,
+          file: selectedFile,
+        };
+      }
+
+      onSubmit(formData);
+      setSelectedFile(null);
+      reset();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,6 +88,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
               <option value="video">וידאו</option>
+              <option value="youtube">YouTube</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
@@ -77,6 +101,28 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
+          {selectedType === 'youtube' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                הכנס קישור YouTube
+              </label>
+              <Input
+                type="url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                {...register("youtube_url", {
+                  required: selectedType === 'youtube',
+                  validate: {
+                    isValidUrl: (value) =>
+                      !value || selectedType !== 'youtube' ||
+                      isValidYouTubeUrl(value) ||
+                      "נא להזין קישור YouTube תקין"
+                  }
+                })}
+                dir="ltr"
+              />
+            </div>
+          )}
+
           {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -86,10 +132,10 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' 
-                      ? "image/*" 
-                      : selectedType === 'video' 
-                      ? "video/*" 
+                    selectedType === 'image'
+                      ? "image/*"
+                      : selectedType === 'video'
+                      ? "video/*"
                       : "application/pdf"
                   }
                   onChange={handleFileChange}
