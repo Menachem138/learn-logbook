@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { Upload } from "lucide-react";
+import { extractYouTubeId } from "@/utils/youtube";
+import { toast } from "sonner";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -25,8 +27,26 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const selectedType = watch("type");
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const onSubmitForm = (data: any) => {
+  const onSubmitForm = async (data: any) => {
+    if (data.type === 'youtube') {
+      setIsSubmitting(true);
+      const videoId = extractYouTubeId(data.url);
+      if (!videoId) {
+        toast.error('כתובת URL לא חוקית של YouTube');
+        setIsSubmitting(false);
+        return;
+      }
+      try {
+        const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+        const metadata = await response.json();
+        data.title = metadata.title || data.title;
+      } catch (error) {
+        console.error('Error fetching video metadata:', error);
+      }
+    }
+
     const formData = {
       ...data,
       file: selectedFile,
@@ -34,6 +54,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     };
     onSubmit(formData);
     setSelectedFile(null);
+    setIsSubmitting(false);
     reset();
   };
 
@@ -123,8 +144,8 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             <Button type="button" variant="outline" onClick={onClose}>
               ביטול
             </Button>
-            <Button type="submit">
-              {initialData ? "עדכן" : "הוסף"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'מוסיף...' : initialData ? "עדכן" : "הוסף"}
             </Button>
           </div>
         </form>

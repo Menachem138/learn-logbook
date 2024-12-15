@@ -140,6 +140,7 @@ export default function LearningJournal() {
           <Editor
             content={newEntry}
             onChange={setNewEntry}
+            onClear={() => setNewEntry("")}
           />
         </div>
         <div className="flex space-x-2">
@@ -190,11 +191,11 @@ export default function LearningJournal() {
       </div>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="w-full max-w-4xl">
+        <DialogContent className="w-full max-w-[90vw] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>ערוך רשומה</DialogTitle>
           </DialogHeader>
-          <div className="w-full max-h-[60vh] overflow-y-auto">
+          <div className="w-full min-h-[300px] max-h-[60vh] overflow-y-auto px-4">
             <Editor
               content={editingEntry?.content || ""}
               onChange={(content) => setEditingEntry(editingEntry ? { ...editingEntry, content } : null)}

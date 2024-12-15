@@ -9,11 +9,24 @@ export default function AuthLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate('/');
       }
     });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, session);
+      if (session) {
+        navigate('/');
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return (
@@ -27,7 +40,8 @@ export default function AuthLayout() {
         <Auth
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
-          providers={['google']}
+          providers={[]}
+          view="sign_in"
           localization={{
             variables: {
               sign_in: {

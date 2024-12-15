@@ -4,12 +4,31 @@ import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Create a client
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
+
+  useEffect(() => {
+    const initAuth = async () => {
+      if (!session) {
+        try {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: import.meta.env.VITE_SUPABASE_USERNAME,
+            password: import.meta.env.VITE_SUPABASE_PASSWORD,
+          });
+          if (error) console.error('Auth error:', error);
+        } catch (err) {
+          console.error('Auth failed:', err);
+        }
+      }
+    };
+    initAuth();
+  }, [session]);
 
   if (loading) {
     return <div>טוען...</div>;

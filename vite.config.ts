@@ -20,4 +20,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    'process.env': {
+      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+      VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY,
+      VITE_SUPABASE_USERNAME: process.env.VITE_SUPABASE_USERNAME,
+      VITE_SUPABASE_PASSWORD: process.env.VITE_SUPABASE_PASSWORD,
+    }
+  }
 }));

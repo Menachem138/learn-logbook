@@ -62,7 +62,7 @@ const Editor: React.FC<EditorProps> = ({ content, onChange, onClear }) => {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-lg rtl w-full min-h-[200px] overflow-y-auto p-4',
+        class: 'prose prose-lg rtl w-full min-h-[250px] overflow-y-auto p-4 focus:outline-none',
         dir: 'rtl',
       },
     },
@@ -71,8 +71,9 @@ const Editor: React.FC<EditorProps> = ({ content, onChange, onClear }) => {
   React.useEffect(() => {
     if (editor && !content) {
       editor.commands.setContent('')
+      onClear?.();
     }
-  }, [editor, content])
+  }, [editor, content, onClear])
 
   const addImage = async () => {
     try {
