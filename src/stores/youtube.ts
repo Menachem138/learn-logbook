@@ -34,6 +34,9 @@ const getHebrewError = (error: string): string => {
   if (error.includes('Failed to delete')) {
     return 'שגיאה במחיקת הסרטון';
   }
+  if (error.includes('Failed to initialize subscription')) {
+    return 'שגיאה בהתחברות למערכת העדכונים בזמן אמת';
+  }
   return 'שגיאה לא צפויה';
 };
 
@@ -44,22 +47,34 @@ export const useYouTubeStore = create<YouTubeStore>((set, get) => ({
   subscription: null,
 
   initializeSubscription: () => {
-    const subscription = supabase
-      .channel('youtube_videos_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'youtube_videos'
-        },
-        async () => {
-          await get().fetchVideos();
-        }
-      )
-      .subscribe();
+    try {
+      console.log('Initializing YouTube videos subscription');
+      const subscription = supabase
+        .channel('youtube_videos_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'youtube_videos'
+          },
+          async (payload) => {
+            console.log('Received subscription update:', payload);
+            await get().fetchVideos();
+          }
+        )
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            get().fetchVideos();
+          }
+        });
 
-    set({ subscription });
+      set({ subscription });
+    } catch (error) {
+      console.error('Failed to initialize subscription:', error);
+      set({ error: getHebrewError('Failed to initialize subscription') });
+    }
   },
 
   cleanup: () => {

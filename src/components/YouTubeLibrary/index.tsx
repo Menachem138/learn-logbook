@@ -7,18 +7,31 @@ import { YouTubePlayer } from "./YouTubePlayer";
 import { AddVideoDialog } from "./AddVideoDialog";
 
 export function YouTubeLibrary() {
-  const { videos, isLoading, fetchVideos, initializeSubscription, cleanup } = useYouTubeStore();
+  const { videos, isLoading, error, fetchVideos, initializeSubscription, cleanup } = useYouTubeStore();
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
 
   useEffect(() => {
-    fetchVideos();
+    console.log('YouTubeLibrary mounted - initializing subscription');
     initializeSubscription();
-    return () => cleanup();
-  }, [fetchVideos, initializeSubscription, cleanup]);
+    return () => {
+      console.log('YouTubeLibrary unmounting - cleaning up subscription');
+      cleanup();
+    };
+  }, [initializeSubscription, cleanup]);
+
+  useEffect(() => {
+    console.log('Fetching initial videos');
+    fetchVideos();
+  }, [fetchVideos]);
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" dir="rtl">
+          {error}
+        </div>
+      )}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">ספריית סרטוני YouTube</h2>
         <Button onClick={() => setIsAddingVideo(true)}>
