@@ -1,24 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://shjwvwhijgehquuteekv.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoand2d2hpamdlaHF1dXRlZWt2Iiwicm9zZSI6ImFub24iLCJpYXQiOjE3MzM3NzUwMTUsImV4cCI6MjA0OTM1MTAxNX0.ZNdvVHgBHMpXbzE_4HkDGt4EXqp2ypgqFq1WTYZGXhE";
-const SUPABASE_SERVICE_KEY = process.env.supabasepassword;
+// Get environment variables
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Create admin client for database migrations
-export const supabaseAdmin = createClient<Database>(
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Missing Supabase environment variables:', {
+    url: SUPABASE_URL,
+    key: SUPABASE_ANON_KEY ? '[HIDDEN]' : undefined
+  });
+  throw new Error('Required environment variables are missing');
+}
+
+// Regular client for frontend operations
+export const supabase = createClient<Database>(
   SUPABASE_URL,
-  SUPABASE_SERVICE_KEY,
+  SUPABASE_ANON_KEY,
   {
     auth: {
-      autoRefreshToken: false,
-      persistSession: false
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
     }
   }
 );
-
-// Regular client for frontend operations
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 // Initialize database schema
 export const initializeSchema = async () => {
@@ -36,7 +42,7 @@ export const initializeSchema = async () => {
 
   try {
     // Try direct SQL execution first
-    const { data, error: sqlError } = await supabaseAdmin.rpc('exec_sql', { query: sql });
+    const { data, error: sqlError } = await supabase.rpc('exec_sql', { query: sql });
 
     if (sqlError) {
       console.error('Error executing SQL:', sqlError);
@@ -46,8 +52,8 @@ export const initializeSchema = async () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SUPABASE_SERVICE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           'Accept': 'application/json'
         },
         body: JSON.stringify({ query: sql })

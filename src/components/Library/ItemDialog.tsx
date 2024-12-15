@@ -32,7 +32,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const onSubmitForm = async (data: any) => {
     if (data.type === 'youtube') {
       setIsSubmitting(true);
-      const videoId = extractYouTubeId(data.url);
+      const videoId = extractYouTubeId(data.content);
       if (!videoId) {
         toast.error('כתובת URL לא חוקית של YouTube');
         setIsSubmitting(false);
@@ -41,7 +41,9 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       try {
         const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
         const metadata = await response.json();
-        data.title = metadata.title || data.title;
+        if (metadata.title && !data.title.trim()) {
+          data.title = metadata.title;
+        }
       } catch (error) {
         console.error('Error fetching video metadata:', error);
       }
@@ -50,7 +52,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     const formData = {
       ...data,
       file: selectedFile,
-      url: data.type === 'youtube' ? data.url : undefined,
     };
     onSubmit(formData);
     setSelectedFile(null);
@@ -95,23 +96,16 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
           </div>
           <div>
             <Textarea
-              placeholder={selectedType === 'question' ? "מה השאלה שלך?" : "תוכן"}
-              {...register("content", { required: true })}
+              placeholder={
+                selectedType === 'youtube'
+                  ? 'הדבק כאן את כתובת ה-URL של סרטון YouTube'
+                  : selectedType === 'question'
+                  ? 'מה השאלה שלך?'
+                  : 'תוכן'
+              }
+              {...register('content', { required: true })}
             />
           </div>
-
-          {selectedType === 'youtube' && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                קישור לסרטון YouTube
-              </label>
-              <Input
-                type="url"
-                placeholder="https://www.youtube.com/watch?v=..."
-                {...register("url", { required: selectedType === 'youtube' })}
-              />
-            </div>
-          )}
 
           {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
