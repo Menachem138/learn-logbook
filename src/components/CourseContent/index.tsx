@@ -5,6 +5,7 @@ import Section from "./Section";
 import { initialCourseData } from "./courseData";  // Updated import
 import { Section as SectionType } from "./types";
 import { useToast } from "@/hooks/use-toast";
+import { VideoLibrary } from "./VideoLibrary";
 
 const CourseContent = () => {
   const [courseData, setCourseData] = useState<SectionType[]>(initialCourseData);
@@ -25,11 +26,11 @@ const CourseContent = () => {
   const handleLessonComplete = useCallback((sectionIndex: number, lessonIndex: number) => {
     setCourseData(prevData => {
       const newData = [...prevData];
-      newData[sectionIndex].lessons[lessonIndex].completed = 
+      newData[sectionIndex].lessons[lessonIndex].completed =
         !newData[sectionIndex].lessons[lessonIndex].completed;
       return newData;
     });
-    
+
     toast({
       title: "סטטוס שיעור עודכן",
       description: "ההתקדמות שלך נשמרה!",
@@ -37,24 +38,35 @@ const CourseContent = () => {
   }, [toast]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>תוכן הקורס</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="multiple" className="w-full">
-          {courseData.map((section, sectionIndex) => (
-            <Section
-              key={sectionIndex}
-              title={section.title}
-              lessons={section.lessons}
-              duration={calculateTotalDuration(section.lessons)}
-              onLessonComplete={(lessonIndex) => handleLessonComplete(sectionIndex, lessonIndex)}
-            />
-          ))}
-        </Accordion>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>תוכן הקורס</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="multiple" className="w-full">
+            {courseData.map((section, sectionIndex) => (
+              <Section
+                key={sectionIndex}
+                title={section.title}
+                lessons={section.lessons}
+                duration={calculateTotalDuration(section.lessons)}
+                onLessonComplete={(lessonIndex) => handleLessonComplete(sectionIndex, lessonIndex)}
+              />
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>ספריית סרטונים</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <VideoLibrary />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
