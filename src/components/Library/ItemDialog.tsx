@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { Upload } from "lucide-react";
+import { getYouTubeVideoId } from "@/utils/youtube";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -57,24 +59,43 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
           <div>
-            <select
-              className="w-full p-2 border rounded-md"
-              {...register("type", { required: true })}
+            <Select
+              value={watch("type")}
+              onValueChange={(value) => {
+                const event = { target: { value, name: "type" } };
+                register("type").onChange(event);
+              }}
             >
-              <option value="note">הערה</option>
-              <option value="link">קישור</option>
-              <option value="image">תמונה</option>
-              <option value="video">וידאו</option>
-              <option value="whatsapp">וואטסאפ</option>
-              <option value="pdf">PDF</option>
-              <option value="question">שאלה</option>
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="note">הערה</SelectItem>
+                <SelectItem value="link">קישור</SelectItem>
+                <SelectItem value="image">תמונה</SelectItem>
+                <SelectItem value="video">וידאו</SelectItem>
+                <SelectItem value="youtube">סרטון YouTube</SelectItem>
+                <SelectItem value="whatsapp">וואטסאפ</SelectItem>
+                <SelectItem value="pdf">PDF</SelectItem>
+                <SelectItem value="question">שאלה</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <Textarea
-              placeholder={selectedType === 'question' ? "מה השאלה שלך?" : "תוכן"}
-              {...register("content", { required: true })}
-            />
+            {selectedType === 'youtube' ? (
+              <Input
+                placeholder="הכנס קישור YouTube"
+                {...register("content", {
+                  required: true,
+                  validate: (value) => getYouTubeVideoId(value) !== null || "קישור YouTube לא תקין"
+                })}
+              />
+            ) : (
+              <Textarea
+                placeholder={selectedType === 'question' ? "מה השאלה שלך?" : "תוכן"}
+                {...register("content", { required: true })}
+              />
+            )}
           </div>
 
           {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
@@ -86,10 +107,10 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' 
-                      ? "image/*" 
-                      : selectedType === 'video' 
-                      ? "video/*" 
+                    selectedType === 'image'
+                      ? "image/*"
+                      : selectedType === 'video'
+                      ? "video/*"
                       : "application/pdf"
                   }
                   onChange={handleFileChange}

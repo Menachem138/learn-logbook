@@ -2,11 +2,12 @@ import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getYouTubeVideoId, getYouTubeEmbedUrl } from "@/utils/youtube";
 
 interface MediaViewerProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "image" | "video";
+  type: "image" | "video" | "youtube";
   src: string;
   title: string;
 }
@@ -24,7 +25,16 @@ export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerPr
           >
             <X className="h-4 w-4" />
           </Button>
-          {type === "image" ? (
+          {type === "youtube" ? (
+            <div className="relative w-full aspect-video">
+              <iframe
+                src={getYouTubeEmbedUrl(getYouTubeVideoId(src)!)}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : type === "image" ? (
             <img
               src={src}
               alt={title}

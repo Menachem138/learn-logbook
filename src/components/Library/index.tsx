@@ -64,7 +64,7 @@ const Library = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">ספריית תוכן</h2>
+        <h2 className="text-2xl font-bold">ספריית סרטוני YouTube</h2>
         <div className="flex gap-4">
           <Input
             type="search"
@@ -73,7 +73,7 @@ const Library = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-xs"
           />
-          <Button 
+          <Button
             onClick={() => {
               setEditingItem(null);
               setIsDialogOpen(true);

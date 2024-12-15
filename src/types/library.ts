@@ -1,4 +1,4 @@
-export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question';
+export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'youtube' | 'whatsapp' | 'pdf' | 'question';
 
 export interface LibraryItem {
   id: string;
