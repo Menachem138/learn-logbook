@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import YouTubeLibrary from '@/components/YouTubeLibrary';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -34,6 +35,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/youtube"
+              element={
+                <ProtectedRoute>
+                  <YouTubeLibrary />
                 </ProtectedRoute>
               }
             />
