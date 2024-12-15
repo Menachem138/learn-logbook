@@ -19,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDropzone } from 'react-dropzone';
 
 interface TextEditorToolbarProps {
   onFormatText: (format: string) => void;
@@ -27,13 +26,18 @@ interface TextEditorToolbarProps {
 }
 
 export function TextEditorToolbar({ onFormatText, onImageUpload }: TextEditorToolbarProps) {
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: { 'image/*': [] },
-    maxFiles: 1,
-    onDrop: files => files[0] && onImageUpload(files[0]),
-    noClick: false,
-    noKeyboard: false,
-  });
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onImageUpload(file);
+    }
+  };
 
   return (
     <div className="flex items-center gap-1 mb-2 p-2 border-b" dir="rtl">
@@ -142,14 +146,19 @@ export function TextEditorToolbar({ onFormatText, onImageUpload }: TextEditorToo
       </div>
 
       <div className="flex items-center gap-1 border-r pr-2 mr-2">
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
         <Button
           variant="ghost"
           size="sm"
           title="הוסף תמונה"
-          className={`px-2 ${isDragActive ? 'bg-gray-100' : ''}`}
-          {...getRootProps()}
+          onClick={handleImageClick}
         >
-          <input {...getInputProps()} />
           <ImageIcon className="h-4 w-4" />
         </Button>
       </div>
