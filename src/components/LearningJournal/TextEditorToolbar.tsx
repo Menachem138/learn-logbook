@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { 
+import {
   AlignLeft,
   AlignCenter,
   AlignRight,
@@ -10,7 +10,8 @@ import {
   Bold,
   Italic,
   Underline,
-  ChevronDown 
+  ChevronDown,
+  Image
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -21,9 +22,10 @@ import {
 
 interface TextEditorToolbarProps {
   onFormatText: (format: string) => void;
+  onImageUpload?: () => void;
 }
 
-export function TextEditorToolbar({ onFormatText }: TextEditorToolbarProps) {
+export function TextEditorToolbar({ onFormatText, onImageUpload }: TextEditorToolbarProps) {
   return (
     <div className="flex items-center gap-1 mb-2 p-2 border-b" dir="rtl">
       <DropdownMenu>
@@ -129,6 +131,19 @@ export function TextEditorToolbar({ onFormatText }: TextEditorToolbarProps) {
           <Underline className="h-4 w-4" />
         </Button>
       </div>
+
+      {onImageUpload && (
+        <div className="flex items-center gap-1 border-r pr-2 mr-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onImageUpload}
+            title="הוסף תמונה"
+          >
+            <Image className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
