@@ -182,7 +182,8 @@ const Library = () => {
         <MediaViewer
           isOpen={!!selectedMedia}
           onClose={() => setSelectedMedia(null)}
-          {...selectedMedia}
+          url={selectedMedia.src}
+          title={selectedMedia.title}
         />
       )}
     </div>
