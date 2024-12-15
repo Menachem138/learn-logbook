@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 interface MediaViewerProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "image" | "video";
+  type: "image" | "video" | "youtube";
   src: string;
   title: string;
 }
@@ -24,7 +24,17 @@ export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerPr
           >
             <X className="h-4 w-4" />
           </Button>
-          {type === "image" ? (
+          {type === "youtube" ? (
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${src.split("/").pop()}?autoplay=1`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="aspect-video"
+            />
+          ) : type === "image" ? (
             <img
               src={src}
               alt={title}
