@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { 
+import {
   AlignLeft,
   AlignCenter,
   AlignRight,
@@ -10,7 +10,8 @@ import {
   Bold,
   Italic,
   Underline,
-  ChevronDown 
+  ChevronDown,
+  Image as ImageIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -18,12 +19,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDropzone } from 'react-dropzone';
 
 interface TextEditorToolbarProps {
   onFormatText: (format: string) => void;
+  onImageUpload: (file: File) => void;
 }
 
-export function TextEditorToolbar({ onFormatText }: TextEditorToolbarProps) {
+export function TextEditorToolbar({ onFormatText, onImageUpload }: TextEditorToolbarProps) {
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: { 'image/*': [] },
+    maxFiles: 1,
+    onDrop: files => files[0] && onImageUpload(files[0]),
+    noClick: false,
+    noKeyboard: false,
+  });
+
   return (
     <div className="flex items-center gap-1 mb-2 p-2 border-b" dir="rtl">
       <DropdownMenu>
@@ -127,6 +138,19 @@ export function TextEditorToolbar({ onFormatText }: TextEditorToolbarProps) {
           title="קו תחתון"
         >
           <Underline className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-1 border-r pr-2 mr-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          title="הוסף תמונה"
+          className={`px-2 ${isDragActive ? 'bg-gray-100' : ''}`}
+          {...getRootProps()}
+        >
+          <input {...getInputProps()} />
+          <ImageIcon className="h-4 w-4" />
         </Button>
       </div>
     </div>
