@@ -30,6 +30,29 @@ export interface Database {
           user_id?: string;
         };
       };
+      study_goals: {
+        Row: {
+          id: string;
+          description: string;
+          completed: boolean;
+          created_at: string;
+          user_id: string;
+        };
+        Insert: {
+          id?: string;
+          description: string;
+          completed?: boolean;
+          created_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          id?: string;
+          description?: string;
+          completed?: boolean;
+          created_at?: string;
+          user_id?: string;
+        };
+      };
     };
   };
 }

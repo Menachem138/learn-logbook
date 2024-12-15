@@ -14,10 +14,6 @@ export default function StudyGoals() {
   const [newGoal, setNewGoal] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchGoals();
-  }, []);
-
   const fetchGoals = async () => {
     const { data, error } = await supabase
       .from('study_goals')
@@ -35,6 +31,10 @@ export default function StudyGoals() {
 
     setGoals(data || []);
   };
+
+  useEffect(() => {
+    fetchGoals();
+  }, [fetchGoals]);
 
   const addGoal = async () => {
     if (!newGoal.trim()) return;
