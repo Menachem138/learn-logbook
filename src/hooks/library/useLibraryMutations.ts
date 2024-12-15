@@ -2,26 +2,43 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFileToStorage } from '@/utils/fileStorage';
+import { getYouTubeVideoId, getYouTubeThumbnail, fetchYouTubeMetadata } from '@/utils/youtube';
 
 export const useLibraryMutations = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const addItem = useMutation({
-    mutationFn: async ({ title, content, type, file }: { 
+    mutationFn: async ({ title, content, type, file, file_details }: {
       title: string;
       content: string;
       type: string;
       file?: File;
+      file_details?: any;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
 
-      let fileDetails = null;
+      let fileDetails = file_details || null;
 
-      if (file) {
+      if (type === 'youtube' && content) {
+        const videoId = getYouTubeVideoId(content);
+        if (videoId) {
+          const metadata = await fetchYouTubeMetadata(videoId);
+          fileDetails = {
+            youtube_id: videoId,
+            thumbnail_url: metadata.thumbnail,
+            title: metadata.title || title,
+            author: metadata.author,
+            type: 'youtube'
+          };
+          if (!title && metadata.title) {
+            title = metadata.title;
+          }
+        }
+      } else if (file && !fileDetails) {
         const { publicUrl, filePath, fileName, fileSize, mimeType } = await uploadFileToStorage(file, user.id);
         fileDetails = {
           path: publicUrl,

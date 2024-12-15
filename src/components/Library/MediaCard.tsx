@@ -6,9 +6,10 @@ interface MediaCardProps {
   type: "image" | "video" | "pdf" | "youtube";
   src: string;
   title: string;
+  onClick?: () => void;
 }
 
-export function MediaCard({ type, src, title }: MediaCardProps) {
+export function MediaCard({ type, src, title, onClick }: MediaCardProps) {
   if (type === "pdf") {
     return (
       <Card className="p-4 flex items-center gap-2">
@@ -27,7 +28,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
 
   if (type === "image") {
     return (
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden" onClick={onClick}>
         <img src={src} alt={title} className="w-full h-auto" />
       </Card>
     );
@@ -49,18 +50,21 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     const thumbnailUrl = getYouTubeThumbnail(videoId);
 
     return (
-      <Card className="overflow-hidden relative group cursor-pointer">
-        <img
-          src={thumbnailUrl}
-          alt={title}
-          className="w-full h-auto"
-          onError={(e) => {
-            console.error('Failed to load YouTube thumbnail:', thumbnailUrl);
-            e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/0.jpg`;
-          }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all">
-          <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all" />
+      <Card className="overflow-hidden relative group cursor-pointer" onClick={onClick}>
+        <div className="aspect-video relative">
+          <img
+            src={thumbnailUrl}
+            alt={title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              console.error('Failed to load YouTube thumbnail:', thumbnailUrl);
+              e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+            }}
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all">
+            <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all" />
+            <span className="text-white text-sm mt-2 px-2 text-center opacity-0 group-hover:opacity-100 transition-all">{title}</span>
+          </div>
         </div>
       </Card>
     );

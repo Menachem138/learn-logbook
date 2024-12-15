@@ -9,6 +9,7 @@ import { LibraryItem, LibraryItemType } from "@/types/library";
 import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
+import { MediaViewer } from "./MediaViewer";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -35,6 +36,7 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{ type: "image" | "video" | "youtube"; src: string; title: string } | null>(null);
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -129,6 +131,15 @@ const Library = () => {
                   type={item.type as "image" | "video" | "pdf"}
                   src={item.file_details.path}
                   title={item.title}
+                  onClick={() => {
+                    if (item.type === "image" || item.type === "video") {
+                      setSelectedMedia({
+                        type: item.type,
+                        src: item.file_details.path,
+                        title: item.title
+                      });
+                    }
+                  }}
                 />
               </div>
             )}
@@ -138,6 +149,18 @@ const Library = () => {
                   type="youtube"
                   src={item.file_details.youtube_id}
                   title={item.title}
+                  onClick={() => {
+                    console.log('YouTube card clicked:', {
+                      id: item.id,
+                      youtube_id: item.file_details.youtube_id,
+                      title: item.title
+                    });
+                    setSelectedMedia({
+                      type: 'youtube',
+                      src: item.file_details.youtube_id,
+                      title: item.title
+                    });
+                  }}
                 />
               </div>
             )}
@@ -154,6 +177,14 @@ const Library = () => {
           setEditingItem(null);
         }}
       />
+
+      {selectedMedia && (
+        <MediaViewer
+          isOpen={!!selectedMedia}
+          onClose={() => setSelectedMedia(null)}
+          {...selectedMedia}
+        />
+      )}
     </div>
   );
 };

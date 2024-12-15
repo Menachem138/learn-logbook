@@ -30,3 +30,30 @@ export function getYouTubeThumbnail(videoId: string): string {
 export function isValidYouTubeUrl(url: string): boolean {
   return !!getYouTubeVideoId(url);
 }
+
+/**
+ * Fetches metadata for a YouTube video using the noembed.com API
+ * @param videoId The YouTube video ID
+ * @returns Object containing video title, author, and thumbnail URL, or null if fetch fails
+ */
+export async function fetchYouTubeMetadata(videoId: string) {
+  try {
+    const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch metadata: ${response.status}`);
+    }
+    const data = await response.json();
+    return {
+      title: data.title || '',
+      author: data.author_name || '',
+      thumbnail: data.thumbnail_url || getYouTubeThumbnail(videoId)
+    };
+  } catch (error) {
+    console.error('Failed to fetch YouTube metadata:', error);
+    return {
+      title: '',
+      author: '',
+      thumbnail: getYouTubeThumbnail(videoId)
+    };
+  }
+}
