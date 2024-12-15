@@ -45,8 +45,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   if (type === "youtube") {
-    const videoId = src.split("/").pop();
-    const thumbnailUrl = getYouTubeThumbnail(videoId || '');
+    const thumbnailUrl = getYouTubeThumbnail(src); // src is now directly the video ID
     return (
       <Card className="overflow-hidden relative group cursor-pointer">
         <img src={thumbnailUrl} alt={title} className="w-full h-auto" />

@@ -22,6 +22,8 @@ const getIcon = (type: LibraryItemType) => {
       return <Video className="w-4 h-4" />;
     case 'whatsapp':
       return <MessageCircle className="w-4 h-4" />;
+    case 'youtube':
+      return <Video className="w-4 h-4 text-red-500" />;
     case 'pdf':
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
@@ -73,7 +75,7 @@ const Library = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-xs"
           />
-          <Button 
+          <Button
             onClick={() => {
               setEditingItem(null);
               setIsDialogOpen(true);
@@ -126,6 +128,15 @@ const Library = () => {
                 <MediaCard
                   type={item.type as "image" | "video" | "pdf"}
                   src={item.file_details.path}
+                  title={item.title}
+                />
+              </div>
+            )}
+            {item.type === 'youtube' && item.file_details?.youtube_id && (
+              <div className="mt-2">
+                <MediaCard
+                  type="youtube"
+                  src={item.file_details.youtube_id}
                   title={item.title}
                 />
               </div>

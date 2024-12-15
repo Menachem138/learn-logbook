@@ -28,7 +28,7 @@ export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerPr
             <iframe
               width="100%"
               height="100%"
-              src={`https://www.youtube.com/embed/${src.split("/").pop()}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${src}?autoplay=1`} // src is now directly the video ID
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
