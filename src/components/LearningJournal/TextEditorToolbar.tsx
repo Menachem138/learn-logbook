@@ -1,24 +1,21 @@
-import React from 'react';
-import { Button } from "@/components/ui/button";
+import * as React from 'react';
 import {
-  AlignLeft,
   AlignCenter,
+  AlignLeft,
   AlignRight,
-  Quote,
-  List,
-  ListOrdered,
   Bold,
+  ChevronDown,
   Italic,
   Underline,
-  ChevronDown,
-  Image as ImageIcon
+  Upload
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 interface TextEditorToolbarProps {
   onFormatText: (format: string) => void;
@@ -29,7 +26,9 @@ export function TextEditorToolbar({ onFormatText, onImageUpload }: TextEditorToo
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleImageClick = () => {
-    fileInputRef.current?.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,82 +42,28 @@ export function TextEditorToolbar({ onFormatText, onImageUpload }: TextEditorToo
     <div className="flex items-center gap-1 mb-2 p-2 border-b" dir="rtl">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="flex gap-2">
-            טקסט רגיל
-            <ChevronDown className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="px-2">
+            <span>טקסט רגיל</span>
+            <ChevronDown className="h-4 w-4 mr-1" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem>
-            טקסט רגיל
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={() => onFormatText('align-right')}>
+            <AlignRight className="h-4 w-4 ml-2" />
+            <span>יישור לימין</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            כותרת
+          <DropdownMenuItem onClick={() => onFormatText('align-center')}>
+            <AlignCenter className="h-4 w-4 ml-2" />
+            <span>יישור למרכז</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            כותרת משנית
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            תת-כותרת
+          <DropdownMenuItem onClick={() => onFormatText('align-left')}>
+            <AlignLeft className="h-4 w-4 ml-2" />
+            <span>יישור לשמאל</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <div className="flex items-center gap-1 border-r pr-2 mr-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onFormatText('align-right')}
-          title="יישור לימין"
-        >
-          <AlignRight className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onFormatText('align-center')}
-          title="יישור למרכז"
-        >
-          <AlignCenter className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onFormatText('align-left')}
-          title="יישור לשמאל"
-        >
-          <AlignLeft className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-1 border-r pr-2 mr-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onFormatText('quote')}
-          title="ציטוט"
-        >
-          <Quote className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onFormatText('bullet-list')}
-          title="רשימה"
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onFormatText('numbered-list')}
-          title="רשימה ממוספרת"
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-1 border-r pr-2 mr-2">
+      <div className="flex items-center gap-1">
         <Button
           variant="ghost"
           size="sm"
@@ -152,14 +97,18 @@ export function TextEditorToolbar({ onFormatText, onImageUpload }: TextEditorToo
           accept="image/*"
           className="hidden"
           onChange={handleFileChange}
+          data-testid="image-upload-input"
         />
         <Button
           variant="ghost"
           size="sm"
-          title="הוסף תמונה"
           onClick={handleImageClick}
+          title="העלה תמונה"
+          className="flex items-center gap-1"
+          data-testid="image-upload-button"
         >
-          <ImageIcon className="h-4 w-4" />
+          <Upload className="h-4 w-4" />
+          <span>העלה תמונה</span>
         </Button>
       </div>
     </div>
