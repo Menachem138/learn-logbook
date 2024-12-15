@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ interface ItemDialogProps {
 }
 
 export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
-  const { register, handleSubmit, reset, watch } = useForm({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<LibraryItem & { youtube_url?: string; file?: File }>({
     defaultValues: initialData || {
       title: "",
       content: "",
@@ -24,7 +24,44 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const selectedType = watch("type");
+  const youtubeUrl = watch("youtube_url");
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [isLoadingTitle, setIsLoadingTitle] = React.useState(false);
+
+  const fetchVideoTitle = async (videoId: string) => {
+    try {
+      console.log('Fetching title for video:', videoId);
+      const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+      const data = await response.json();
+      console.log('Received video data:', data);
+      return data.title || '';
+    } catch (error) {
+      console.error('Error fetching video title:', error);
+      return '';
+    }
+  };
+
+  useEffect(() => {
+    if (selectedType === 'youtube' && youtubeUrl) {
+      console.log('URL changed:', youtubeUrl);
+      if (isValidYouTubeUrl(youtubeUrl)) {
+        const videoId = getYouTubeVideoId(youtubeUrl);
+        console.log('Valid YouTube URL, video ID:', videoId);
+        if (videoId) {
+          setIsLoadingTitle(true);
+          fetchVideoTitle(videoId).then((title) => {
+            console.log('Setting title to:', title);
+            if (title) {
+              setValue('title', title);
+            }
+            setIsLoadingTitle(false);
+          });
+        }
+      } else {
+        console.log('Invalid YouTube URL');
+      }
+    }
+  }, [youtubeUrl, selectedType, setValue]);
 
   const onSubmitForm = async (data: any) => {
     try {
@@ -33,7 +70,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       if (data.type === 'youtube') {
         const videoId = getYouTubeVideoId(data.youtube_url);
         if (!videoId) {
-          // Show error for invalid YouTube URL
           return;
         }
         formData = {
@@ -77,6 +113,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             <Input
               placeholder="כותרת"
               {...register("title", { required: true })}
+              disabled={selectedType === 'youtube' && isLoadingTitle}
             />
           </div>
           <div>
@@ -111,11 +148,23 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 placeholder="https://www.youtube.com/watch?v=..."
                 {...register("youtube_url", {
                   required: selectedType === 'youtube',
-                  validate: {
-                    isValidUrl: (value) =>
-                      !value || selectedType !== 'youtube' ||
-                      isValidYouTubeUrl(value) ||
-                      "נא להזין קישור YouTube תקין"
+                  onChange: (e) => {
+                    const url = e.target.value;
+                    console.log('YouTube URL changed:', url);
+                    if (isValidYouTubeUrl(url)) {
+                      const videoId = getYouTubeVideoId(url);
+                      console.log('Valid YouTube URL, video ID:', videoId);
+                      if (videoId) {
+                        setIsLoadingTitle(true);
+                        fetchVideoTitle(videoId).then((title) => {
+                          console.log('Setting title to:', title);
+                          if (title) {
+                            setValue('title', title);
+                          }
+                          setIsLoadingTitle(false);
+                        });
+                      }
+                    }
                   }
                 })}
                 dir="ltr"

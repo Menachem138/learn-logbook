@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { getYouTubeVideoId } from '@/utils/youtube';
 import { X } from 'lucide-react';
@@ -14,63 +14,26 @@ interface MediaViewerProps {
 export function MediaViewer({ isOpen, onClose, url, title }: MediaViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const iframeRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
+  const videoId = url ? getYouTubeVideoId(url) : null;
 
   useEffect(() => {
-    if (!isOpen || !url) return;
-
-    const loadYouTubeAPI = () => {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-    };
-
-    if (!(window as any).YT) {
-      loadYouTubeAPI();
+    if (!isOpen || !videoId) {
+      setError(videoId ? null : 'Invalid YouTube URL');
+      setIsLoading(false);
+      return;
     }
 
-    (window as any).onYouTubeIframeAPIReady = () => {
-      if (!iframeRef.current) return;
+    // Reset states when opening modal
+    setIsLoading(true);
+    setError(null);
 
-      const videoId = getYouTubeVideoId(url);
-      if (!videoId) {
-        setError('Invalid YouTube URL');
-        setIsLoading(false);
-        return;
-      }
+    // Simulate loading delay for iframe
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
 
-      try {
-        playerRef.current = new (window as any).YT.Player(iframeRef.current, {
-          videoId,
-          playerVars: {
-            autoplay: 0,
-            modestbranding: 1,
-            rel: 0,
-            origin: window.location.origin
-          },
-          events: {
-            onReady: () => setIsLoading(false),
-            onError: () => {
-              setError('Failed to load video');
-              setIsLoading(false);
-            }
-          }
-        });
-      } catch (err) {
-        setError('Failed to initialize video player');
-        setIsLoading(false);
-      }
-    };
-
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-    };
-  }, [isOpen, url]);
+    return () => clearTimeout(timer);
+  }, [isOpen, videoId]);
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
@@ -103,7 +66,31 @@ export function MediaViewer({ isOpen, onClose, url, title }: MediaViewerProps) {
               </a>
             </div>
           ) : (
-            <div ref={iframeRef} className="w-full h-full" />
+            !isLoading && videoId && (
+              <div className="w-full h-full flex flex-col">
+                <iframe
+                  title={title}
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="flex-grow"
+                />
+                <div className="p-2 flex justify-center">
+                  <Button variant="secondary" asChild>
+                    <a
+                      href={`https://www.youtube.com/watch?v=${videoId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm"
+                    >
+                      Watch on YouTube
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            )
           )}
         </div>
       </DialogContent>
