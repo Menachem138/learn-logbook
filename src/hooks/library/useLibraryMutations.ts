@@ -2,16 +2,18 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFileToStorage } from '@/utils/fileStorage';
+import { LibraryItemType } from '@/types/library';
+import { getYouTubeVideoId } from '@/utils/youtube';
 
 export const useLibraryMutations = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const addItem = useMutation({
-    mutationFn: async ({ title, content, type, file }: { 
+    mutationFn: async ({ title, content, type, file }: {
       title: string;
       content: string;
-      type: string;
+      type: LibraryItemType;
       file?: File;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -20,6 +22,14 @@ export const useLibraryMutations = () => {
       }
 
       let fileDetails = null;
+
+      // Validate YouTube URL if type is youtube
+      if (type === 'youtube') {
+        const videoId = getYouTubeVideoId(content);
+        if (!videoId) {
+          throw new Error('כתובת URL לא חוקית של YouTube');
+        }
+      }
 
       if (file) {
         const { publicUrl, filePath, fileName, fileSize, mimeType } = await uploadFileToStorage(file, user.id);
@@ -64,7 +74,7 @@ export const useLibraryMutations = () => {
       id: string;
       title: string;
       content: string;
-      type: string;
+      type: LibraryItemType;
       file?: File;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -73,6 +83,14 @@ export const useLibraryMutations = () => {
       }
 
       let fileDetails = null;
+
+      // Validate YouTube URL if type is youtube
+      if (type === 'youtube') {
+        const videoId = getYouTubeVideoId(content);
+        if (!videoId) {
+          throw new Error('כתובת URL לא חוקית של YouTube');
+        }
+      }
 
       if (file) {
         const { publicUrl, filePath, fileName, fileSize, mimeType } = await uploadFileToStorage(file, user.id);
