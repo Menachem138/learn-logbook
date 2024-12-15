@@ -157,7 +157,7 @@ const Library = () => {
                     });
                     setSelectedMedia({
                       type: 'youtube',
-                      src: item.file_details.youtube_id,
+                      src: `https://www.youtube.com/watch?v=${item.file_details.youtube_id}`,
                       title: item.title
                     });
                   }}
