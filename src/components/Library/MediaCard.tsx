@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { FileText, Play } from "lucide-react";
+import { getYouTubeThumbnail } from "@/utils/youtube";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
+  type: "image" | "video" | "pdf" | "youtube";
   src: string;
   title: string;
 }
@@ -12,9 +13,9 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     return (
       <Card className="p-4 flex items-center gap-2">
         <FileText className="w-6 h-6 text-red-500" />
-        <a 
-          href={src} 
-          target="_blank" 
+        <a
+          href={src}
+          target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
         >
@@ -39,6 +40,19 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           <source src={src} type="video/mp4" />
           הדפדפן שלך לא תומך בתגית וידאו.
         </video>
+      </Card>
+    );
+  }
+
+  if (type === "youtube") {
+    const videoId = src.split("/").pop();
+    const thumbnailUrl = getYouTubeThumbnail(videoId || '');
+    return (
+      <Card className="overflow-hidden relative group cursor-pointer">
+        <img src={thumbnailUrl} alt={title} className="w-full h-auto" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all">
+          <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-all" />
+        </div>
       </Card>
     );
   }
