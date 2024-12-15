@@ -12,11 +12,9 @@ interface AddVideoDialogProps {
 }
 
 export function AddVideoDialog({ isOpen, onClose }: AddVideoDialogProps) {
-  const { addVideo, error, isLoading } = useYouTubeStore(state => ({
-    addVideo: state.addVideo,
-    error: state.error,
-    isLoading: state.isLoading
-  }));
+  const addVideo = useYouTubeStore(state => state.addVideo);
+  const error = useYouTubeStore(state => state.error);
+  const isLoading = useYouTubeStore(state => state.isLoading);
   const [url, setUrl] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
