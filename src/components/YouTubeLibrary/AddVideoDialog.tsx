@@ -25,6 +25,7 @@ export function AddVideoDialog({ isOpen, onClose }: AddVideoDialogProps) {
 
     console.log('Attempting to add video:', url);
     try {
+      console.log('Calling addVideo with URL:', url);
       await addVideo(url);
       console.log('Video added successfully');
       setUrl("");

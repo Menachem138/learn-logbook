@@ -87,7 +87,11 @@ export const useYouTubeStore = create<YouTubeStore>()(
             return;
           }
 
-          if (!import.meta.env.VITE_YOUTUBE_API_KEY) {
+          console.log('Checking YouTube API key configuration...');
+          const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
+          console.log('API Key available:', !!apiKey);
+
+          if (!apiKey) {
             throw new Error('YouTube API key is not configured');
           }
 
