@@ -2,20 +2,57 @@ import { createClient } from '@supabase/supabase-js';
 
 /**
  * Parses a YouTube URL to extract the video ID
- * Supports both formats:
+ * Supports multiple formats:
  * - https://www.youtube.com/watch?v=XXXXXXXXXXX
  * - https://youtu.be/XXXXXXXXXXX
+ * - https://youtube.com/shorts/XXXXXXXXXXX
+ * - https://www.youtube.com/embed/XXXXXXXXXXX
  */
 export function parseYouTubeUrl(url: string): string | null {
+  if (!url) {
+    console.error('Empty URL provided to parseYouTubeUrl');
+    return null;
+  }
+
+  console.log('Parsing YouTube URL:', url);
+
   const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu.be\/)([^&\n?#]+)/,
+    /(?:youtube\.com\/watch\?v=|youtu.be\/|youtube.com\/shorts\/|youtube.com\/embed\/)([^&\n?#]+)/,
+    /^[a-zA-Z0-9_-]{11}$/ // Direct video ID
   ];
 
   for (const pattern of patterns) {
     const match = url.match(pattern);
-    if (match && match[1]) return match[1];
+    if (match && match[1]) {
+      console.log('Successfully extracted video ID:', match[1]);
+      return match[1];
+    }
   }
+
+  console.error('Failed to extract video ID from URL:', url);
   return null;
+}
+
+/**
+ * Gets the YouTube video thumbnail URL with quality fallbacks
+ * Handles both direct video IDs and stored video data from Supabase
+ */
+export function getYouTubeThumbnail(url: string): string {
+  // Try to extract video ID from URL first
+  const videoId = parseYouTubeUrl(url);
+  if (!videoId) {
+    console.error('Invalid YouTube URL or ID:', url);
+    return '';
+  }
+
+  console.log('Generating thumbnail URL for video ID:', videoId);
+
+  // Try multiple thumbnail qualities in order of preference
+  const qualities = ['maxresdefault', 'hqdefault', 'mqdefault', 'default'];
+
+  // Return the highest quality thumbnail URL
+  // We'll validate the actual availability client-side with onerror handlers
+  return `https://img.youtube.com/vi/${videoId}/${qualities[0]}.jpg`;
 }
 
 /**

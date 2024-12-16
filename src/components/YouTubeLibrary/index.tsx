@@ -10,6 +10,7 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import type { YouTubeVideo } from "../../stores/youtube";
+import { getYouTubeThumbnail } from "../../utils/youtube";
 
 export function YouTubeLibrary() {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
@@ -93,29 +94,42 @@ export function YouTubeLibrary() {
         {videos.map((video) => (
           <Card
             key={video.id}
-            className="relative cursor-pointer hover:shadow-lg transition-shadow"
+            className="relative cursor-pointer hover:shadow-lg transition-shadow overflow-visible"
             onClick={() => setSelectedVideo(video.id)}
             data-testid="video-card"
           >
-            <div className="absolute top-2 right-2 z-10">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setVideoToDelete(video);
-                  setIsDeleteDialogOpen(true);
-                }}
-                className="p-2 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-                data-testid="delete-video-button"
-              >
-                <Trash2 className="h-4 w-4 text-white" />
-              </button>
-            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setVideoToDelete(video);
+                setIsDeleteDialogOpen(true);
+              }}
+              className="absolute top-2 right-2 z-[100] p-2 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center shadow-md"
+              data-testid="delete-video-button"
+              style={{ width: '32px', height: '32px' }}
+            >
+              <Trash2 className="h-4 w-4 text-white" />
+            </button>
             <div className="aspect-video relative">
               <img
-                src={`https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`}
+                src={getYouTubeThumbnail(video.url)}
                 alt={video.title}
                 className="w-full h-full object-cover"
                 data-testid="video-thumbnail"
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  const currentQuality = img.src.match(/\/(\w+)\.jpg$/)?.[1];
+                  const qualities = ['maxresdefault', 'hqdefault', 'mqdefault', 'default'];
+                  const currentIndex = qualities.indexOf(currentQuality || '');
+
+                  if (currentIndex < qualities.length - 1) {
+                    const nextQuality = qualities[currentIndex + 1];
+                    const videoId = video.url.match(/(?:youtube\.com\/watch\?v=|youtu.be\/|youtube.com\/shorts\/|youtube.com\/embed\/)([^&\n?#]+)/)?.[1];
+                    if (videoId) {
+                      img.src = `https://img.youtube.com/vi/${videoId}/${nextQuality}.jpg`;
+                    }
+                  }
+                }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <PlayIcon className="h-12 w-12 text-white opacity-80" />
