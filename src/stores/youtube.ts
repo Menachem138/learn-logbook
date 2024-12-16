@@ -4,7 +4,7 @@ import { supabase } from '../integrations/supabase/client';
 import { parseYouTubeUrl, getYouTubeVideoDetails } from '../utils/youtube';
 import type { Database } from '../integrations/supabase/types';
 
-type YouTubeVideo = Database['public']['Tables']['youtube_videos']['Row'];
+export type YouTubeVideo = Database['public']['Tables']['youtube_videos']['Row'];
 
 interface YouTubeStore {
   videos: YouTubeVideo[];

@@ -5,6 +5,8 @@ import { Input } from "../ui/input";
 import { useYouTubeStore } from "../../stores/youtube";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Loader2 } from "lucide-react";
+import { parseYouTubeUrl, getYouTubeVideoDetails } from "../../utils/youtube";
+import { supabase } from "../../integrations/supabase/client";
 
 interface AddVideoDialogProps {
   isOpen: boolean;
@@ -12,20 +14,60 @@ interface AddVideoDialogProps {
 }
 
 export function AddVideoDialog({ isOpen, onClose }: AddVideoDialogProps) {
-  // Use separate selectors to prevent unnecessary re-renders
-  const addVideo = useYouTubeStore(state => state.addVideo);
-  const error = useYouTubeStore(state => state.error);
-  const isLoading = useYouTubeStore(state => state.isLoading);
   const [url, setUrl] = useState("");
+  const [error, setError] = useState("");
+  const { fetchVideos } = useYouTubeStore();
+  const isLoading = useYouTubeStore(state => state.isLoading);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     try {
-      await addVideo(url);
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('Current user:', user, 'Auth error:', authError);
+
+      if (!user || authError) {
+        console.error('Authentication error:', authError);
+        setError('נא להתחבר כדי להוסיף סרטונים');
+        return;
+      }
+
+      const videoId = parseYouTubeUrl(url);
+      if (!videoId) {
+        setError('קישור YouTube לא תקין');
+        return;
+      }
+
+      console.log('Fetching video details for:', videoId);
+      const details = await getYouTubeVideoDetails(videoId);
+      console.log('Video details:', details);
+
+      console.log('Inserting video into Supabase...');
+      const { data, error: insertError } = await supabase
+        .from('youtube_videos')
+        .insert([{
+          video_id: videoId,
+          title: details.title,
+          thumbnail_url: details.thumbnail,
+          url: url,
+          user_id: user.id
+        }])
+        .select();
+
+      console.log('Supabase insert response:', { data, error: insertError });
+
+      if (insertError) {
+        console.error('Supabase insert error:', insertError);
+        throw insertError;
+      }
+
+      await fetchVideos();
       setUrl("");
       onClose();
     } catch (err) {
-      // Error will be handled by the store
+      console.error('Error adding video:', err);
+      setError('שגיאה בהוספת הסרטון');
     }
   };
 
