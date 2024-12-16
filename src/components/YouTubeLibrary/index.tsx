@@ -10,12 +10,12 @@ import { YouTubePlayer } from "./YouTubePlayer";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import type { YouTubeVideo } from "../../stores/youtube";
-import { getYouTubeThumbnail, getStandardYouTubeUrl, parseYouTubeUrl } from "../../utils/youtube";
+import { getYouTubeThumbnail, parseYouTubeUrl } from "../../utils/youtube";
 
 export function YouTubeLibrary() {
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { videos, isLoading, fetchVideos, deleteVideo } = useYouTubeStore();
+  const { videos, isLoading, error: storeError, initialized, fetchVideos, deleteVideo } = useYouTubeStore();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [videoToDelete, setVideoToDelete] = useState<YouTubeVideo | null>(null);
@@ -31,21 +31,24 @@ export function YouTubeLibrary() {
         return;
       }
 
-      console.log('Initializing videos with auth state:', {
-        isAuthenticated: !!user,
-        videosCount: videos.length,
-        isLoading
-      });
+      if (!initialized && !isLoading) {
+        console.log('Initializing videos with auth state:', {
+          isAuthenticated: !!user,
+          videosCount: videos.length,
+          isLoading,
+          initialized
+        });
 
-      try {
-        console.log('Fetching videos from Supabase...');
-        fetchVideos();
-      } catch (error) {
-        console.error('Error fetching videos:', error);
-        setError('אירעה שגיאה בטעינת הסרטונים');
+        try {
+          console.log('Fetching videos from Supabase...');
+          fetchVideos();
+        } catch (error) {
+          console.error('Error fetching videos:', error);
+          setError('אירעה שגיאה בטעינת הסרטונים');
+        }
       }
     }
-  }, [user, authLoading, navigate, fetchVideos]);
+  }, [user, authLoading, navigate, fetchVideos, initialized, isLoading]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -81,14 +84,21 @@ export function YouTubeLibrary() {
     }
   };
 
-  if (authLoading) {
-    return <div className="flex justify-center items-center h-screen">טוען...</div>;
+  if (authLoading || (!initialized && isLoading)) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <div className="text-gray-600">טוען את ספריית הסרטונים...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
     return (
       <div className="flex justify-center items-center h-screen flex-col">
-        <div className="text-red-500 mb-4">{error}</div>
+        <div className="text-red-500 mb-4">{error || storeError}</div>
         <Button onClick={() => navigate('/login')}>התחבר</Button>
       </div>
     );
@@ -107,11 +117,11 @@ export function YouTubeLibrary() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
         {videos.map((video) => (
           <Card
             key={video.id}
-            className="relative hover:shadow-lg transition-shadow"
+            className="relative group hover:shadow-lg transition-shadow overflow-hidden"
             data-testid="video-card"
           >
             <button
@@ -121,23 +131,22 @@ export function YouTubeLibrary() {
                 setVideoToDelete(video);
                 setIsDeleteDialogOpen(true);
               }}
-              className="absolute top-2 right-2 z-10 p-1 rounded-full bg-red-500/40 hover:bg-red-600/60 transition-colors"
+              className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-red-500/40 hover:bg-red-600/60 transition-colors"
               data-testid="delete-video-button"
-              style={{ width: '24px', height: '24px' }}
               aria-label="מחק סרטון"
             >
               <Trash2 className="h-4 w-4 text-white" />
             </button>
             <div
               onClick={(e) => handleVideoClick(e, video)}
-              className="block cursor-pointer"
+              className="block cursor-pointer relative group"
               data-testid="video-link"
             >
-              <div className="aspect-video relative">
+              <div className="aspect-video relative overflow-hidden rounded-t-lg">
                 <img
                   src={getYouTubeThumbnail(video.url)}
                   alt={video.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   data-testid="video-thumbnail"
                   onError={(e) => {
                     const img = e.target as HTMLImageElement;
@@ -148,9 +157,18 @@ export function YouTubeLibrary() {
                     }
                   }}
                 />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center transform scale-75 group-hover:scale-100 transition-transform">
+                    <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold truncate" data-testid="video-title">{video.title}</h3>
+                <h3 className="font-semibold line-clamp-2 text-right" dir="rtl" data-testid="video-title">
+                  {video.title}
+                </h3>
               </div>
             </div>
           </Card>
