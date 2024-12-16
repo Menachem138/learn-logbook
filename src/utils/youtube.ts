@@ -111,3 +111,15 @@ export async function getYouTubeVideoDetails(videoId: string) {
 export function isValidYouTubeUrl(url: string): boolean {
   return !!parseYouTubeUrl(url);
 }
+
+/**
+ * Converts any YouTube URL format to the standard watch URL
+ */
+export function getStandardYouTubeUrl(url: string): string {
+  const videoId = parseYouTubeUrl(url);
+  if (!videoId) {
+    console.error('Invalid YouTube URL:', url);
+    return url; // Return original URL if parsing fails
+  }
+  return `https://www.youtube.com/watch?v=${videoId}`;
+}

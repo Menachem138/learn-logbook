@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { Play as PlayIcon, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useYouTubeStore } from "../../stores/youtube";
 import { AddVideoDialog } from "./AddVideoDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import type { YouTubeVideo } from "../../stores/youtube";
-import { getYouTubeThumbnail } from "../../utils/youtube";
+import { getYouTubeThumbnail, getStandardYouTubeUrl } from "../../utils/youtube";
 
 export function YouTubeLibrary() {
   const [isAddingVideo, setIsAddingVideo] = useState(false);
@@ -97,44 +97,50 @@ export function YouTubeLibrary() {
         {videos.map((video) => (
           <Card
             key={video.id}
-            className="relative cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => window.open(video.url, '_blank')}
+            className="relative hover:shadow-lg transition-shadow"
             data-testid="video-card"
           >
             <button
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 setVideoToDelete(video);
                 setIsDeleteDialogOpen(true);
               }}
-              className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-red-500/80 hover:bg-red-600 transition-colors flex items-center justify-center shadow-sm"
+              className="absolute top-2 right-2 z-10 p-1 rounded-full bg-red-500/40 hover:bg-red-600/60 transition-colors"
               data-testid="delete-video-button"
               style={{ width: '24px', height: '24px' }}
+              aria-label="מחק סרטון"
             >
               <Trash2 className="h-4 w-4 text-white" />
             </button>
-            <div className="aspect-video relative">
-              <img
-                src={getYouTubeThumbnail(video.url)}
-                alt={video.title}
-                className="w-full h-full object-cover"
-                data-testid="video-thumbnail"
-                onError={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  console.log('Thumbnail load error, falling back to default quality');
-                  const videoId = video.video_id;
-                  if (videoId) {
-                    img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                  }
-                }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <PlayIcon className="h-12 w-12 text-white opacity-80" />
+            <a
+              href={getStandardYouTubeUrl(video.url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+              data-testid="video-link"
+            >
+              <div className="aspect-video relative">
+                <img
+                  src={getYouTubeThumbnail(video.url)}
+                  alt={video.title}
+                  className="w-full h-full object-cover"
+                  data-testid="video-thumbnail"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    console.log('Thumbnail load error, falling back to default quality');
+                    const videoId = video.video_id;
+                    if (videoId) {
+                      img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                    }
+                  }}
+                />
               </div>
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold truncate" data-testid="video-title">{video.title}</h3>
-            </div>
+              <div className="p-4">
+                <h3 className="font-semibold truncate" data-testid="video-title">{video.title}</h3>
+              </div>
+            </a>
           </Card>
         ))}
       </div>
