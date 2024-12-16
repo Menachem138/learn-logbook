@@ -59,6 +59,7 @@ export const useYouTubeStore = create<YouTubeStore>()(
           const { data, error } = await supabase
             .from('youtube_videos')
             .select('*')
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
           console.log('Supabase response:', { data, error });
@@ -103,6 +104,7 @@ export const useYouTubeStore = create<YouTubeStore>()(
               video_id: videoId,
               title: details.title,
               thumbnail_url: details.thumbnail,
+              user_id: user.id
             });
 
           if (error) {
@@ -173,45 +175,83 @@ export const useYouTubeStore = create<YouTubeStore>()(
         },
         setItem: (name, value) => {
           console.log('Saving to storage:', { name, value });
-          localStorage.setItem(name, JSON.stringify(value));
+          try {
+            localStorage.setItem(name, JSON.stringify(value));
+            console.log('Successfully saved to storage');
+          } catch (error) {
+            console.error('Error saving to storage:', error);
+          }
         },
-        removeItem: (name) => localStorage.removeItem(name),
+        removeItem: (name) => {
+          console.log('Removing item from storage:', name);
+          localStorage.removeItem(name);
+        },
       },
       partialize: (state: YouTubeStore) => {
         console.log('Partializing state:', state);
-        return {
+        const partialState = {
           videos: state.videos,
-          isLoading: state.isLoading,
-          error: state.error
+          isLoading: false,
+          error: null
         };
+        console.log('Partial state:', partialState);
+        return partialState;
       },
       version: 1,
       onRehydrateStorage: () => {
         console.log('Starting rehydration...');
         return async (state) => {
           console.log('Rehydrating store with state:', state);
-          if (state?.videos?.length) {
-            console.log('Setting videos from storage:', state.videos);
-            useYouTubeStore.setState({
-              videos: state.videos,
-              isLoading: false,
-              error: null
-            });
-          } else {
-            console.log('No videos found in storage state');
-          }
 
           try {
-            const { data: { user } } = await supabase.auth.getUser();
+            // Wait for auth state to be fully established
+            console.log('Waiting for auth state to stabilize...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            console.log('Auth state during rehydration:', { user, authError });
+
+            if (authError) {
+              console.error('Auth error during rehydration:', authError);
+              useYouTubeStore.setState({
+                videos: [],
+                error: getHebrewError('Unauthorized'),
+                isLoading: false
+              });
+              return;
+            }
+
             if (user) {
               console.log('User authenticated during rehydration, fetching fresh data...');
+              // Set existing videos first if available
+              if (state?.videos?.length) {
+                console.log('Setting existing videos from state:', state.videos);
+                useYouTubeStore.setState({
+                  videos: state.videos,
+                  isLoading: true,
+                  error: null
+                });
+              }
+
+              // Fetch fresh videos after a delay to ensure auth is ready
+              console.log('Waiting before fetching fresh videos...');
+              await new Promise(resolve => setTimeout(resolve, 500));
               const store = useYouTubeStore.getState();
               await store.fetchVideos();
             } else {
               console.log('No authenticated user during rehydration');
+              useYouTubeStore.setState({
+                videos: [],
+                error: getHebrewError('Unauthorized'),
+                isLoading: false
+              });
             }
           } catch (error) {
             console.error('Error during rehydration:', error);
+            useYouTubeStore.setState({
+              error: getHebrewError('Failed to fetch'),
+              isLoading: false
+            });
           }
         };
       },
