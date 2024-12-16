@@ -23,10 +23,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session from localStorage
+    const storedSession = localStorage.getItem('supabase.auth.token');
+    if (storedSession) {
+      try {
+        const parsedSession = JSON.parse(storedSession);
+        console.log('Found stored session:', parsedSession);
+        setSession(parsedSession);
+      } catch (error) {
+        console.error('Error parsing stored session:', error);
+      }
+    }
+
+    // Get initial session from Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session);
-      setSession(session);
+      console.log('Initial Supabase session:', session);
+      if (session) {
+        setSession(session);
+        localStorage.setItem('supabase.auth.token', JSON.stringify(session));
+      }
       setLoading(false);
     });
 
@@ -34,8 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', session);
+      console.log('Auth state changed:', { event: _event, session });
       setSession(session);
+      if (session) {
+        localStorage.setItem('supabase.auth.token', JSON.stringify(session));
+      } else {
+        localStorage.removeItem('supabase.auth.token');
+      }
       setLoading(false);
     });
 
@@ -43,10 +63,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      session, 
+    <AuthContext.Provider value={{
+      session,
       user: session?.user ?? null,
-      loading 
+      loading
     }}>
       {children}
     </AuthContext.Provider>

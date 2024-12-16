@@ -1,0 +1,4 @@
+/*
+  Content-Security-Policy: default-src 'self' https://www.youtube.com https://*.ytimg.com https://*.googleapis.com; frame-src 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://*.ytimg.com https://*.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://shjwvwhijgehquuteekv.supabase.co wss://shjwvwhijgehquuteekv.supabase.co https://*.googleapis.com;
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff

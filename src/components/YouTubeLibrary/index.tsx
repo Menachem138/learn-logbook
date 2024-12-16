@@ -2,20 +2,23 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { Play as PlayIcon } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useYouTubeStore } from "../../stores/youtube";
-import { YouTubePlayer } from "./YouTubePlayer";
 import { AddVideoDialog } from "./AddVideoDialog";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import type { YouTubeVideo } from "../../stores/youtube";
+import { getYouTubeThumbnail, getStandardYouTubeUrl } from "../../utils/youtube";
 
 export function YouTubeLibrary() {
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { videos, isLoading, fetchVideos } = useYouTubeStore();
+  const { videos, isLoading, fetchVideos, deleteVideo } = useYouTubeStore();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [videoToDelete, setVideoToDelete] = useState<YouTubeVideo | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -47,6 +50,23 @@ export function YouTubeLibrary() {
     navigate('/login', { replace: true });
   };
 
+  const handleDelete = async () => {
+    if (!videoToDelete) {
+      console.log('No video selected for deletion');
+      return;
+    }
+    try {
+      console.log('Attempting to delete video:', videoToDelete.title);
+      await deleteVideo(videoToDelete.id);
+      console.log('Video deleted successfully');
+      setIsDeleteDialogOpen(false);
+      setVideoToDelete(null);
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      setError('אירעה שגיאה במחיקת הסרטון');
+    }
+  };
+
   if (authLoading) {
     return <div className="flex justify-center items-center h-screen">טוען...</div>;
   }
@@ -73,37 +93,71 @@ export function YouTubeLibrary() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {videos.map((video) => (
-          <Card key={video.id} className="p-4">
-            <div
-              className="relative aspect-video cursor-pointer group"
-              onClick={() => setSelectedVideo(video.video_id)}
+          <Card
+            key={video.id}
+            className="relative hover:shadow-lg transition-shadow"
+            data-testid="video-card"
+          >
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setVideoToDelete(video);
+                setIsDeleteDialogOpen(true);
+              }}
+              className="absolute top-2 right-2 z-10 p-1 rounded-full bg-red-500/40 hover:bg-red-600/60 transition-colors"
+              data-testid="delete-video-button"
+              style={{ width: '24px', height: '24px' }}
+              aria-label="מחק סרטון"
             >
-              <img
-                src={video.thumbnail_url}
-                alt={video.title}
-                className="w-full h-full object-cover rounded"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
-                <PlayIcon className="w-12 h-12 text-white" />
+              <Trash2 className="h-4 w-4 text-white" />
+            </button>
+            <a
+              href={getStandardYouTubeUrl(video.url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+              data-testid="video-link"
+            >
+              <div className="aspect-video relative">
+                <img
+                  src={getYouTubeThumbnail(video.url)}
+                  alt={video.title}
+                  className="w-full h-full object-cover"
+                  data-testid="video-thumbnail"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    console.log('Thumbnail load error, falling back to default quality');
+                    const videoId = video.video_id;
+                    if (videoId) {
+                      img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                    }
+                  }}
+                />
               </div>
-            </div>
-            <h3 className="mt-2 font-medium line-clamp-2">{video.title}</h3>
+              <div className="p-4">
+                <h3 className="font-semibold truncate" data-testid="video-title">{video.title}</h3>
+              </div>
+            </a>
           </Card>
         ))}
       </div>
 
-      {selectedVideo && (
-        <YouTubePlayer
-          videoId={selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-        />
-      )}
-
       <AddVideoDialog
         isOpen={isAddingVideo}
         onClose={() => setIsAddingVideo(false)}
+      />
+
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setVideoToDelete(null);
+        }}
+        onConfirm={handleDelete}
+        videoTitle={videoToDelete?.title ?? ''}
       />
     </div>
   );
