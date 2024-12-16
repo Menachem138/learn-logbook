@@ -17,16 +17,16 @@ interface YouTubeStore {
 
 const getHebrewError = (error: string): string => {
   if (error.includes('API key')) {
-    return 'מפתח ה-API של YouTube לא מוגדר';
+    return 'מפתח ה-API של YouTube לא מוגדר או לא תקין';
   }
   if (error.includes('Invalid YouTube URL')) {
-    return 'פורמט כתובת URL לא חוקי של YouTube';
+    return 'כתובת URL לא חוקית של YouTube';
   }
   if (error.includes('Failed to fetch')) {
     return 'שגיאה בטעינת הסרטונים';
   }
   if (error.includes('Failed to add')) {
-    return 'שגיאה בהוספת הסרטון';
+    return 'שגיאה בהוספת הסרטון - אנא נסה שנית';
   }
   if (error.includes('Failed to delete')) {
     return 'שגיאה במחיקת הסרטון';
@@ -34,7 +34,7 @@ const getHebrewError = (error: string): string => {
   if (error.includes('Unauthorized')) {
     return 'נא להתחבר כדי לצפות בסרטונים';
   }
-  return 'שגיאה לא צפויה';
+  return 'שגיאה לא צפויה - אנא נסה שנית';
 };
 
 export const useYouTubeStore = create<YouTubeStore>()(

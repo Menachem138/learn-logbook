@@ -12,7 +12,6 @@ interface AddVideoDialogProps {
 }
 
 export function AddVideoDialog({ isOpen, onClose }: AddVideoDialogProps) {
-  // Use separate selectors to prevent unnecessary re-renders
   const addVideo = useYouTubeStore(state => state.addVideo);
   const error = useYouTubeStore(state => state.error);
   const isLoading = useYouTubeStore(state => state.isLoading);
@@ -20,23 +19,19 @@ export function AddVideoDialog({ isOpen, onClose }: AddVideoDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!url.trim()) {
+      return;
+    }
+
+    console.log('Attempting to add video:', url);
     try {
       await addVideo(url);
+      console.log('Video added successfully');
       setUrl("");
       onClose();
     } catch (err) {
-      // Error will be handled by the store
+      console.error('Error adding video:', err);
     }
-  };
-
-  const getHebrewError = (error: string) => {
-    if (error.includes('API key')) {
-      return 'מפתח ה-API של YouTube לא מוגדר';
-    }
-    if (error.includes('Invalid YouTube URL')) {
-      return 'פורמט כתובת URL לא חוקי של YouTube';
-    }
-    return 'שגיאה בהוספת הסרטון';
   };
 
   return (
@@ -55,13 +50,13 @@ export function AddVideoDialog({ isOpen, onClose }: AddVideoDialogProps) {
           />
           {error && (
             <Alert variant="destructive">
-              <AlertDescription>{getHebrewError(error)}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           <Button
             type="submit"
             className="w-full"
-            disabled={isLoading}
+            disabled={isLoading || !url.trim()}
           >
             {isLoading ? (
               <>
