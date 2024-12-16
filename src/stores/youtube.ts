@@ -131,19 +131,29 @@ export const useYouTubeStore = create<YouTubeStore>()(
             return;
           }
 
+          // Update local state immediately for better UX
+          const currentVideos = get().videos;
+          set({
+            videos: currentVideos.filter(v => v.id !== id),
+            isLoading: true
+          });
+
           const { error } = await supabase
             .from('youtube_videos')
             .delete()
             .eq('id', id);
 
           if (error) {
-            const hebrewError = getHebrewError('Failed to delete video');
-            set({ error: hebrewError, isLoading: false });
+            // Revert local state if deletion failed
+            set({
+              videos: currentVideos,
+              error: getHebrewError('Failed to delete video'),
+              isLoading: false
+            });
             throw error;
           }
 
-          const store = useYouTubeStore.getState();
-          await store.fetchVideos();
+          set({ isLoading: false });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to delete video';
           const hebrewError = getHebrewError(errorMessage);

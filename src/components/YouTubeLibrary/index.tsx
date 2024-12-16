@@ -4,7 +4,6 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Play as PlayIcon, Trash2 } from "lucide-react";
 import { useYouTubeStore } from "../../stores/youtube";
-import { YouTubePlayer } from "./YouTubePlayer";
 import { AddVideoDialog } from "./AddVideoDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { useAuth } from "../../components/auth/AuthProvider";
@@ -13,7 +12,6 @@ import type { YouTubeVideo } from "../../stores/youtube";
 import { getYouTubeThumbnail } from "../../utils/youtube";
 
 export function YouTubeLibrary() {
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { videos, isLoading, fetchVideos, deleteVideo } = useYouTubeStore();
@@ -53,9 +51,14 @@ export function YouTubeLibrary() {
   };
 
   const handleDelete = async () => {
-    if (!videoToDelete) return;
+    if (!videoToDelete) {
+      console.log('No video selected for deletion');
+      return;
+    }
     try {
+      console.log('Attempting to delete video:', videoToDelete.title);
       await deleteVideo(videoToDelete.id);
+      console.log('Video deleted successfully');
       setIsDeleteDialogOpen(false);
       setVideoToDelete(null);
     } catch (error) {
@@ -94,8 +97,8 @@ export function YouTubeLibrary() {
         {videos.map((video) => (
           <Card
             key={video.id}
-            className="relative cursor-pointer hover:shadow-lg transition-shadow overflow-visible"
-            onClick={() => setSelectedVideo(video.id)}
+            className="relative cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => window.open(video.url, '_blank')}
             data-testid="video-card"
           >
             <button
@@ -104,9 +107,9 @@ export function YouTubeLibrary() {
                 setVideoToDelete(video);
                 setIsDeleteDialogOpen(true);
               }}
-              className="absolute top-2 right-2 z-[100] p-2 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center shadow-md"
+              className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-red-500/80 hover:bg-red-600 transition-colors flex items-center justify-center shadow-sm"
               data-testid="delete-video-button"
-              style={{ width: '32px', height: '32px' }}
+              style={{ width: '24px', height: '24px' }}
             >
               <Trash2 className="h-4 w-4 text-white" />
             </button>
@@ -118,16 +121,10 @@ export function YouTubeLibrary() {
                 data-testid="video-thumbnail"
                 onError={(e) => {
                   const img = e.target as HTMLImageElement;
-                  const currentQuality = img.src.match(/\/(\w+)\.jpg$/)?.[1];
-                  const qualities = ['maxresdefault', 'hqdefault', 'mqdefault', 'default'];
-                  const currentIndex = qualities.indexOf(currentQuality || '');
-
-                  if (currentIndex < qualities.length - 1) {
-                    const nextQuality = qualities[currentIndex + 1];
-                    const videoId = video.url.match(/(?:youtube\.com\/watch\?v=|youtu.be\/|youtube.com\/shorts\/|youtube.com\/embed\/)([^&\n?#]+)/)?.[1];
-                    if (videoId) {
-                      img.src = `https://img.youtube.com/vi/${videoId}/${nextQuality}.jpg`;
-                    }
+                  console.log('Thumbnail load error, falling back to default quality');
+                  const videoId = video.video_id;
+                  if (videoId) {
+                    img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
                   }
                 }}
               />
@@ -141,13 +138,6 @@ export function YouTubeLibrary() {
           </Card>
         ))}
       </div>
-
-      {selectedVideo && (
-        <YouTubePlayer
-          videoId={selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-        />
-      )}
 
       <AddVideoDialog
         isOpen={isAddingVideo}
