@@ -6,10 +6,11 @@ import { Trash2 } from "lucide-react";
 import { useYouTubeStore } from "../../stores/youtube";
 import { AddVideoDialog } from "./AddVideoDialog";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { YouTubePlayer } from "./YouTubePlayer";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import type { YouTubeVideo } from "../../stores/youtube";
-import { getYouTubeThumbnail, getStandardYouTubeUrl } from "../../utils/youtube";
+import { getYouTubeThumbnail, getStandardYouTubeUrl, parseYouTubeUrl } from "../../utils/youtube";
 
 export function YouTubeLibrary() {
   const [isAddingVideo, setIsAddingVideo] = useState(false);
@@ -19,6 +20,7 @@ export function YouTubeLibrary() {
   const navigate = useNavigate();
   const [videoToDelete, setVideoToDelete] = useState<YouTubeVideo | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -64,6 +66,18 @@ export function YouTubeLibrary() {
     } catch (error) {
       console.error('Error deleting video:', error);
       setError('אירעה שגיאה במחיקת הסרטון');
+    }
+  };
+
+  const handleVideoClick = (e: React.MouseEvent, video: YouTubeVideo) => {
+    if (e.button !== 0 || e.ctrlKey || e.metaKey) {
+      return;
+    }
+
+    e.preventDefault();
+    const videoId = parseYouTubeUrl(video.url);
+    if (videoId) {
+      setActiveVideoId(videoId);
     }
   };
 
@@ -114,11 +128,9 @@ export function YouTubeLibrary() {
             >
               <Trash2 className="h-4 w-4 text-white" />
             </button>
-            <a
-              href={getStandardYouTubeUrl(video.url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
+            <div
+              onClick={(e) => handleVideoClick(e, video)}
+              className="block cursor-pointer"
               data-testid="video-link"
             >
               <div className="aspect-video relative">
@@ -140,10 +152,17 @@ export function YouTubeLibrary() {
               <div className="p-4">
                 <h3 className="font-semibold truncate" data-testid="video-title">{video.title}</h3>
               </div>
-            </a>
+            </div>
           </Card>
         ))}
       </div>
+
+      {activeVideoId && (
+        <YouTubePlayer
+          videoId={activeVideoId}
+          onClose={() => setActiveVideoId(null)}
+        />
+      )}
 
       <AddVideoDialog
         isOpen={isAddingVideo}
