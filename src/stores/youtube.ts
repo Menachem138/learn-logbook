@@ -10,6 +10,7 @@ interface YouTubeStore {
   videos: YouTubeVideo[];
   isLoading: boolean;
   error: string | null;
+  initialized: boolean;
   fetchVideos: () => Promise<void>;
   addVideo: (url: string) => Promise<void>;
   deleteVideo: (id: string) => Promise<void>;
@@ -43,9 +44,10 @@ export const useYouTubeStore = create<YouTubeStore>()(
       videos: [],
       isLoading: false,
       error: null,
+      initialized: false,
 
       fetchVideos: async () => {
-        console.log('Fetching videos from Supabase...');
+        if (get().isLoading) return;
         set({ isLoading: true, error: null });
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -68,7 +70,7 @@ export const useYouTubeStore = create<YouTubeStore>()(
             throw error;
           }
 
-          set({ videos: data || [], isLoading: false, error: null });
+          set({ videos: data || [], isLoading: false, error: null, initialized: true });
           console.log('Videos updated in store:', data);
         } catch (error) {
           console.error('Error in fetchVideos:', error);
@@ -192,7 +194,8 @@ export const useYouTubeStore = create<YouTubeStore>()(
         return {
           videos: state.videos,
           isLoading: state.isLoading,
-          error: state.error
+          error: state.error,
+          initialized: state.initialized
         };
       },
       version: 1,
@@ -200,16 +203,15 @@ export const useYouTubeStore = create<YouTubeStore>()(
         console.log('Starting rehydration...');
         return async (state) => {
           console.log('Rehydrating store with state:', state);
-          if (state?.videos?.length) {
-            console.log('Setting videos from storage:', state.videos);
-            useYouTubeStore.setState({
-              videos: state.videos,
-              isLoading: false,
-              error: null
-            });
-          } else {
-            console.log('No videos found in storage state');
-          }
+
+          // Don't reset videos immediately, keep the persisted state during rehydration
+          useYouTubeStore.setState({
+            isLoading: true,
+            error: null,
+            initialized: false,
+            // Keep existing videos from persisted state
+            videos: state?.videos || []
+          });
 
           try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -219,12 +221,15 @@ export const useYouTubeStore = create<YouTubeStore>()(
               await store.fetchVideos();
             } else {
               console.log('No authenticated user during rehydration');
+              set({ isLoading: false });
             }
           } catch (error) {
             console.error('Error during rehydration:', error);
+            set({ isLoading: false, error: getHebrewError(error.message) });
           }
         };
       },
+      skipHydration: true
     }
   )
 );
