@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:migration": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' ts-node --esm --project tsconfig.scripts.json scripts/test-cloudinary-migration.ts"
+    "test:migration": "tsx scripts/test-cloudinary-migration.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
