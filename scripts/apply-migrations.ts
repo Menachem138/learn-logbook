@@ -26,7 +26,7 @@ if (!projectRef) {
 }
 
 // Construct connection string for direct Postgres connection
-const connectionString = `postgresql://postgres:${process.env.SUPABASE_SERVICE_ROLE_KEY}@db.${projectRef}.supabase.co:5432/postgres`;
+const connectionString = `postgresql://postgres:${process.env.SUPABASE_SERVICE_ROLE_KEY}@db.shjwvwhijgehquuteekv.supabase.co:5432/postgres`;
 
 async function readMigrationFile(filename: string): Promise<string> {
   const filePath = path.resolve(__dirname, '../supabase/migrations', filename);
@@ -40,12 +40,18 @@ async function createMigrationFunction() {
   const client = new pg.Client({
     connectionString,
     ssl: {
-      rejectUnauthorized: true
+      rejectUnauthorized: true,
+      checkServerIdentity: (host, cert) => {
+        console.log('Connecting to host:', host);
+        return undefined; // Accept the certificate
+      }
     }
   });
 
   try {
+    console.log('Connecting to database...');
     await client.connect();
+    console.log('Connected successfully, executing migration function creation...');
     await client.query(migrationFunctionSQL);
     console.log('Successfully created migration function');
   } catch (error) {
