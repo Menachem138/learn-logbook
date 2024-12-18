@@ -104,31 +104,35 @@ async function migrateContentItems() {
           fs.mkdirSync(tempDir, { recursive: true });
           const tempFilePath = path.join(tempDir, item.file_name || 'temp-file');
 
-          // Write buffer to temp file
-          fs.writeFileSync(tempFilePath, Buffer.from(await data.arrayBuffer()));
+          try {
+            // Write buffer to temp file (data is Uint8Array from Supabase)
+            fs.writeFileSync(tempFilePath, Buffer.from(data));
 
-          // Create file info object for Cloudinary upload
-          const fileInfo = {
-            path: tempFilePath,
-            name: item.file_name || 'unknown',
-            type: item.mime_type || 'application/octet-stream',
-            size: fs.statSync(tempFilePath).size
-          };
+            // Create file info object for Cloudinary upload
+            const fileInfo = {
+              path: tempFilePath,
+              name: item.file_name || 'unknown',
+              type: item.mime_type || 'application/octet-stream',
+              size: fs.statSync(tempFilePath).size
+            };
 
-          // Upload to Cloudinary
-          const result = await uploadFileToCloudinary(fileInfo, item.user_id);
+            // Upload to Cloudinary
+            const result = await uploadFileToCloudinary(fileInfo, item.user_id);
 
-          // Update database record
-          await supabase
-            .from('content_items')
-            .update({
-              cloudinary_public_id: result.filePath,
-              cloudinary_url: result.publicUrl
-            })
-            .eq('id', item.id);
-
-          // Clean up temp file
-          fs.unlinkSync(tempFilePath);
+            // Update database record
+            await supabase
+              .from('content_items')
+              .update({
+                cloudinary_public_id: result.filePath,
+                cloudinary_url: result.publicUrl
+              })
+              .eq('id', item.id);
+          } finally {
+            // Clean up temp file
+            if (fs.existsSync(tempFilePath)) {
+              fs.unlinkSync(tempFilePath);
+            }
+          }
         } catch (error) {
           console.error(`Error migrating content item ${item.id}:`, error);
           throw error;
@@ -156,9 +160,9 @@ async function migrateLibraryItems() {
     processedCount = await processBatch(
       libraryItems,
       async (item) => {
-        try {
-          if (!item.file_details?.path) return;
+        if (!item.file_details?.path) return;
 
+        try {
           // Download file from Supabase
           const { data, error } = await supabase.storage
             .from('content_library')
@@ -173,34 +177,38 @@ async function migrateLibraryItems() {
           fs.mkdirSync(tempDir, { recursive: true });
           const tempFilePath = path.join(tempDir, item.file_details.name || 'temp-file');
 
-          // Write buffer to temp file
-          fs.writeFileSync(tempFilePath, Buffer.from(await data.arrayBuffer()));
+          try {
+            // Write buffer to temp file (data is Uint8Array from Supabase)
+            fs.writeFileSync(tempFilePath, Buffer.from(data));
 
-          // Create file info object for Cloudinary upload
-          const fileInfo = {
-            path: tempFilePath,
-            name: item.file_details.name || 'unknown',
-            type: item.file_details.type || 'application/octet-stream',
-            size: fs.statSync(tempFilePath).size
-          };
+            // Create file info object for Cloudinary upload
+            const fileInfo = {
+              path: tempFilePath,
+              name: item.file_details.name || 'unknown',
+              type: item.file_details.type || 'application/octet-stream',
+              size: fs.statSync(tempFilePath).size
+            };
 
-          // Upload to Cloudinary
-          const result = await uploadFileToCloudinary(fileInfo, item.user_id);
+            // Upload to Cloudinary
+            const result = await uploadFileToCloudinary(fileInfo, item.user_id);
 
-          // Update database record
-          await supabase
-            .from('library_items')
-            .update({
-              cloudinary_data: {
-                ...item.file_details,
-                cloudinary_public_id: result.filePath,
-                cloudinary_url: result.publicUrl
-              }
-            })
-            .eq('id', item.id);
-
-          // Clean up temp file
-          fs.unlinkSync(tempFilePath);
+            // Update database record
+            await supabase
+              .from('library_items')
+              .update({
+                cloudinary_data: {
+                  ...item.file_details,
+                  cloudinary_public_id: result.filePath,
+                  cloudinary_url: result.publicUrl
+                }
+              })
+              .eq('id', item.id);
+          } finally {
+            // Clean up temp file
+            if (fs.existsSync(tempFilePath)) {
+              fs.unlinkSync(tempFilePath);
+            }
+          }
         } catch (error) {
           console.error(`Error migrating library item ${item.id}:`, error);
           throw error;
