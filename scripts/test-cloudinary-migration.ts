@@ -1,16 +1,18 @@
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Load environment variables before any other imports
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+console.log('Loading environment variables from:', path.resolve(__dirname, '../.env.local'));
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+
 import { createClient } from '@supabase/supabase-js';
 import { v2 as cloudinary } from 'cloudinary';
 import { initCloudinary } from '../src/utils/cloudinaryStorage.js';
 import { migrate, verifyMigration } from './migrate-to-cloudinary.js';
 import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import dotenv from 'dotenv';
-
-// Load environment variables
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 // Required environment variables
 const requiredEnvVars = [
@@ -21,14 +23,20 @@ const requiredEnvVars = [
   'SUPABASE_ANON_KEY'
 ];
 
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    console.error(`Missing required environment variable: ${envVar}`);
+console.log('Verifying environment variables...');
+requiredEnvVars.forEach(varName => {
+  if (!process.env[varName]) {
+    console.error(`Missing required environment variable: ${varName}`);
     process.exit(1);
   }
-}
+  // Log that we found the variable (without exposing its value)
+  console.log(`✓ Found ${varName}`);
+});
+
+console.log('Environment variables verified successfully');
 
 // Initialize clients with error handling
+console.log('Initializing Supabase client...');
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_ANON_KEY!,
@@ -236,11 +244,15 @@ async function runTests() {
   }
 }
 
-// Run the tests
-console.log('Starting migration test suite...');
-runTests().catch((error) => {
-  console.error('Test suite failed:', error);
-  process.exit(1);
-});
+// Check if file is being run directly (ESM version)
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+
+if (isMainModule) {
+  console.log('Starting migration test suite...');
+  runTests().catch((error) => {
+    console.error('Test suite failed:', error);
+    process.exit(1);
+  });
+}
 
 export { testFileUpload, testRollback, runTests };
