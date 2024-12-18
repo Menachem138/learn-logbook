@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { v2 as cloudinary } from 'cloudinary';
-import { initCloudinary, uploadFileToCloudinary } from '../src/utils/cloudinaryStorage.js';
+import { initCloudinary, uploadFileToCloudinary, UploadResult } from '../src/utils/cloudinaryStorage.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,8 +8,9 @@ import dotenv from 'dotenv';
 
 // Initialize Supabase client
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!,
+  { auth: { persistSession: false } }
 );
 
 // Batch size for processing

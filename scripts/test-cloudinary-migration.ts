@@ -8,15 +8,17 @@ import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 
 // Load environment variables
-dotenv.config({ path: '.env.local' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-// Verify environment variables
+// Required environment variables
 const requiredEnvVars = [
-  'NEXT_PUBLIC_SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY',
   'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME',
   'NEXT_PUBLIC_CLOUDINARY_API_KEY',
-  'CLOUDINARY_API_SECRET'
+  'CLOUDINARY_API_SECRET',
+  'SUPABASE_URL',
+  'SUPABASE_ANON_KEY'
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -28,8 +30,9 @@ for (const envVar of requiredEnvVars) {
 
 // Initialize clients with error handling
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.SUPABASE_SERVICE_ROLE_KEY as string
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!,
+  { auth: { persistSession: false } }
 );
 
 // Initialize Cloudinary
@@ -234,11 +237,10 @@ async function runTests() {
 }
 
 // Run the tests
-runTests();
-
-// Run tests if called directly
-if (require.main === module) {
-  runTests();
-}
+console.log('Starting migration test suite...');
+runTests().catch((error) => {
+  console.error('Test suite failed:', error);
+  process.exit(1);
+});
 
 export { testFileUpload, testRollback, runTests };
