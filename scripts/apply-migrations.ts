@@ -23,6 +23,32 @@ async function readMigrationFile(filename: string): Promise<string> {
   return fs.readFileSync(filePath, 'utf8');
 }
 
+async function createMigrationFunction() {
+  console.log('Creating migration function...');
+  const migrationFunctionSQL = await readMigrationFile('20240318000002_add_migration_function.sql');
+
+  // Execute the migration function creation using REST API
+  const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/sql`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`
+    },
+    body: JSON.stringify({
+      query: migrationFunctionSQL
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('Error creating migration function:', error);
+    throw new Error(`Failed to create migration function: ${JSON.stringify(error)}`);
+  }
+
+  console.log('Successfully created migration function');
+}
+
 async function executeMigration(sql: string, description: string) {
   console.log(`Executing migration: ${description}...`);
   const { error } = await supabase.rpc('execute_migration', { query_text: sql });
@@ -37,9 +63,8 @@ async function applyMigrations() {
   try {
     console.log('Starting migration process...');
 
-    // First create the execute_migration function
-    const migrationFunctionSQL = await readMigrationFile('20240318000002_add_migration_function.sql');
-    await executeMigration(migrationFunctionSQL, 'Creating execute_migration function');
+    // First create the execute_migration function directly
+    await createMigrationFunction();
 
     // Create base tables and RLS policies
     const baseTablesSQL = await readMigrationFile('20240318000006_create_base_tables.sql');
