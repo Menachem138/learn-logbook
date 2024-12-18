@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
+import pg from 'pg';
 
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +19,15 @@ const supabase = createClient(
   }
 );
 
+// Extract project reference from URL
+const projectRef = process.env.SUPABASE_URL!.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+if (!projectRef) {
+  throw new Error('Could not extract project reference from SUPABASE_URL');
+}
+
+// Construct connection string for direct Postgres connection
+const connectionString = `postgresql://postgres:${process.env.SUPABASE_SERVICE_ROLE_KEY}@db.${projectRef}.supabase.co:5432/postgres`;
+
 async function readMigrationFile(filename: string): Promise<string> {
   const filePath = path.resolve(__dirname, '../supabase/migrations', filename);
   return fs.readFileSync(filePath, 'utf8');
@@ -27,26 +37,23 @@ async function createMigrationFunction() {
   console.log('Creating migration function...');
   const migrationFunctionSQL = await readMigrationFile('20240318000002_add_migration_function.sql');
 
-  // Execute the migration function creation using REST API
-  const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/sql`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`
-    },
-    body: JSON.stringify({
-      query: migrationFunctionSQL
-    })
+  const client = new pg.Client({
+    connectionString,
+    ssl: {
+      rejectUnauthorized: true
+    }
   });
 
-  if (!response.ok) {
-    const error = await response.json();
+  try {
+    await client.connect();
+    await client.query(migrationFunctionSQL);
+    console.log('Successfully created migration function');
+  } catch (error) {
     console.error('Error creating migration function:', error);
-    throw new Error(`Failed to create migration function: ${JSON.stringify(error)}`);
+    throw error;
+  } finally {
+    await client.end();
   }
-
-  console.log('Successfully created migration function');
 }
 
 async function executeMigration(sql: string, description: string) {
