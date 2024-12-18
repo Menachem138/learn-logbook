@@ -30,6 +30,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY as string
 );
 
+// Initialize Cloudinary
+initCloudinary();
+
 // Add global error handler for unhandled rejections
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled promise rejection:', error);
@@ -39,6 +42,12 @@ process.on('unhandledRejection', (error) => {
   } else {
     console.error('Non-Error object rejection:', JSON.stringify(error, null, 2));
   }
+  process.exit(1);
+});
+
+// Add global error handler for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
@@ -191,19 +200,24 @@ async function testRollback() {
 async function runTests() {
   try {
     console.log('Starting migration tests...');
+    console.log('Environment variables loaded and validated');
+    console.log('Supabase client initialized');
+    console.log('Cloudinary initialized');
 
     // Test file upload and migration
+    console.log('\nRunning file upload and migration test...');
     const migratedItem = await testFileUpload();
     console.log('File upload and migration test passed');
 
     // Test rollback procedure
+    console.log('\nRunning rollback test...');
     await testRollback();
     console.log('Rollback test passed');
 
-    console.log('All tests completed successfully');
+    console.log('\nAll tests completed successfully');
     process.exit(0);
   } catch (error) {
-    console.error('Tests failed:', error);
+    console.error('Tests failed with error:', error instanceof Error ? error.stack : JSON.stringify(error, null, 2));
     process.exit(1);
   }
 }
