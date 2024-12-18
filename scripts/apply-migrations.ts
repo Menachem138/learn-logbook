@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFile, readdir } from 'node:fs/promises';
 import dotenv from 'dotenv';
+import pg from 'pg';
 
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
@@ -36,29 +37,29 @@ async function createRawQueryFunction() {
     $$;
   `;
 
-  try {
-    // Create function directly through SQL endpoint
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-        'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ query: createFunctionSQL })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Failed to create function via SQL endpoint:', errorText);
-      throw new Error(`Failed to create function: ${errorText}`);
+  const client = new pg.Client({
+    user: 'postgres',
+    password: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    host: 'db.shjwvwhijgehquuteekv.supabase.co',
+    port: 5432,
+    database: 'postgres',
+    ssl: {
+      rejectUnauthorized: true,
+      servername: 'db.shjwvwhijgehquuteekv.supabase.co'
     }
+  });
 
+  try {
+    await client.connect();
+    console.log('Connected to database directly');
+
+    await client.query(createFunctionSQL);
     console.log('Successfully created postgres_raw_query function');
   } catch (e) {
     console.error('Failed to create function:', e);
     throw e;
+  } finally {
+    await client.end();
   }
 }
 
