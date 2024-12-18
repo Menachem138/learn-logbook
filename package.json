@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:migration": "NODE_OPTIONS='--loader ts-node/esm' ts-node --project tsconfig.scripts.json scripts/test-cloudinary-migration.ts"
+    "test:migration": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' ts-node --esm --project tsconfig.scripts.json scripts/test-cloudinary-migration.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -102,6 +102,7 @@
     "tailwindcss": "^3.4.11",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"
