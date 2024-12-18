@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import fs from 'fs';
 
 // Initialize Cloudinary configuration
 export const initCloudinary = () => {
@@ -9,36 +10,70 @@ export const initCloudinary = () => {
   });
 };
 
-// Upload file to Cloudinary with similar structure to current Supabase implementation
-export const uploadFileToCloudinary = async (file: File, userId: string) => {
+// Helper type for file input
+type FileInput = File | { path: string; name: string; type: string; size: number };
+
+// Upload file to Cloudinary with support for both browser File and Node.js file path
+export const uploadFileToCloudinary = async (
+  file: FileInput,
+  userId: string
+): Promise<UploadResult> => {
   try {
-    // Convert File to base64 for Cloudinary upload
-    const base64Data = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        resolve(base64.split(',')[1]);
-      };
-      reader.readAsDataURL(file);
-    });
+    let uploadPromise: Promise<any>;
 
-    // Upload to Cloudinary with user-specific folder structure
-    const result = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader.upload(
-        `data:${file.type};base64,${base64Data}`,
-        {
-          folder: `users/${userId}`,
-          resource_type: 'auto',
-          public_id: `${Date.now()}-${file.name}`,
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-    });
+    if ('path' in file) {
+      // Node.js environment - use file path
+      uploadPromise = new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(
+          file.path,
+          {
+            folder: `users/${userId}`,
+            resource_type: 'auto',
+            public_id: `${Date.now()}-${file.name}`,
+          },
+          (error, result) => {
+            if (error) {
+              console.error('Cloudinary upload error:', error);
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+      });
+    } else {
+      // Browser environment - use File object
+      const base64Data = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          resolve(base64.split(',')[1]);
+        };
+        reader.readAsDataURL(file);
+      });
 
-    // Return in the same format as the current implementation
+      uploadPromise = new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(
+          `data:${file.type};base64,${base64Data}`,
+          {
+            folder: `users/${userId}`,
+            resource_type: 'auto',
+            public_id: `${Date.now()}-${file.name}`,
+          },
+          (error, result) => {
+            if (error) {
+              console.error('Cloudinary upload error:', error);
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+      });
+    }
+
+    const result = await uploadPromise;
+
     return {
       publicUrl: result.secure_url,
       filePath: result.public_id,

@@ -89,31 +89,50 @@ async function migrateContentItems() {
     processedCount = await processBatch(
       contentItems,
       async (item) => {
-        // Download file from Supabase
-        const { data, error } = await supabase.storage
-          .from('content_library')
-          .download(item.file_path!);
+        try {
+          // Download file from Supabase
+          const { data, error } = await supabase.storage
+            .from('content_library')
+            .download(item.file_path!);
 
-        if (error || !data) {
-          throw new Error(`Failed to download file: ${error?.message}`);
+          if (error || !data) {
+            throw new Error(`Failed to download file: ${error?.message}`);
+          }
+
+          // Save buffer to temporary file
+          const tempDir = path.join(__dirname, '../temp');
+          fs.mkdirSync(tempDir, { recursive: true });
+          const tempFilePath = path.join(tempDir, item.file_name || 'temp-file');
+
+          // Write buffer to temp file
+          fs.writeFileSync(tempFilePath, Buffer.from(await data.arrayBuffer()));
+
+          // Create file info object for Cloudinary upload
+          const fileInfo = {
+            path: tempFilePath,
+            name: item.file_name || 'unknown',
+            type: item.mime_type || 'application/octet-stream',
+            size: fs.statSync(tempFilePath).size
+          };
+
+          // Upload to Cloudinary
+          const result = await uploadFileToCloudinary(fileInfo, item.user_id);
+
+          // Update database record
+          await supabase
+            .from('content_items')
+            .update({
+              cloudinary_public_id: result.filePath,
+              cloudinary_url: result.publicUrl
+            })
+            .eq('id', item.id);
+
+          // Clean up temp file
+          fs.unlinkSync(tempFilePath);
+        } catch (error) {
+          console.error(`Error migrating content item ${item.id}:`, error);
+          throw error;
         }
-
-        // Convert to File object
-        const file = new File([data], item.file_name!, {
-          type: item.mime_type || undefined
-        });
-
-        // Upload to Cloudinary
-        const result = await uploadFileToCloudinary(file, item.user_id);
-
-        // Update database record
-        await supabase
-          .from('content_items')
-          .update({
-            cloudinary_public_id: result.filePath,
-            cloudinary_url: result.publicUrl
-          })
-          .eq('id', item.id);
       },
       processedCount
     );
@@ -137,36 +156,55 @@ async function migrateLibraryItems() {
     processedCount = await processBatch(
       libraryItems,
       async (item) => {
-        if (!item.file_details?.path) return;
+        try {
+          if (!item.file_details?.path) return;
 
-        // Download file from Supabase
-        const { data, error } = await supabase.storage
-          .from('content_library')
-          .download(item.file_details.path);
+          // Download file from Supabase
+          const { data, error } = await supabase.storage
+            .from('content_library')
+            .download(item.file_details.path);
 
-        if (error || !data) {
-          throw new Error(`Failed to download file: ${error?.message}`);
+          if (error || !data) {
+            throw new Error(`Failed to download file: ${error?.message}`);
+          }
+
+          // Save buffer to temporary file
+          const tempDir = path.join(__dirname, '../temp');
+          fs.mkdirSync(tempDir, { recursive: true });
+          const tempFilePath = path.join(tempDir, item.file_details.name || 'temp-file');
+
+          // Write buffer to temp file
+          fs.writeFileSync(tempFilePath, Buffer.from(await data.arrayBuffer()));
+
+          // Create file info object for Cloudinary upload
+          const fileInfo = {
+            path: tempFilePath,
+            name: item.file_details.name || 'unknown',
+            type: item.file_details.type || 'application/octet-stream',
+            size: fs.statSync(tempFilePath).size
+          };
+
+          // Upload to Cloudinary
+          const result = await uploadFileToCloudinary(fileInfo, item.user_id);
+
+          // Update database record
+          await supabase
+            .from('library_items')
+            .update({
+              cloudinary_data: {
+                ...item.file_details,
+                cloudinary_public_id: result.filePath,
+                cloudinary_url: result.publicUrl
+              }
+            })
+            .eq('id', item.id);
+
+          // Clean up temp file
+          fs.unlinkSync(tempFilePath);
+        } catch (error) {
+          console.error(`Error migrating library item ${item.id}:`, error);
+          throw error;
         }
-
-        // Convert to File object
-        const file = new File([data], item.file_details.name || 'unknown', {
-          type: item.file_details.type
-        });
-
-        // Upload to Cloudinary
-        const result = await uploadFileToCloudinary(file, item.user_id);
-
-        // Update database record
-        await supabase
-          .from('library_items')
-          .update({
-            cloudinary_data: {
-              ...item.file_details,
-              cloudinary_public_id: result.filePath,
-              cloudinary_url: result.publicUrl
-            }
-          })
-          .eq('id', item.id);
       },
       processedCount
     );

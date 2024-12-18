@@ -78,6 +78,15 @@ async function testFileUpload() {
     const testFile = await createTestFile();
     console.log('Test file created:', testFile);
 
+    // Get file stats for size
+    const stats = fs.statSync(testFile);
+    const fileInfo = {
+      path: testFile,
+      name: 'test-image.png',
+      type: 'image/png',
+      size: stats.size
+    };
+
     // Upload to Supabase
     const fileBuffer = fs.readFileSync(testFile);
     const fileName = `test-${Date.now()}.png`;
@@ -107,8 +116,8 @@ async function testFileUpload() {
           title: 'Test Content',
           description: 'Test migration content',
           file_path: fileName,
-          file_name: 'test-image.png',
-          mime_type: 'image/png',
+          file_name: fileInfo.name,
+          mime_type: fileInfo.type,
           type: 'image',
           user_id: 'test-user'
         }
