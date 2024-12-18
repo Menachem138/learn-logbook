@@ -83,11 +83,19 @@ async function processBatch<T>(
 
 // Migrate content items
 async function migrateContentItems() {
-  const { data: contentItems } = await supabase
+  console.log('Querying for content items to migrate...');
+  const { data: contentItems, error: queryError } = await supabase
     .from('content_items')
     .select('*')
+    .is('cloudinary_url', null)
     .not('file_path', 'is', null);
 
+  if (queryError) {
+    console.error('Error querying content items:', queryError);
+    throw queryError;
+  }
+
+  console.log(`Found ${contentItems?.length || 0} content items to migrate`);
   if (!contentItems?.length) {
     console.log('No content items to migrate');
     return;
@@ -158,6 +166,7 @@ async function migrateLibraryItems() {
   const { data: libraryItems } = await supabase
     .from('library_items')
     .select('*')
+    .is('cloudinary_data', null)
     .not('file_details', 'is', null);
 
   if (!libraryItems?.length) {

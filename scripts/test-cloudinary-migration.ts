@@ -196,16 +196,30 @@ async function testFileUpload(userId: string) {
 
       console.log('Content item created:', contentItem);
 
+      // Add delay to ensure transaction is committed
+      console.log('Waiting for transaction to commit...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       // Run migration
+      console.log('Starting migration process...');
       await migrate();
       console.log('Migration completed');
 
+      // Add delay to ensure migration is completed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Verify migration
-      const { data: migratedItem } = await supabase
+      console.log('Verifying migration...');
+      const { data: migratedItem, error: verifyError } = await supabase
         .from('content_items')
         .select('*')
         .eq('id', contentItem.id)
         .single();
+
+      if (verifyError) {
+        console.error('Error verifying migration:', verifyError);
+        throw verifyError;
+      }
 
       if (!migratedItem?.cloudinary_url) {
         throw new Error('Migration verification failed: cloudinary_url is missing');
