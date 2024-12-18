@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import { initCloudinary, uploadFileToCloudinary } from '../src/utils/cloudinaryStorage';
-import fs from 'fs';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+import { initCloudinary, uploadFileToCloudinary } from '../src/utils/cloudinaryStorage.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
 
 // Initialize Supabase client
 const supabase = createClient(

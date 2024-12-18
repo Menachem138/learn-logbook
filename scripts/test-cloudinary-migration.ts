@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { v2 as cloudinary } from 'cloudinary';
 import { initCloudinary } from '../src/utils/cloudinaryStorage.js';
 import { migrate, verifyMigration } from './migrate-to-cloudinary.js';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 
 // Load environment variables
