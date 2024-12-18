@@ -21,7 +21,9 @@ const requiredEnvVars = [
   'NEXT_PUBLIC_CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET',
   'SUPABASE_URL',
-  'SUPABASE_ANON_KEY'
+  'SUPABASE_ANON_KEY',
+  'TEST_USER_EMAIL',
+  'TEST_USER_PASSWORD'
 ];
 
 console.log('Verifying environment variables...');
@@ -48,27 +50,43 @@ const supabase = createClient(
 async function initTestEnvironment() {
   console.log('Initializing test environment...');
 
-  // Use a fixed test user ID for consistency
-  const testUserId = '4ff617b6-c47d-4021-925c-b0c0c5646147';
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
 
-  // Verify the user exists in profiles table
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', testUserId)
-    .single();
+  while (retryCount < MAX_RETRIES) {
+    try {
+      // Sign in with test user credentials
+      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
+        email: process.env.TEST_USER_EMAIL || 'test@example.com',
+        password: process.env.TEST_USER_PASSWORD || 'test123'
+      });
 
-  if (profileError) {
-    console.error('Error verifying test user profile:', profileError);
-    throw profileError;
+      if (signInError) {
+        console.error('Authentication error:', signInError.message);
+        if (signInError.message.includes('Invalid login credentials')) {
+          throw new Error('Test user credentials are invalid. Please check TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables.');
+        }
+        throw signInError;
+      }
+
+      if (!user) {
+        throw new Error('No user data received after successful authentication');
+      }
+
+      console.log('Test environment initialized with user:', user.id);
+      return { id: user.id };
+    } catch (error) {
+      retryCount++;
+      if (retryCount === MAX_RETRIES) {
+        console.error('Max retries reached. Authentication failed.');
+        throw error;
+      }
+      console.log(`Authentication attempt ${retryCount} failed. Retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+    }
   }
 
-  if (!profile) {
-    throw new Error('Test user profile not found. Please ensure the test user exists in the database.');
-  }
-
-  console.log('Test environment initialized with user:', testUserId);
-  return { id: testUserId };
+  throw new Error('Failed to initialize test environment after multiple attempts');
 }
 
 // Initialize Cloudinary
