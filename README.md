@@ -67,3 +67,13 @@ Simply open [Lovable](https://lovable.dev/projects/dcfb25bd-8dba-456a-9283-d4ed5
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+## Environment Variables
+
+The following environment variables are required for Cloudinary integration:
+
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`: Your Cloudinary cloud name
+- `NEXT_PUBLIC_CLOUDINARY_API_KEY`: Your Cloudinary API key
+- `CLOUDINARY_API_SECRET`: Your Cloudinary API secret
+
+Copy `.env.local.example` to `.env.local` and fill in your Cloudinary credentials.
