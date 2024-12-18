@@ -201,9 +201,62 @@ async function migrate() {
   }
 }
 
-// Run migration if called directly
-if (require.main === module) {
-  migrate();
+// Verify migration success
+async function verifyMigration() {
+  console.log('Verifying migration...');
+
+  // Verify content_items
+  const { data: contentItems, error: contentError } = await supabase
+    .from('content_items')
+    .select('id, file_path, cloudinary_url, cloudinary_public_id')
+    .not('file_path', 'is', null);
+
+  if (contentError) {
+    throw new Error(`Failed to verify content items: ${contentError.message}`);
+  }
+
+  const contentItemsWithoutCloudinary = contentItems?.filter(
+    item => !item.cloudinary_url || !item.cloudinary_public_id
+  ) || [];
+
+  // Verify library_items
+  const { data: libraryItems, error: libraryError } = await supabase
+    .from('library_items')
+    .select('id, file_details, cloudinary_data')
+    .not('file_details', 'is', null);
+
+  if (libraryError) {
+    throw new Error(`Failed to verify library items: ${libraryError.message}`);
+  }
+
+  const libraryItemsWithoutCloudinary = libraryItems?.filter(
+    item => !item.cloudinary_data?.cloudinary_url || !item.cloudinary_data?.cloudinary_public_id
+  ) || [];
+
+  // Report verification results
+  const verificationResults = {
+    contentItems: {
+      total: contentItems?.length || 0,
+      migrated: (contentItems?.length || 0) - contentItemsWithoutCloudinary.length,
+      pending: contentItemsWithoutCloudinary.length,
+      pendingIds: contentItemsWithoutCloudinary.map(item => item.id)
+    },
+    libraryItems: {
+      total: libraryItems?.length || 0,
+      migrated: (libraryItems?.length || 0) - libraryItemsWithoutCloudinary.length,
+      pending: libraryItemsWithoutCloudinary.length,
+      pendingIds: libraryItemsWithoutCloudinary.map(item => item.id)
+    }
+  };
+
+  console.log('Migration verification results:', JSON.stringify(verificationResults, null, 2));
+
+  return verificationResults;
 }
 
-export { migrate, backupData };
+// Run migration if called directly
+if (require.main === module) {
+  migrate().then(() => verifyMigration());
+}
+
+export { migrate, backupData, verifyMigration };
