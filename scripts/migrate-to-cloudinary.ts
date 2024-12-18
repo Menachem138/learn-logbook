@@ -1,10 +1,15 @@
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+
 import { createClient } from '@supabase/supabase-js';
 import { v2 as cloudinary } from 'cloudinary';
 import { initCloudinary, uploadFileToCloudinary, UploadResult } from '../src/utils/cloudinaryStorage.js';
 import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import dotenv from 'dotenv';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -109,8 +114,9 @@ async function migrateContentItems() {
           const tempFilePath = path.join(tempDir, item.file_name || 'temp-file');
 
           try {
-            // Write buffer to temp file (data is Uint8Array from Supabase)
-            fs.writeFileSync(tempFilePath, Buffer.from(data));
+            // Convert Blob to ArrayBuffer and write to file
+            const arrayBuffer = await data.arrayBuffer();
+            fs.writeFileSync(tempFilePath, Buffer.from(arrayBuffer));
 
             // Create file info object for Cloudinary upload
             const fileInfo = {
@@ -182,8 +188,9 @@ async function migrateLibraryItems() {
           const tempFilePath = path.join(tempDir, item.file_details.name || 'temp-file');
 
           try {
-            // Write buffer to temp file (data is Uint8Array from Supabase)
-            fs.writeFileSync(tempFilePath, Buffer.from(data));
+            // Convert Blob to ArrayBuffer and write to file
+            const arrayBuffer = await data.arrayBuffer();
+            fs.writeFileSync(tempFilePath, Buffer.from(arrayBuffer));
 
             // Create file info object for Cloudinary upload
             const fileInfo = {
@@ -305,7 +312,9 @@ async function verifyMigration() {
 }
 
 // Run migration if called directly
-if (require.main === module) {
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+
+if (isMainModule) {
   migrate().then(() => verifyMigration());
 }
 

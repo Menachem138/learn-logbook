@@ -13,6 +13,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { initCloudinary } from '../src/utils/cloudinaryStorage.js';
 import { migrate, verifyMigration } from './migrate-to-cloudinary.js';
 import fs from 'node:fs';
+import { v4 as uuidv4 } from 'uuid';
 
 // Required environment variables
 const requiredEnvVars = [
@@ -42,6 +43,30 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY!,
   { auth: { persistSession: false } }
 );
+
+// Create test user for migration testing
+async function createTestUser() {
+  const testEmail = `test-${Date.now()}@example.com`;
+  const testPassword = 'test-password-123';
+
+  const { data: { user }, error } = await supabase.auth.signUp({
+    email: testEmail,
+    password: testPassword
+  });
+
+  if (error) throw error;
+  if (!user) throw new Error('Failed to create test user');
+
+  return user;
+}
+
+// Initialize test environment
+async function initTestEnvironment() {
+  console.log('Creating test user...');
+  const user = await createTestUser();
+  console.log('Test user created:', user.id);
+  return user;
+}
 
 // Initialize Cloudinary
 initCloudinary();
@@ -85,7 +110,7 @@ async function createTestFile() {
   }
 }
 
-async function testFileUpload() {
+async function testFileUpload(userId: string) {
   console.log('Starting file upload test...');
   try {
     const testFile = await createTestFile();
@@ -126,13 +151,14 @@ async function testFileUpload() {
       .from('content_items')
       .insert([
         {
-          title: 'Test Content',
-          description: 'Test migration content',
+          content: 'Test migration content',
+          type: 'image',
+          user_id: userId,
           file_path: fileName,
           file_name: fileInfo.name,
           mime_type: fileInfo.type,
-          type: 'image',
-          user_id: 'test-user'
+          file_size: fileInfo.size,
+          starred: false
         }
       ])
       .select()
@@ -226,17 +252,16 @@ async function runTests() {
     console.log('Supabase client initialized');
     console.log('Cloudinary initialized');
 
-    // Test file upload and migration
-    console.log('\nRunning file upload and migration test...');
-    const migratedItem = await testFileUpload();
-    console.log('File upload and migration test passed');
+    // Initialize test environment
+    const testUser = await initTestEnvironment();
 
-    // Test rollback procedure
+    console.log('\nRunning file upload and migration test...');
+    await testFileUpload(testUser.id);
+
     console.log('\nRunning rollback test...');
     await testRollback();
-    console.log('Rollback test passed');
 
-    console.log('\nAll tests completed successfully');
+    console.log('\nAll tests completed successfully!');
     process.exit(0);
   } catch (error) {
     console.error('Tests failed with error:', error instanceof Error ? error.stack : JSON.stringify(error, null, 2));
