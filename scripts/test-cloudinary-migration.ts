@@ -44,28 +44,31 @@ const supabase = createClient(
   { auth: { persistSession: false } }
 );
 
-// Create test user for migration testing
-async function createTestUser() {
-  const testEmail = `test-${Date.now()}@example.com`;
-  const testPassword = 'test-password-123';
-
-  const { data: { user }, error } = await supabase.auth.signUp({
-    email: testEmail,
-    password: testPassword
-  });
-
-  if (error) throw error;
-  if (!user) throw new Error('Failed to create test user');
-
-  return user;
-}
-
 // Initialize test environment
 async function initTestEnvironment() {
-  console.log('Creating test user...');
-  const user = await createTestUser();
-  console.log('Test user created:', user.id);
-  return user;
+  console.log('Initializing test environment...');
+
+  // Use a fixed test user ID for consistency
+  const testUserId = '4ff617b6-c47d-4021-925c-b0c0c5646147';
+
+  // Verify the user exists in profiles table
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', testUserId)
+    .single();
+
+  if (profileError) {
+    console.error('Error verifying test user profile:', profileError);
+    throw profileError;
+  }
+
+  if (!profile) {
+    throw new Error('Test user profile not found. Please ensure the test user exists in the database.');
+  }
+
+  console.log('Test environment initialized with user:', testUserId);
+  return { id: testUserId };
 }
 
 // Initialize Cloudinary
