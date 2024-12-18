@@ -1,14 +1,46 @@
 import { createClient } from '@supabase/supabase-js';
-import { initCloudinary } from '../src/utils/cloudinaryStorage';
-import { migrate, verifyMigration } from './migrate-to-cloudinary';
+import { initCloudinary } from '../src/utils/cloudinaryStorage.js';
+import { migrate, verifyMigration } from './migrate-to-cloudinary.js';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 
-// Initialize clients
+// Load environment variables
+dotenv.config({ path: '.env.local' });
+
+// Verify environment variables
+const requiredEnvVars = [
+  'NEXT_PUBLIC_SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME',
+  'NEXT_PUBLIC_CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET'
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
+
+// Initialize clients with error handling
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.SUPABASE_SERVICE_ROLE_KEY as string
 );
+
+// Add global error handler for unhandled rejections
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
+  if (error instanceof Error) {
+    console.error('Error message:', error.message);
+    console.error('Stack trace:', error.stack);
+  } else {
+    console.error('Non-Error object rejection:', JSON.stringify(error, null, 2));
+  }
+  process.exit(1);
+});
 
 async function createTestFile() {
   const testDir = path.join(__dirname, '../test-files');
