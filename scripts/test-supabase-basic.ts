@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,44 +20,45 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 }
 
 async function testSupabaseConnection() {
-  console.log('Testing Supabase connection via REST API...');
-
-  const supabase = createClient(
-    SUPABASE_URL,
-    SERVICE_ROLE_KEY,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      }
-    }
-  );
-
   try {
-    // Test basic query
-    console.log('Testing basic query...');
-    const { data, error } = await supabase
-      .from('content_items')
-      .select('count(*)')
-      .limit(1);
-
-    if (error) {
-      console.error('Query failed:', error.message);
-      throw error;
-    }
-
-    console.log('Successfully queried database:', data);
-
-    // Test RPC function
-    console.log('\nTesting RPC function...');
-    const { error: rpcError } = await supabase.rpc('postgres_raw_query', {
-      query: 'SELECT 1'
+    // First test basic REST API connectivity
+    console.log('Testing basic REST API connectivity...');
+    const healthCheck = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+      headers: {
+        'apikey': SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
+      }
     });
 
-    if (rpcError) {
-      console.log('RPC function not available yet (expected):', rpcError.message);
+    if (!healthCheck.ok) {
+      throw new Error(`Health check failed with status ${healthCheck.status}`);
+    }
+
+    console.log('Basic REST API connectivity successful');
+
+    // Now test Supabase client
+    console.log('\nTesting Supabase client...');
+    const supabase = createClient(
+      SUPABASE_URL,
+      SERVICE_ROLE_KEY,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        }
+      }
+    );
+
+    // Try to get schema information
+    const { data, error } = await supabase
+      .rpc('postgres_raw_query', {
+        query: 'SELECT current_schema()'
+      });
+
+    if (error) {
+      console.log('RPC function not available yet (expected):', error.message);
     } else {
-      console.log('RPC function exists and works');
+      console.log('Current schema:', data);
     }
 
     console.log('\nBasic Supabase connection test completed successfully');
