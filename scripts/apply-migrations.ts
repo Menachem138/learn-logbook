@@ -1,25 +1,32 @@
-import { createClient } from '@supabase/supabase-js';
-import path from 'node:path';
+import path from 'path';
 import { fileURLToPath } from 'node:url';
 import { readFile, readdir } from 'node:fs/promises';
-import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
+import { PostgrestError } from '@supabase/postgrest-js';
 import pg from 'pg';
+import dotenv from 'dotenv';
 
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-// Validate required environment variables
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) throw new Error('NEXT_PUBLIC_SUPABASE_URL is required');
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required');
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Required environment variables are not set');
+}
 
+// Initialize Supabase client with service role key
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   {
-    auth: { persistSession: false },
-    db: { schema: 'public' }
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+    db: {
+      schema: 'public'
+    }
   }
 );
 
@@ -37,20 +44,37 @@ async function createRawQueryFunction() {
     $$;
   `;
 
+  // Use hostname for SSL verification but IP for connection
+  const dbHostname = 'db.shjwvwhijgehquuteekv.supabase.co';
+  const dbIp = '52.204.196.254';
+
   const client = new pg.Client({
     user: 'postgres',
     password: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    host: 'db.shjwvwhijgehquuteekv.supabase.co',
+    host: dbIp,
     port: 5432,
     database: 'postgres',
     ssl: {
       rejectUnauthorized: true,
-      servername: 'db.shjwvwhijgehquuteekv.supabase.co'
-    }
+      servername: dbHostname
+    },
+    connectionTimeoutMillis: 10000,
+    query_timeout: 5000,
+    statement_timeout: 5000
   });
 
   try {
-    await client.connect();
+    // Wrap connection in a timeout promise
+    const connectWithTimeout = async () => {
+      return Promise.race([
+        client.connect(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
+        )
+      ]);
+    };
+
+    await connectWithTimeout();
     console.log('Connected to database directly');
 
     await client.query(createFunctionSQL);
@@ -63,18 +87,21 @@ async function createRawQueryFunction() {
   }
 }
 
-async function readMigrationFile(filename: string): Promise<string> {
-  const filePath = path.resolve(__dirname, '../supabase/migrations', filename);
-  return readFile(filePath, 'utf-8');
+async function readMigrationFile(filePath: string): Promise<string> {
+  try {
+    return await readFile(filePath, 'utf-8');
+  } catch (error) {
+    console.error(`Error reading migration file ${filePath}:`, error);
+    throw error;
+  }
 }
 
 async function executeMigration(sql: string, description: string) {
   console.log(`Executing migration: ${description}...`);
-
   const statements = sql
     .split(';')
-    .map(stmt => stmt.trim())
-    .filter(stmt => stmt.length > 0);
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
 
   for (const statement of statements) {
     const { error } = await supabase.rpc('postgres_raw_query', {
@@ -82,56 +109,60 @@ async function executeMigration(sql: string, description: string) {
     });
 
     if (error) {
-      console.error(`Error in ${description}:`, error);
+      console.error(`Error executing migration statement:`, error);
       throw error;
     }
   }
-
-  console.log(`Successfully completed: ${description}`);
+  console.log(`Successfully executed migration: ${description}`);
 }
 
 async function applyMigrations() {
+  console.log('\nStarting migration process...');
+
   try {
-    console.log('Starting migration process...');
     await createRawQueryFunction();
 
     const migrationsDir = path.resolve(__dirname, '../supabase/migrations');
     const migrationFiles = await readdir(migrationsDir);
 
+    // Sort files to ensure consistent order
     const sortedFiles = migrationFiles
       .filter(file => file.endsWith('.sql'))
-      .sort();
+      .sort((a, b) => a.localeCompare(b));
 
     for (const file of sortedFiles) {
-      const description = `Applying migration: ${file}`;
-      console.log(description);
-
+      const description = path.basename(file, '.sql');
       const filePath = path.resolve(migrationsDir, file);
       const sql = await readMigrationFile(filePath);
 
       try {
         await executeMigration(sql, description);
       } catch (error) {
-        console.error(`Error in migration ${file}:`, error);
+        console.error(`Failed to apply migration ${file}:`, error);
         throw error;
       }
     }
 
-    console.log('All migrations applied successfully');
+    console.log('\nAll migrations completed successfully');
   } catch (error) {
     console.error('Error applying migrations:', error);
     throw error;
   }
 }
 
-// Handle errors
-process.on('unhandledRejection', error => {
+// Error handlers
+process.on('unhandledRejection', (error) => {
   console.error('Unhandled rejection:', error);
   process.exit(1);
 });
 
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+  process.exit(1);
+});
+
 // Run migrations
-applyMigrations().catch(error => {
+applyMigrations().catch((error) => {
   console.error('Error:', error);
   process.exit(1);
 });
