@@ -11,10 +11,10 @@ import { v2 as cloudinary } from 'cloudinary';
 import { initCloudinary, uploadFileToCloudinary, UploadResult } from '../src/utils/cloudinaryStorage.js';
 import fs from 'node:fs';
 
-// Initialize Supabase client
+// Initialize Supabase client with service role for migration
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key for migration
   { auth: { persistSession: false } }
 );
 
@@ -84,6 +84,21 @@ async function processBatch<T>(
 // Migrate content items
 async function migrateContentItems() {
   console.log('Querying for content items to migrate...');
+
+  // Debug query: Get all content items first
+  const { data: allItems } = await supabase
+    .from('content_items')
+    .select('*');
+  console.log('Total content items:', allItems?.length);
+
+  // Debug query: Check items with files
+  const { data: itemsWithFiles } = await supabase
+    .from('content_items')
+    .select('*')
+    .not('file_path', 'is', null);
+  console.log('Items with files:', itemsWithFiles?.length);
+
+  // Original migration query
   const { data: contentItems, error: queryError } = await supabase
     .from('content_items')
     .select('*')

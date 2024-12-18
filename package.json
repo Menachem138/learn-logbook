@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:migration": "tsx scripts/test-cloudinary-migration.ts"
+    "test:migration": "tsx scripts/test-cloudinary-migration.ts",
+    "migrate:cloudinary": "tsx scripts/apply-migrations.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

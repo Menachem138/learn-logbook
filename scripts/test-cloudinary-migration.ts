@@ -15,13 +15,22 @@ import { migrate, verifyMigration } from './migrate-to-cloudinary.js';
 import fs from 'node:fs';
 import { v4 as uuidv4 } from 'uuid';
 
+// Define FileInfo type
+interface FileInfo {
+  buffer: Buffer;
+  path: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
 // Required environment variables
 const requiredEnvVars = [
   'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME',
   'NEXT_PUBLIC_CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET',
   'SUPABASE_URL',
-  'SUPABASE_ANON_KEY',
+  'SUPABASE_SERVICE_ROLE_KEY',
   'TEST_USER_EMAIL',
   'TEST_USER_PASSWORD'
 ];
@@ -42,7 +51,7 @@ console.log('Environment variables verified successfully');
 console.log('Initializing Supabase client...');
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key for testing
   { auth: { persistSession: false } }
 );
 
@@ -50,44 +59,54 @@ const supabase = createClient(
 async function initTestEnvironment() {
   console.log('Initializing test environment...');
 
-  const MAX_RETRIES = 3;
-  let retryCount = 0;
+  try {
+    // When using service role, we don't need to authenticate
+    // Just verify database access
+    const { count, error: testError } = await supabase
+      .from('content_items')
+      .select('*', { count: 'exact', head: true });
 
-  while (retryCount < MAX_RETRIES) {
-    try {
-      // Sign in with test user credentials
-      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
-        email: process.env.TEST_USER_EMAIL || 'test@example.com',
-        password: process.env.TEST_USER_PASSWORD || 'test123'
-      });
-
-      if (signInError) {
-        console.error('Authentication error:', signInError.message);
-        if (signInError.message.includes('Invalid login credentials')) {
-          throw new Error('Test user credentials are invalid. Please check TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables.');
-        }
-        throw signInError;
-      }
-
-      if (!user) {
-        throw new Error('No user data received after successful authentication');
-      }
-
-      console.log('Test environment initialized with user:', user.id);
-      return { id: user.id };
-    } catch (error) {
-      retryCount++;
-      if (retryCount === MAX_RETRIES) {
-        console.error('Max retries reached. Authentication failed.');
-        throw error;
-      }
-      console.log(`Authentication attempt ${retryCount} failed. Retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+    if (testError) {
+      throw new Error(`Database access test failed: ${testError.message}`);
     }
-  }
 
-  throw new Error('Failed to initialize test environment after multiple attempts');
+    console.log('Database access verified with service role');
+
+    // Ensure required schema changes are in place
+    const { error: schemaError } = await supabase.rpc('verify_cloudinary_schema');
+
+    if (schemaError) {
+      console.log('Adding required schema changes...');
+
+      // Add Cloudinary-specific columns if they don't exist
+      const { error: alterError } = await supabase.rpc('apply_cloudinary_schema', {});
+
+      if (alterError) {
+        throw new Error(`Failed to add schema changes: ${alterError.message}`);
+      }
+
+      console.log('Schema changes applied successfully');
+    }
+
+    // Clean up any test data from previous runs
+    await supabase
+      .from('content_items')
+      .delete()
+      .eq('content', 'Test migration content');
+
+    console.log('Test environment initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize test environment:', error);
+    throw error;
+  }
 }
+
+// Global error handlers
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
+  process.exit(1);
+});
 
 // Initialize Cloudinary
 initCloudinary();
@@ -110,138 +129,121 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-async function createTestFile() {
-  try {
-    const testDir = path.join(__dirname, '../test-files');
-    const testFile = path.join(testDir, 'test-image.png');
+async function createTestFile(): Promise<FileInfo> {
+  const testFilePath = path.join(__dirname, 'test-image.png');
 
-    // Create test directory if it doesn't exist
-    if (!fs.existsSync(testDir)) {
-      fs.mkdirSync(testDir, { recursive: true });
-    }
+  // Create a simple 1x1 pixel PNG
+  const buffer = Buffer.from([
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+    0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x00, 0x00, 0x05,
+    0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45,
+    0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+  ]);
 
-    // Create a simple test image (1x1 pixel transparent PNG)
-    const testImageData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==', 'base64');
-    fs.writeFileSync(testFile, testImageData);
-
-    return testFile;
-  } catch (error) {
-    console.error('Error creating test file:', error);
-    throw error;
-  }
+  return {
+    buffer,
+    path: testFilePath,
+    name: 'test-image.png',
+    size: buffer.length,
+    type: 'image/png'
+  };
 }
 
-async function testFileUpload(userId: string) {
+async function testFileUpload() {
   console.log('Starting file upload test...');
-  const MAX_RETRIES = 3;
-  let retryCount = 0;
+  try {
+    // Create test file
+    const fileInfo = await createTestFile();
+    console.log(`Test file created: ${fileInfo.path}`);
 
-  while (retryCount < MAX_RETRIES) {
-    try {
-      const testFile = await createTestFile();
-      console.log('Test file created:', testFile);
+    // Upload file to Supabase
+    const { error: uploadError, data } = await supabase.storage
+      .from('content_library')
+      .upload(`test-${Date.now()}.png`, fileInfo.buffer);
 
-      // Get file stats for size
-      const stats = fs.statSync(testFile);
-      const fileInfo = {
-        path: testFile,
-        name: 'test-image.png',
-        type: 'image/png',
-        size: stats.size
-      };
-
-      // Upload to Supabase
-      const fileBuffer = fs.readFileSync(testFile);
-      const fileName = `test-${Date.now()}.png`;
-      const { error: uploadError, data } = await supabase.storage
-        .from('content_library')
-        .upload(fileName, fileBuffer);
-
-      if (uploadError) {
-        console.error('Supabase upload error:', uploadError);
-        throw uploadError;
-      }
-
-      console.log('File uploaded to Supabase successfully');
-
-      // Get public URL
-      const { data: { publicUrl: supabaseUrl } } = supabase.storage
-        .from('content_library')
-        .getPublicUrl(fileName);
-
-      console.log('Supabase public URL:', supabaseUrl);
-
-      // Create content item
-      const { data: contentItem, error: insertError } = await supabase
-        .from('content_items')
-        .insert([
-          {
-            content: 'Test migration content',
-            type: 'image',
-            user_id: userId,
-            file_path: fileName,
-            file_name: fileInfo.name,
-            mime_type: fileInfo.type,
-            file_size: fileInfo.size,
-            starred: false
-          }
-        ])
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Error inserting content item:', insertError);
-        throw insertError;
-      }
-
-      console.log('Content item created:', contentItem);
-
-      // Add delay to ensure transaction is committed
-      console.log('Waiting for transaction to commit...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Run migration
-      console.log('Starting migration process...');
-      await migrate();
-      console.log('Migration completed');
-
-      // Add delay to ensure migration is completed
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Verify migration
-      console.log('Verifying migration...');
-      const { data: migratedItem, error: verifyError } = await supabase
-        .from('content_items')
-        .select('*')
-        .eq('id', contentItem.id)
-        .single();
-
-      if (verifyError) {
-        console.error('Error verifying migration:', verifyError);
-        throw verifyError;
-      }
-
-      if (!migratedItem?.cloudinary_url) {
-        throw new Error('Migration verification failed: cloudinary_url is missing');
-      }
-
-      console.log('Migration verified:', migratedItem);
-      return migratedItem;
-    } catch (error) {
-      retryCount++;
-      console.error(`Attempt ${retryCount} failed:`, error);
-
-      if (retryCount === MAX_RETRIES) {
-        console.error('Max retries reached. File upload test failed.');
-        throw error;
-      }
-
-      console.log(`Retrying in ${retryCount} seconds...`);
-      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+    if (uploadError) {
+      throw new Error(`Failed to upload file to Supabase: ${uploadError.message}`);
     }
-  }
 
-  throw new Error('File upload test failed after multiple attempts');
+    if (!data?.path) {
+      throw new Error('No file path returned from Supabase upload');
+    }
+
+    console.log('File uploaded to Supabase successfully');
+
+    // Get public URL
+    const { data: { publicUrl: supabaseUrl } } = await supabase.storage
+      .from('content_library')
+      .getPublicUrl(data.path);
+
+    // Verify file exists in Supabase storage
+    const { data: fileExists } = await supabase.storage
+      .from('content_library')
+      .list('', { search: data.path });
+
+    if (!fileExists?.length) {
+      throw new Error('File not found in Supabase storage after upload');
+    }
+
+    console.log('Supabase public URL:', supabaseUrl);
+
+    // Create content item
+    const { data: contentItem, error: insertError } = await supabase
+      .from('content_items')
+      .insert({
+        content: 'Test migration content',
+        type: 'image',
+        file_path: data.path,
+        file_name: fileInfo.name,
+        file_size: fileInfo.size,
+        mime_type: fileInfo.type,
+        cloudinary_url: null,
+        cloudinary_public_id: null
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      throw new Error(`Failed to create content item: ${insertError.message}`);
+    }
+
+    console.log('Content item created:', contentItem);
+
+    // Wait for transaction to commit
+    console.log('Waiting for transaction to commit...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Start migration process
+    console.log('Starting migration process...');
+    await migrate();
+    console.log('Migration completed');
+
+    // Wait for migration to complete
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Verify migration
+    console.log('Verifying migration...');
+    const { data: migratedItem, error: verifyError } = await supabase
+      .from('content_items')
+      .select('*')
+      .eq('id', contentItem.id)
+      .single();
+
+    if (verifyError) {
+      throw new Error(`Failed to verify migration: ${verifyError.message}`);
+    }
+
+    if (!migratedItem.cloudinary_url) {
+      throw new Error('Migration verification failed: cloudinary_url is missing');
+    }
+
+    console.log('Migration verified successfully');
+    return true;
+  } catch (error) {
+    throw error;
+  }
 }
 
 async function testRollback() {
@@ -298,15 +300,19 @@ async function testRollback() {
 async function runTests() {
   try {
     console.log('Starting migration tests...');
-    console.log('Environment variables loaded and validated');
-    console.log('Supabase client initialized');
+
+    // Initialize Cloudinary first
+    initCloudinary();
     console.log('Cloudinary initialized');
 
+    console.log('Environment variables loaded and validated');
+    console.log('Supabase client initialized');
+
     // Initialize test environment
-    const testUser = await initTestEnvironment();
+    await initTestEnvironment();
 
     console.log('\nRunning file upload and migration test...');
-    await testFileUpload(testUser.id);
+    await testFileUpload();
 
     console.log('\nRunning rollback test...');
     await testRollback();
