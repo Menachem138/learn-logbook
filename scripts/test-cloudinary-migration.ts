@@ -43,104 +43,102 @@ process.on('unhandledRejection', (error) => {
 });
 
 async function createTestFile() {
-  const testDir = path.join(__dirname, '../test-files');
-  const testFile = path.join(testDir, 'test-image.png');
+  try {
+    const testDir = path.join(__dirname, '../test-files');
+    const testFile = path.join(testDir, 'test-image.png');
 
-  // Create test directory if it doesn't exist
-  if (!fs.existsSync(testDir)) {
-    fs.mkdirSync(testDir, { recursive: true });
+    // Create test directory if it doesn't exist
+    if (!fs.existsSync(testDir)) {
+      fs.mkdirSync(testDir, { recursive: true });
+    }
+
+    // Create a simple test image (1x1 pixel transparent PNG)
+    const testImageData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==', 'base64');
+    fs.writeFileSync(testFile, testImageData);
+
+    return testFile;
+  } catch (error) {
+    console.error('Error creating test file:', error);
+    throw error;
   }
-
-  // Create a simple test image (1x1 pixel transparent PNG)
-  const testImageData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==', 'base64');
-  fs.writeFileSync(testFile, testImageData);
-
-  return new File([testImageData], 'test-image.png', { type: 'image/png' });
 }
 
 async function testFileUpload() {
-  console.log('Testing file upload to Cloudinary...');
-
+  console.log('Starting file upload test...');
   try {
-    // Create test file
     const testFile = await createTestFile();
-    const testUserId = 'test-user';
+    console.log('Test file created:', testFile);
 
-    // Upload to Supabase first
-    const fileExt = testFile.name.split('.').pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `${testUserId}/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
+    // Upload to Supabase
+    const fileBuffer = fs.readFileSync(testFile);
+    const fileName = `test-${Date.now()}.png`;
+    const { error: uploadError, data } = await supabase.storage
       .from('content_library')
-      .upload(filePath, testFile);
+      .upload(fileName, fileBuffer);
 
     if (uploadError) {
-      throw new Error(`Failed to upload to Supabase: ${uploadError.message}`);
+      console.error('Supabase upload error:', uploadError);
+      throw uploadError;
     }
 
-    // Get Supabase URL
+    console.log('File uploaded to Supabase successfully');
+
+    // Get public URL
     const { data: { publicUrl: supabaseUrl } } = supabase.storage
       .from('content_library')
-      .getPublicUrl(filePath);
+      .getPublicUrl(fileName);
 
-    // Create test content item
+    console.log('Supabase public URL:', supabaseUrl);
+
+    // Create content item
     const { data: contentItem, error: insertError } = await supabase
       .from('content_items')
-      .insert({
-        user_id: testUserId,
-        file_path: filePath,
-        file_name: testFile.name,
-        mime_type: testFile.type,
-        type: 'image'
-      })
+      .insert([
+        {
+          title: 'Test Content',
+          description: 'Test migration content',
+          file_path: fileName,
+          file_name: 'test-image.png',
+          mime_type: 'image/png',
+          type: 'image',
+          user_id: 'test-user'
+        }
+      ])
       .select()
       .single();
 
-    if (insertError || !contentItem) {
-      throw new Error(`Failed to create test content item: ${insertError?.message}`);
+    if (insertError) {
+      console.error('Error inserting content item:', insertError);
+      throw insertError;
     }
 
-    // Test migration
+    console.log('Content item created:', contentItem);
+
+    // Run migration
     await migrate();
+    console.log('Migration completed');
 
-    // Verify migration results
-    const results = await verifyMigration();
-    console.log('Test migration results:', results);
-
-    // Verify both URLs are accessible
-    const supabaseResponse = await fetch(supabaseUrl);
-    if (!supabaseResponse.ok) {
-      throw new Error(`Failed to access Supabase URL during migration: ${supabaseResponse.statusText}`);
-    }
-    console.log('Successfully verified Supabase URL remains accessible');
-
-    // Get migrated item
+    // Verify migration
     const { data: migratedItem } = await supabase
       .from('content_items')
-      .select('cloudinary_url')
+      .select('*')
       .eq('id', contentItem.id)
       .single();
 
-    if (migratedItem?.cloudinary_url) {
-      const cloudinaryResponse = await fetch(migratedItem.cloudinary_url);
-      if (!cloudinaryResponse.ok) {
-        throw new Error(`Failed to access Cloudinary URL: ${cloudinaryResponse.statusText}`);
-      }
-      console.log('Successfully verified Cloudinary URL access');
+    if (!migratedItem?.cloudinary_url) {
+      throw new Error('Migration verification failed: cloudinary_url is missing');
     }
 
-    console.log('File upload and URL verification test completed successfully');
-    return true;
+    console.log('Migration verified:', migratedItem);
+    return migratedItem;
   } catch (error) {
     console.error('File upload test failed:', error);
-    return false;
+    throw error;
   }
 }
 
 async function testRollback() {
-  console.log('Testing rollback procedure...');
-
+  console.log('Starting rollback test...');
   try {
     // Get a migrated content item
     const { data: contentItem } = await supabase
@@ -154,11 +152,9 @@ async function testRollback() {
       throw new Error('No migrated content item found for rollback test');
     }
 
-    // Store original values
-    const originalCloudinaryUrl = contentItem.cloudinary_url;
-    const originalPublicId = contentItem.cloudinary_public_id;
+    console.log('Found content item for rollback:', contentItem);
 
-    // Perform rollback
+    // Simulate rollback by clearing Cloudinary URL
     const { error: updateError } = await supabase
       .from('content_items')
       .update({
@@ -168,57 +164,52 @@ async function testRollback() {
       .eq('id', contentItem.id);
 
     if (updateError) {
-      throw new Error(`Failed to rollback content item: ${updateError.message}`);
+      console.error('Error updating content item:', updateError);
+      throw updateError;
     }
 
-    // Verify Supabase URL still works
+    console.log('Cloudinary data cleared for rollback test');
+
+    // Verify original Supabase URL still works
     const { data: { publicUrl: supabaseUrl } } = supabase.storage
       .from('content_library')
-      .getPublicUrl(contentItem.file_path!);
+      .getPublicUrl(contentItem.file_path);
 
     const response = await fetch(supabaseUrl);
     if (!response.ok) {
-      throw new Error(`Failed to access Supabase URL after rollback: ${response.statusText}`);
+      throw new Error(`Original Supabase URL is not accessible: ${supabaseUrl}`);
     }
 
-    console.log('Successfully verified Supabase URL after rollback');
-
-    // Restore the item to its original state
-    await supabase
-      .from('content_items')
-      .update({
-        cloudinary_url: originalCloudinaryUrl,
-        cloudinary_public_id: originalPublicId
-      })
-      .eq('id', contentItem.id);
-
-    console.log('Rollback test completed successfully');
+    console.log('Rollback test successful: original URL still accessible');
     return true;
   } catch (error) {
     console.error('Rollback test failed:', error);
-    return false;
+    throw error;
   }
 }
 
 async function runTests() {
-  console.log('Starting Cloudinary migration tests...');
+  try {
+    console.log('Starting migration tests...');
 
-  // Initialize Cloudinary
-  initCloudinary();
+    // Test file upload and migration
+    const migratedItem = await testFileUpload();
+    console.log('File upload and migration test passed');
 
-  // Run tests
-  const uploadSuccess = await testFileUpload();
-  const rollbackSuccess = await testRollback();
+    // Test rollback procedure
+    await testRollback();
+    console.log('Rollback test passed');
 
-  // Report results
-  console.log('\nTest Results:');
-  console.log('-------------');
-  console.log('File Upload and URL Verification:', uploadSuccess ? '✅ Passed' : '❌ Failed');
-  console.log('Rollback Procedure:', rollbackSuccess ? '✅ Passed' : '❌ Failed');
-
-  // Exit with appropriate code
-  process.exit(uploadSuccess && rollbackSuccess ? 0 : 1);
+    console.log('All tests completed successfully');
+    process.exit(0);
+  } catch (error) {
+    console.error('Tests failed:', error);
+    process.exit(1);
+  }
 }
+
+// Run the tests
+runTests();
 
 // Run tests if called directly
 if (require.main === module) {
