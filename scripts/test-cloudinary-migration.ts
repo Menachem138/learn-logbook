@@ -133,86 +133,101 @@ async function createTestFile() {
 
 async function testFileUpload(userId: string) {
   console.log('Starting file upload test...');
-  try {
-    const testFile = await createTestFile();
-    console.log('Test file created:', testFile);
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
 
-    // Get file stats for size
-    const stats = fs.statSync(testFile);
-    const fileInfo = {
-      path: testFile,
-      name: 'test-image.png',
-      type: 'image/png',
-      size: stats.size
-    };
+  while (retryCount < MAX_RETRIES) {
+    try {
+      const testFile = await createTestFile();
+      console.log('Test file created:', testFile);
 
-    // Upload to Supabase
-    const fileBuffer = fs.readFileSync(testFile);
-    const fileName = `test-${Date.now()}.png`;
-    const { error: uploadError, data } = await supabase.storage
-      .from('content_library')
-      .upload(fileName, fileBuffer);
+      // Get file stats for size
+      const stats = fs.statSync(testFile);
+      const fileInfo = {
+        path: testFile,
+        name: 'test-image.png',
+        type: 'image/png',
+        size: stats.size
+      };
 
-    if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
-      throw uploadError;
+      // Upload to Supabase
+      const fileBuffer = fs.readFileSync(testFile);
+      const fileName = `test-${Date.now()}.png`;
+      const { error: uploadError, data } = await supabase.storage
+        .from('content_library')
+        .upload(fileName, fileBuffer);
+
+      if (uploadError) {
+        console.error('Supabase upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('File uploaded to Supabase successfully');
+
+      // Get public URL
+      const { data: { publicUrl: supabaseUrl } } = supabase.storage
+        .from('content_library')
+        .getPublicUrl(fileName);
+
+      console.log('Supabase public URL:', supabaseUrl);
+
+      // Create content item
+      const { data: contentItem, error: insertError } = await supabase
+        .from('content_items')
+        .insert([
+          {
+            content: 'Test migration content',
+            type: 'image',
+            user_id: userId,
+            file_path: fileName,
+            file_name: fileInfo.name,
+            mime_type: fileInfo.type,
+            file_size: fileInfo.size,
+            starred: false
+          }
+        ])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error inserting content item:', insertError);
+        throw insertError;
+      }
+
+      console.log('Content item created:', contentItem);
+
+      // Run migration
+      await migrate();
+      console.log('Migration completed');
+
+      // Verify migration
+      const { data: migratedItem } = await supabase
+        .from('content_items')
+        .select('*')
+        .eq('id', contentItem.id)
+        .single();
+
+      if (!migratedItem?.cloudinary_url) {
+        throw new Error('Migration verification failed: cloudinary_url is missing');
+      }
+
+      console.log('Migration verified:', migratedItem);
+      return migratedItem;
+    } catch (error) {
+      retryCount++;
+      console.error(`Attempt ${retryCount} failed:`, error);
+
+      if (retryCount === MAX_RETRIES) {
+        console.error('Max retries reached. File upload test failed.');
+        throw error;
+      }
+
+      console.log(`Retrying in ${retryCount} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
     }
-
-    console.log('File uploaded to Supabase successfully');
-
-    // Get public URL
-    const { data: { publicUrl: supabaseUrl } } = supabase.storage
-      .from('content_library')
-      .getPublicUrl(fileName);
-
-    console.log('Supabase public URL:', supabaseUrl);
-
-    // Create content item
-    const { data: contentItem, error: insertError } = await supabase
-      .from('content_items')
-      .insert([
-        {
-          content: 'Test migration content',
-          type: 'image',
-          user_id: userId,
-          file_path: fileName,
-          file_name: fileInfo.name,
-          mime_type: fileInfo.type,
-          file_size: fileInfo.size,
-          starred: false
-        }
-      ])
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('Error inserting content item:', insertError);
-      throw insertError;
-    }
-
-    console.log('Content item created:', contentItem);
-
-    // Run migration
-    await migrate();
-    console.log('Migration completed');
-
-    // Verify migration
-    const { data: migratedItem } = await supabase
-      .from('content_items')
-      .select('*')
-      .eq('id', contentItem.id)
-      .single();
-
-    if (!migratedItem?.cloudinary_url) {
-      throw new Error('Migration verification failed: cloudinary_url is missing');
-    }
-
-    console.log('Migration verified:', migratedItem);
-    return migratedItem;
-  } catch (error) {
-    console.error('File upload test failed:', error);
-    throw error;
   }
+
+  throw new Error('File upload test failed after multiple attempts');
 }
 
 async function testRollback() {
