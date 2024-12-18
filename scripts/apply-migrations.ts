@@ -36,45 +36,29 @@ async function createRawQueryFunction() {
     $$;
   `;
 
-  let error;
   try {
-    const result = await supabase.rpc('postgres_raw_query', {
-      query: createFunctionSQL
+    // Create function directly through SQL endpoint
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/sql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ query: createFunctionSQL })
     });
-    error = result.error;
-  } catch (e) {
-    error = { message: 'Function does not exist yet' };
-  }
 
-  if (error) {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/postgres_raw_query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-          'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY!
-        },
-        body: JSON.stringify({ query: createFunctionSQL })
-      });
-
-      if (!response.ok) {
-        const { error: directError } = await supabase
-          .from('_postgrest_function')
-          .insert({
-            name: 'postgres_raw_query',
-            definition: createFunctionSQL
-          });
-
-        if (directError) {
-          console.error('Failed to create postgres_raw_query function:', directError);
-          throw directError;
-        }
-      }
-    } catch (e) {
-      console.error('Failed to create function:', e);
-      throw e;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to create function via SQL endpoint:', errorText);
+      throw new Error(`Failed to create function: ${errorText}`);
     }
+
+    console.log('Successfully created postgres_raw_query function');
+  } catch (e) {
+    console.error('Failed to create function:', e);
+    throw e;
   }
 }
 
