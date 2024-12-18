@@ -1,9 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "target": "ESNext",
+    "target": "ES2022",
     "outDir": "./dist",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -12,8 +12,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
+    "noEmit": false,
     "types": ["node"]
   },
   "include": ["scripts/**/*"],
