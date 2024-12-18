@@ -2,8 +2,6 @@ import path from 'path';
 import { fileURLToPath } from 'node:url';
 import { readFile, readdir } from 'node:fs/promises';
 import { createClient } from '@supabase/supabase-js';
-import { PostgrestError } from '@supabase/postgrest-js';
-import pg from 'pg';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -30,60 +28,24 @@ const supabase = createClient(
   }
 );
 
-async function createRawQueryFunction() {
-  console.log('Creating postgres_raw_query function...');
-  const createFunctionSQL = `
-    CREATE OR REPLACE FUNCTION postgres_raw_query(query text)
-    RETURNS VOID
-    LANGUAGE plpgsql
-    SECURITY DEFINER
-    AS $$
-    BEGIN
-      EXECUTE query;
-    END;
-    $$;
-  `;
-
-  // Use hostname for SSL verification but IP for connection
-  const dbHostname = 'db.shjwvwhijgehquuteekv.supabase.co';
-  const dbIp = '52.204.196.254';
-
-  const client = new pg.Client({
-    user: 'postgres',
-    password: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    host: dbIp,
-    port: 5432,
-    database: 'postgres',
-    ssl: {
-      rejectUnauthorized: true,
-      servername: dbHostname
-    },
-    connectionTimeoutMillis: 10000,
-    query_timeout: 5000,
-    statement_timeout: 5000
-  });
+async function executeSql(sql: string, description: string) {
+  console.log(`Executing SQL: ${description}...`);
 
   try {
-    // Wrap connection in a timeout promise
-    const connectWithTimeout = async () => {
-      return Promise.race([
-        client.connect(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
-        )
-      ]);
-    };
+    // Use rpc endpoint to execute SQL directly
+    const { error } = await supabase.rpc('exec_sql', {
+      sql_query: sql
+    });
 
-    await connectWithTimeout();
-    console.log('Connected to database directly');
+    if (error) {
+      console.error(`Error executing SQL: ${description}:`, error);
+      throw error;
+    }
 
-    await client.query(createFunctionSQL);
-    console.log('Successfully created postgres_raw_query function');
-  } catch (e) {
-    console.error('Failed to create function:', e);
-    throw e;
-  } finally {
-    await client.end();
+    console.log(`Successfully executed SQL: ${description}`);
+  } catch (error) {
+    console.error(`Failed to execute SQL: ${description}:`, error);
+    throw error;
   }
 }
 
@@ -98,21 +60,21 @@ async function readMigrationFile(filePath: string): Promise<string> {
 
 async function executeMigration(sql: string, description: string) {
   console.log(`Executing migration: ${description}...`);
-  const statements = sql
-    .split(';')
+
+  // Split SQL into statements, preserving function definitions
+  const statements = sql.split(/;\s*$/m)
     .map(s => s.trim())
     .filter(s => s.length > 0);
 
   for (const statement of statements) {
-    const { error } = await supabase.rpc('postgres_raw_query', {
-      query: statement
-    });
-
-    if (error) {
+    try {
+      await executeSql(statement, `${description} - statement`);
+    } catch (error) {
       console.error(`Error executing migration statement:`, error);
       throw error;
     }
   }
+
   console.log(`Successfully executed migration: ${description}`);
 }
 
@@ -120,7 +82,18 @@ async function applyMigrations() {
   console.log('\nStarting migration process...');
 
   try {
-    await createRawQueryFunction();
+    // First create exec_sql function if it doesn't exist
+    await executeSql(`
+      CREATE OR REPLACE FUNCTION exec_sql(sql_query text)
+      RETURNS void
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $$
+      BEGIN
+        EXECUTE sql_query;
+      END;
+      $$;
+    `, 'create exec_sql function');
 
     const migrationsDir = path.resolve(__dirname, '../supabase/migrations');
     const migrationFiles = await readdir(migrationsDir);
