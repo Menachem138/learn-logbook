@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit2, Save, X, Trash2, Plus } from "lucide-react";
 import { ScheduleItem } from "./scheduleData";
+import { GoogleCalendarSync } from './GoogleCalendarSync';
 
 interface DayScheduleProps {
   day: string;
@@ -145,6 +146,7 @@ export function DaySchedule({ day, schedule, onUpdateSchedule, onUpdateDayName, 
                 <>
                   <Badge variant="outline" className="bg-primary/5">{item.time}</Badge>
                   <span className="flex-1 text-right mr-4">{item.activity}</span>
+                  <GoogleCalendarSync dayName={day} scheduleItem={item} />
                 </>
               )}
             </li>
