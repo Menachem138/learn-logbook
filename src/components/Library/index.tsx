@@ -3,7 +3,7 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Images } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
@@ -30,6 +30,7 @@ const getIcon = (type: LibraryItemType) => {
 const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAlbumDialogOpen, setIsAlbumDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
 
   const handleAddOrUpdateItem = async (data: any) => {
@@ -40,6 +41,7 @@ const Library = () => {
         await addItem.mutateAsync(data);
       }
       setIsDialogOpen(false);
+      setIsAlbumDialogOpen(false);
       setEditingItem(null);
     } catch (error) {
       console.error('Error adding/updating item:', error);
@@ -106,6 +108,17 @@ const Library = () => {
           >
             הוסף פריט
           </Button>
+          <Button
+            onClick={() => {
+              setEditingItem(null);
+              setIsAlbumDialogOpen(true);
+            }}
+            variant="secondary"
+            className="gap-2"
+          >
+            <Images className="w-4 h-4" />
+            הוסף אלבום תמונות
+          </Button>
         </div>
       </div>
 
@@ -158,6 +171,16 @@ const Library = () => {
           setIsDialogOpen(false);
           setEditingItem(null);
         }}
+      />
+
+      <ItemDialog
+        onSubmit={handleAddOrUpdateItem}
+        initialData={null}
+        isOpen={isAlbumDialogOpen}
+        onClose={() => {
+          setIsAlbumDialogOpen(false);
+        }}
+        defaultType="image_album"
       />
     </div>
   );
