@@ -1,11 +1,13 @@
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload } from "lucide-react";
+import { Upload, Image as ImageIcon } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -15,7 +17,7 @@ interface ItemDialogProps {
 }
 
 export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
-  const { register, handleSubmit, reset, watch } = useForm({
+  const { register, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: initialData || {
       title: "",
       content: "",
@@ -26,11 +28,11 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
 
-  console.log("Selected type:", selectedType); // Debug log
-  console.log("Selected files:", selectedFiles); // Debug log
+  console.log("Selected type:", selectedType);
+  console.log("Selected files:", selectedFiles);
 
   const onSubmitForm = (data: any) => {
-    console.log("Submitting form with data:", data); // Debug log
+    console.log("Submitting form with data:", data);
     const formData = {
       ...data,
       files: selectedFiles,
@@ -42,10 +44,14 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    console.log("Files selected:", files); // Debug log
+    console.log("Files selected:", files);
     if (files) {
       setSelectedFiles(files);
     }
+  };
+
+  const handleTypeChange = (value: string) => {
+    setValue("type", value as LibraryItemType);
   };
 
   const isImageType = selectedType === 'image' || selectedType === 'image_album';
@@ -53,34 +59,49 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{initialData ? "ערוך פריט" : "הוסף פריט חדש"}</DialogTitle>
+          <DialogDescription>
+            הוסף פריט חדש לספריית התוכן שלך
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
-          <div>
+          <div className="space-y-2">
+            <Label htmlFor="title">כותרת</Label>
             <Input
-              placeholder="כותרת"
+              id="title"
+              placeholder="הזן כותרת"
               {...register("title", { required: true })}
             />
           </div>
-          <div>
-            <select
-              className="w-full p-2 border rounded-md"
-              {...register("type", { required: true })}
+
+          <div className="space-y-2">
+            <Label htmlFor="type">סוג פריט</Label>
+            <Select
+              onValueChange={handleTypeChange}
+              defaultValue={selectedType}
             >
-              <option value="note">הערה</option>
-              <option value="link">קישור</option>
-              <option value="image">תמונה</option>
-              <option value="image_album">אלבום תמונות</option>
-              <option value="video">וידאו</option>
-              <option value="whatsapp">וואטסאפ</option>
-              <option value="pdf">PDF</option>
-              <option value="question">שאלה</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="בחר סוג פריט" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="note">הערה</SelectItem>
+                <SelectItem value="link">קישור</SelectItem>
+                <SelectItem value="image">תמונה</SelectItem>
+                <SelectItem value="image_album">אלבום תמונות</SelectItem>
+                <SelectItem value="video">וידאו</SelectItem>
+                <SelectItem value="whatsapp">וואטסאפ</SelectItem>
+                <SelectItem value="pdf">PDF</SelectItem>
+                <SelectItem value="question">שאלה</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div>
+
+          <div className="space-y-2">
+            <Label htmlFor="content">תוכן</Label>
             <Textarea
+              id="content"
               placeholder={selectedType === 'question' ? "מה השאלה שלך?" : "תוכן"}
               {...register("content", { required: true })}
             />
@@ -88,11 +109,11 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
           {isFileUploadType && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <Label>
                 {selectedType === 'image' ? 'העלה תמונה' : 
                  selectedType === 'image_album' ? 'העלה תמונות' :
                  selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
-              </label>
+              </Label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
@@ -116,7 +137,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             </div>
           )}
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               ביטול
             </Button>
