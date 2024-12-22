@@ -65,6 +65,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
+              <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
