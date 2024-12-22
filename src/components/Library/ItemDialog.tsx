@@ -12,19 +12,27 @@ interface ItemDialogProps {
   onClose: () => void;
   onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
   initialData?: LibraryItem | null;
+  defaultType?: LibraryItemType;
 }
 
-export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
+export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType = "note" }: ItemDialogProps) {
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
       content: "",
-      type: "note" as LibraryItemType,
+      type: defaultType,
     },
   });
 
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedFiles(null);
+      reset(initialData || { title: "", content: "", type: defaultType });
+    }
+  }, [isOpen, initialData, reset, defaultType]);
 
   const onSubmitForm = (data: any) => {
     const formData = {

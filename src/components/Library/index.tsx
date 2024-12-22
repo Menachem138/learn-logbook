@@ -33,6 +33,7 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
+  const [selectedType, setSelectedType] = useState<LibraryItemType>("note");
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -50,6 +51,12 @@ const Library = () => {
 
   const handleEdit = (item: LibraryItem) => {
     setEditingItem(item);
+    setIsDialogOpen(true);
+  };
+
+  const handleAddNew = (type: LibraryItemType) => {
+    setSelectedType(type);
+    setEditingItem(null);
     setIsDialogOpen(true);
   };
 
@@ -73,15 +80,23 @@ const Library = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-xs"
           />
-          <Button 
-            onClick={() => {
-              setEditingItem(null);
-              setIsDialogOpen(true);
-            }}
-            className="gap-2"
-          >
-            הוסף פריט
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => handleAddNew("note")}
+              className="gap-2"
+            >
+              הוסף פריט
+              <Upload className="w-4 h-4" />
+            </Button>
+            <Button 
+              onClick={() => handleAddNew("image_album")}
+              className="gap-2"
+              variant="secondary"
+            >
+              הוסף אלבום
+              <Images className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -142,6 +157,7 @@ const Library = () => {
           setIsDialogOpen(false);
           setEditingItem(null);
         }}
+        defaultType={selectedType}
       />
     </div>
   );
