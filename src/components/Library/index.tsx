@@ -3,8 +3,10 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Images } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
+import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -23,16 +25,13 @@ const getIcon = (type: LibraryItemType) => {
     case 'pdf':
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
-      return <MessageCircle className="w-4 h-4 text-purple-500" />;
-    case 'image_album':
-      return <Images className="w-4 h-4" />;
+      return <HelpCircle className="w-4 h-4 text-purple-500" />;
   }
 };
 
 const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isAlbumDialogOpen, setIsAlbumDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
 
   const handleAddOrUpdateItem = async (data: any) => {
@@ -43,7 +42,6 @@ const Library = () => {
         await addItem.mutateAsync(data);
       }
       setIsDialogOpen(false);
-      setIsAlbumDialogOpen(false);
       setEditingItem(null);
     } catch (error) {
       console.error('Error adding/updating item:', error);
@@ -62,32 +60,6 @@ const Library = () => {
       </div>
     );
   }
-
-  const renderMediaContent = (item: LibraryItem) => {
-    if (!item.file_details) return null;
-
-    if (item.type === 'image_album' && Array.isArray(item.file_details)) {
-      return (
-        <MediaCard
-          type="image_album"
-          src={item.file_details}
-          title={item.title}
-        />
-      );
-    }
-
-    if ((item.type === 'image' || item.type === 'video' || item.type === 'pdf') && !Array.isArray(item.file_details)) {
-      return (
-        <MediaCard
-          type={item.type}
-          src={item.file_details.path}
-          title={item.title}
-        />
-      );
-    }
-
-    return null;
-  };
 
   return (
     <div className="space-y-6">
@@ -109,17 +81,6 @@ const Library = () => {
             className="gap-2"
           >
             הוסף פריט
-          </Button>
-          <Button
-            onClick={() => {
-              setEditingItem(null);
-              setIsAlbumDialogOpen(true);
-            }}
-            variant="secondary"
-            className="gap-2"
-          >
-            <Images className="w-4 h-4" />
-            הוסף אלבום תמונות
           </Button>
         </div>
       </div>
@@ -160,7 +121,15 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {renderMediaContent(item)}
+            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
+              <div className="mt-2">
+                <MediaCard
+                  type={item.type as "image" | "video" | "pdf"}
+                  src={item.file_details.path}
+                  title={item.title}
+                />
+              </div>
+            )}
           </Card>
         ))}
       </div>
@@ -173,16 +142,6 @@ const Library = () => {
           setIsDialogOpen(false);
           setEditingItem(null);
         }}
-      />
-
-      <ItemDialog
-        onSubmit={handleAddOrUpdateItem}
-        initialData={null}
-        isOpen={isAlbumDialogOpen}
-        onClose={() => {
-          setIsAlbumDialogOpen(false);
-        }}
-        defaultType="image_album"
       />
     </div>
   );
