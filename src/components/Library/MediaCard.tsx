@@ -1,8 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
-import { MediaViewer } from "./MediaViewer";
-import { ImageAlbum } from "./ImageAlbum";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_album";
@@ -11,69 +10,68 @@ interface MediaCardProps {
 }
 
 export function MediaCard({ type, src, title }: MediaCardProps) {
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  if (type === "image_album" && Array.isArray(src)) {
+    return (
+      <div className="relative">
+        <Card className="overflow-hidden aspect-video relative">
+          <img
+            src={src[currentImageIndex]}
+            alt={`${title} - תמונה ${currentImageIndex + 1}`}
+            className="w-full h-full object-cover"
+          />
+          {src.length > 1 && (
+            <div className="absolute inset-x-0 bottom-0 flex justify-between p-2 bg-black/50">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? src.length - 1 : prev - 1))}
+                className="text-white hover:bg-black/20"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <span className="text-white">
+                {currentImageIndex + 1} / {src.length}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCurrentImageIndex((prev) => (prev === src.length - 1 ? 0 : prev + 1))}
+                className="text-white hover:bg-black/20"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </Card>
+      </div>
+    );
+  }
+
+  if (type === "image") {
+    return (
+      <Card className="overflow-hidden aspect-video">
+        <img src={src as string} alt={title} className="w-full h-full object-cover" />
+      </Card>
+    );
+  }
+
+  if (type === "video") {
+    return (
+      <Card className="overflow-hidden aspect-video">
+        <video src={src as string} controls className="w-full h-full" />
+      </Card>
+    );
+  }
 
   if (type === "pdf") {
     return (
-      <Card className="p-4 flex items-center gap-2">
-        <FileText className="w-6 h-6 text-red-500" />
-        <a 
-          href={typeof src === 'string' ? src : src[0]} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-        >
-          {title}
-        </a>
+      <Card className="overflow-hidden aspect-[3/4]">
+        <iframe src={src as string} className="w-full h-full" title={title} />
       </Card>
     );
   }
 
-  if (type === "image_album" && Array.isArray(src)) {
-    return (
-      <ImageAlbum 
-        images={src} 
-        title={title}
-      />
-    );
-  }
-
-  const handleMediaClick = () => {
-    if (type === "image" || type === "video") {
-      setIsViewerOpen(true);
-    }
-  };
-
-  return (
-    <>
-      <Card 
-        className="overflow-hidden cursor-pointer group relative"
-        onClick={handleMediaClick}
-      >
-        {type === "image" && typeof src === 'string' ? (
-          <img 
-            src={src} 
-            alt={title} 
-            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : type === "video" && typeof src === 'string' ? (
-          <video controls className="w-full h-auto">
-            <source src={src} type="video/mp4" />
-            הדפדפן שלך לא תומך בתגית וידאו.
-          </video>
-        ) : null}
-      </Card>
-
-      {(type === "image" || type === "video") && typeof src === 'string' && (
-        <MediaViewer
-          isOpen={isViewerOpen}
-          onClose={() => setIsViewerOpen(false)}
-          type={type}
-          src={src}
-          title={title}
-        />
-      )}
-    </>
-  );
+  return null;
 }
