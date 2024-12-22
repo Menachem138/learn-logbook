@@ -14,14 +14,15 @@ interface ItemDialogProps {
   onClose: () => void;
   onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
   initialData?: LibraryItem | null;
+  defaultType?: LibraryItemType;
 }
 
-export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
+export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType = "note" }: ItemDialogProps) {
   const { register, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: initialData || {
       title: "",
       content: "",
-      type: "note" as LibraryItemType,
+      type: defaultType,
     },
   });
 
