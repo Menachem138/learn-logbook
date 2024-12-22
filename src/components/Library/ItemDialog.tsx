@@ -43,6 +43,9 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     }
   };
 
+  const isImageType = selectedType === 'image' || selectedType === 'image_album';
+  const isFileUploadType = isImageType || selectedType === 'video' || selectedType === 'pdf';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -78,7 +81,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'image_album' || selectedType === 'video' || selectedType === 'pdf') && (
+          {isFileUploadType && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 {selectedType === 'image' ? 'העלה תמונה' : 
@@ -89,7 +92,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' || selectedType === 'image_album'
+                    isImageType
                       ? "image/*" 
                       : selectedType === 'video'
                       ? "video/*" 

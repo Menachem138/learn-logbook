@@ -488,6 +488,7 @@ export type Database = {
         | "pdf"
         | "question"
         | "youtube"
+        | "image_album"
     }
     CompositeTypes: {
       [_ in never]: never
