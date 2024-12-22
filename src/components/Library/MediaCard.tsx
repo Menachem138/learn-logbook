@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
+import { ImageAlbum } from "./ImageAlbum";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
-  src: string;
+  type: "image" | "video" | "pdf" | "image_album";
+  src: string | string[];
   title: string;
 }
 
@@ -17,7 +18,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
       <Card className="p-4 flex items-center gap-2">
         <FileText className="w-6 h-6 text-red-500" />
         <a 
-          href={src} 
+          href={typeof src === 'string' ? src : src[0]} 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
@@ -25,6 +26,15 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           {title}
         </a>
       </Card>
+    );
+  }
+
+  if (type === "image_album" && Array.isArray(src)) {
+    return (
+      <ImageAlbum 
+        images={src} 
+        title={title}
+      />
     );
   }
 
@@ -40,14 +50,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         className="overflow-hidden cursor-pointer group relative"
         onClick={handleMediaClick}
       >
-        {type === "image" ? (
+        {type === "image" && typeof src === 'string' ? (
           <img 
             src={src} 
             alt={title} 
             className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
           />
-        ) : type === "video" ? (
+        ) : type === "video" && typeof src === 'string' ? (
           <video controls className="w-full h-auto">
             <source src={src} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
@@ -55,7 +65,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         ) : null}
       </Card>
 
-      {(type === "image" || type === "video") && (
+      {(type === "image" || type === "video") && typeof src === 'string' && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
