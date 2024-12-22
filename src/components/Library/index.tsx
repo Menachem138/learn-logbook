@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle, Images } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
@@ -18,6 +18,8 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4" />;
     case 'image':
       return <Image className="w-4 h-4" />;
+    case 'image_album':
+      return <Images className="w-4 h-4" />;
     case 'video':
       return <Video className="w-4 h-4" />;
     case 'whatsapp':

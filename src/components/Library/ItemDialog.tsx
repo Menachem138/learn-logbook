@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload } from "lucide-react";
+import { Upload, Images } from "lucide-react";
 
 interface ItemDialogProps {
   isOpen: boolean;
