@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, ImagePlus } from "lucide-react";
-import { LibraryItem } from "@/types/library";
+import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -24,6 +24,8 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'image_album':
       return <ImagePlus className="w-4 h-4" />;
+    default:
+      return <FileText className="w-4 h-4" />;
   }
 };
 

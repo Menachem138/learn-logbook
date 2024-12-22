@@ -12,14 +12,15 @@ interface ItemDialogProps {
   onClose: () => void;
   onSubmit: (data: Partial<LibraryItem> & { file?: File }) => void;
   initialData?: LibraryItem | null;
+  defaultType?: LibraryItemType;
 }
 
-export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
+export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType }: ItemDialogProps) {
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
       content: "",
-      type: "note" as LibraryItemType,
+      type: defaultType || "note" as LibraryItemType,
     },
   });
 
@@ -68,6 +69,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
+              <option value="image_album">אלבום תמונות</option>
             </select>
           </div>
           <div>
@@ -77,21 +79,25 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
+          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf' || selectedType === 'image_album') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'image' ? 'העלה תמונה' : selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
+                {selectedType === 'image' ? 'העלה תמונה' : 
+                 selectedType === 'video' ? 'העלה וידאו' : 
+                 selectedType === 'image_album' ? 'העלה תמונות' :
+                 'העלה PDF'}
               </label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' 
+                    selectedType === 'image' || selectedType === 'image_album'
                       ? "image/*" 
                       : selectedType === 'video' 
                       ? "video/*" 
                       : "application/pdf"
                   }
+                  multiple={selectedType === 'image_album'}
                   onChange={handleFileChange}
                   className="flex-1"
                 />
