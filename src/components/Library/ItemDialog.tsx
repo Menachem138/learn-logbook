@@ -26,7 +26,11 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
 
+  console.log("Selected type:", selectedType); // Debug log
+  console.log("Selected files:", selectedFiles); // Debug log
+
   const onSubmitForm = (data: any) => {
+    console.log("Submitting form with data:", data); // Debug log
     const formData = {
       ...data,
       files: selectedFiles,
@@ -38,6 +42,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
+    console.log("Files selected:", files); // Debug log
     if (files) {
       setSelectedFiles(files);
     }

@@ -38,25 +38,30 @@ export const useLibraryQuery = (filter: string) => {
         return [];
       }
 
-      return data.map((item: any): LibraryItem => ({
-        ...item,
-        file_details: item.file_details ? 
-          (Array.isArray(item.file_details) ? 
-            item.file_details.map((detail: any) => ({
-              path: detail.path,
-              title: detail.title,
-              type: detail.type,
-              name: detail.name,
-              size: detail.size,
-            })) : 
-            {
-              path: item.file_details.path,
-              type: item.file_details.type,
-              name: item.file_details.name,
-              size: item.file_details.size,
-            }
-          ) : undefined
-      }));
+      console.log('Raw library items data:', data); // Debug log
+
+      return data.map((item: any): LibraryItem => {
+        console.log('Processing item:', item); // Debug log for each item
+        return {
+          ...item,
+          file_details: item.file_details ? 
+            (Array.isArray(item.file_details) ? 
+              item.file_details.map((detail: any) => ({
+                path: detail.path,
+                title: detail.title,
+                type: detail.type,
+                name: detail.name,
+                size: detail.size,
+              })) : 
+              {
+                path: item.file_details.path,
+                type: item.file_details.type,
+                name: item.file_details.name,
+                size: item.file_details.size,
+              }
+            ) : undefined
+        };
+      });
     },
   });
 };
