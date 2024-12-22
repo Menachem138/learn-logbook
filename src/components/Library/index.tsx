@@ -90,8 +90,8 @@ const Library = () => {
             </Button>
             <Button 
               onClick={() => handleAddNew("image_album")}
-              className="gap-2"
               variant="secondary"
+              className="gap-2"
             >
               הוסף אלבום
               <Images className="w-4 h-4" />
