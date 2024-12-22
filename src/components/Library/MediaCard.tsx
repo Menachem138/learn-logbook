@@ -3,10 +3,11 @@ import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
 import { ImageAlbum } from "./ImageAlbum";
+import { ImageDetails } from "@/types/library";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_album";
-  src: string | Array<{path: string; title?: string}>;
+  src: string | ImageDetails[];
   title: string;
 }
 

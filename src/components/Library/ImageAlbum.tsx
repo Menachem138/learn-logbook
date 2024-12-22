@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
+import { ImageDetails } from "@/types/library";
 
 interface ImageAlbumProps {
-  images: Array<{
-    path: string;
-    title?: string;
-  }>;
+  images: ImageDetails[];
   title: string;
 }
 
