@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
 import { ImageDetails } from "@/types/library";
+import { Images } from "lucide-react";
 
 interface ImageAlbumProps {
   images: ImageDetails[];
@@ -25,56 +26,51 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
         <img
           src={images[0].path}
           alt={title}
-          className="w-full h-full object-cover rounded-lg cursor-pointer"
+          className="w-full h-[200px] object-cover rounded-lg cursor-pointer"
           onClick={() => handleImageClick(0)}
         />
-      );
-    }
-
-    if (images.length === 2) {
-      return (
-        <div className="grid grid-cols-2 gap-1 h-full">
-          {images.map((image, index) => (
-            <img
-              key={image.path}
-              src={image.path}
-              alt={image.title || title}
-              className="w-full h-full object-cover rounded-lg cursor-pointer"
-              onClick={() => handleImageClick(index)}
-            />
-          ))}
-        </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-2 gap-1 h-full">
-        <img
-          src={images[0].path}
-          alt={images[0].title || title}
-          className="w-full h-full object-cover rounded-lg cursor-pointer"
-          onClick={() => handleImageClick(0)}
-        />
-        <div className="grid grid-rows-2 gap-1">
+      <div className="grid grid-cols-2 gap-2 h-[200px]">
+        <div className="col-span-1 h-full">
           <img
-            src={images[1].path}
-            alt={images[1].title || title}
+            src={images[0].path}
+            alt={images[0].title || title}
             className="w-full h-full object-cover rounded-lg cursor-pointer"
-            onClick={() => handleImageClick(1)}
+            onClick={() => handleImageClick(0)}
           />
-          <div
-            className="relative cursor-pointer"
-            onClick={() => handleImageClick(2)}
-          >
+        </div>
+        <div className="col-span-1 grid grid-rows-2 gap-2 h-full">
+          {images[1] && (
             <img
-              src={images[2].path}
-              alt={images[2].title || title}
-              className="w-full h-full object-cover rounded-lg brightness-50"
+              src={images[1].path}
+              alt={images[1].title || title}
+              className="w-full h-full object-cover rounded-lg cursor-pointer"
+              onClick={() => handleImageClick(1)}
             />
-            {images.length > 3 && (
-              <div className="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold">
-                +{images.length - 3}
-              </div>
+          )}
+          <div className="relative">
+            {images[2] && (
+              <>
+                <img
+                  src={images[2].path}
+                  alt={images[2].title || title}
+                  className={`w-full h-full object-cover rounded-lg cursor-pointer ${
+                    images.length > 3 ? 'brightness-50' : ''
+                  }`}
+                  onClick={() => handleImageClick(2)}
+                />
+                {images.length > 3 && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex items-center gap-2 text-white">
+                      <Images className="w-5 h-5" />
+                      <span className="text-lg font-medium">+{images.length - 3}</span>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -84,7 +80,7 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
 
   return (
     <>
-      <Card className="overflow-hidden cursor-pointer group relative h-[300px]">
+      <Card className="overflow-hidden group relative">
         {renderAlbumPreview()}
       </Card>
 
