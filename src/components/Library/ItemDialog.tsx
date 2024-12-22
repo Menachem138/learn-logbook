@@ -10,7 +10,7 @@ import { Upload } from "lucide-react";
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { file?: File }) => void;
+  onSubmit: (data: Partial<LibraryItem> & { files?: File[] }) => void;
   initialData?: LibraryItem | null;
   defaultType?: LibraryItemType;
 }
@@ -25,22 +25,22 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType
   });
 
   const selectedType = watch("type");
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
   const onSubmitForm = (data: any) => {
     const formData = {
       ...data,
-      file: selectedFile,
+      files: selectedType === 'image_album' ? selectedFiles : selectedFiles.slice(0, 1),
     };
     onSubmit(formData);
-    setSelectedFile(null);
+    setSelectedFiles([]);
     reset();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    if (event.target.files) {
+      const files = Array.from(event.target.files);
+      setSelectedFiles(files);
     }
   };
 
@@ -65,6 +65,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
+              <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
@@ -101,9 +102,11 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType
                   onChange={handleFileChange}
                   className="flex-1"
                 />
-                {selectedFile && (
+                {selectedFiles.length > 0 && (
                   <span className="text-sm text-gray-500">
-                    {selectedFile.name}
+                    {selectedType === 'image_album' 
+                      ? `${selectedFiles.length} files selected`
+                      : selectedFiles[0].name}
                   </span>
                 )}
               </div>

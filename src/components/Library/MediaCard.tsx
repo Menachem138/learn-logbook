@@ -2,15 +2,20 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
+import { MultiImageGallery } from "./MultiImageGallery";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
-  src: string;
+  type: "image" | "video" | "pdf" | "image_album";
+  src: string | string[];
   title: string;
 }
 
 export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+
+  if (type === "image_album" && Array.isArray(src)) {
+    return <MultiImageGallery images={src} />;
+  }
 
   if (type === "pdf") {
     return (
@@ -29,7 +34,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   const handleMediaClick = () => {
-    if (type === "image" || type === "video") {
+    if ((type === "image" && !Array.isArray(src)) || type === "video") {
       setIsViewerOpen(true);
     }
   };
@@ -55,12 +60,12 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         ) : null}
       </Card>
 
-      {(type === "image" || type === "video") && (
+      {((type === "image" && !Array.isArray(src)) || type === "video") && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
-          type={type}
-          src={src}
+          type={type as "image" | "video"}
+          src={src as string}
           title={title}
         />
       )}
