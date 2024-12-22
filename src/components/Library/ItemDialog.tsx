@@ -52,7 +52,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const handleTypeChange = (value: string) => {
     setValue("type", value as LibraryItemType);
-    // Reset selected files when changing type
     setSelectedFiles(null);
   };
 
