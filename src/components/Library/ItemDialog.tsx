@@ -56,14 +56,14 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               {...register("title", { required: true })}
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <select
               className="w-full p-2 border rounded-md"
               {...register("type", { required: true })}
             >
               <option value="note">הערה</option>
               <option value="link">קישור</option>
-              <option value="image">תמונה</option>
+              <option value="image">תמונה בודדת</option>
               <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
@@ -82,7 +82,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 {selectedType === 'image' ? 'העלה תמונה' : 
-                 selectedType === 'image_album' ? 'העלה תמונות' :
+                 selectedType === 'image_album' ? 'העלה תמונות לאלבום' :
                  selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
               </label>
               <div className="flex items-center gap-2">
@@ -112,8 +112,9 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             <Button type="button" variant="outline" onClick={onClose}>
               ביטול
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="gap-2">
               {initialData ? "עדכן" : "הוסף"}
+              {selectedType === 'image_album' ? <Images className="w-4 h-4" /> : <Upload className="w-4 h-4" />}
             </Button>
           </div>
         </form>
