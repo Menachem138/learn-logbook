@@ -70,7 +70,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
-              <option value="image_album">אלבום תמונות</option>
             </select>
           </div>
           <div>
