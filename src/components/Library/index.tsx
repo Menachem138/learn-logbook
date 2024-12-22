@@ -23,7 +23,9 @@ const getIcon = (type: LibraryItemType) => {
     case 'pdf':
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
-      return <HelpCircle className="w-4 h-4 text-purple-500" />;
+      return <MessageCircle className="w-4 h-4 text-purple-500" />;
+    case 'image_album':
+      return <Images className="w-4 h-4" />;
   }
 };
 
