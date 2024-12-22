@@ -3,8 +3,10 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, ImagePlus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
+import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -22,10 +24,8 @@ const getIcon = (type: LibraryItemType) => {
       return <MessageCircle className="w-4 h-4" />;
     case 'pdf':
       return <FileText className="w-4 h-4 text-red-500" />;
-    case 'image_album':
-      return <ImagePlus className="w-4 h-4" />;
-    default:
-      return <FileText className="w-4 h-4" />;
+    case 'question':
+      return <HelpCircle className="w-4 h-4 text-purple-500" />;
   }
 };
 
@@ -33,7 +33,6 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
-  const [dialogType, setDialogType] = useState<'item' | 'album'>('item');
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -51,13 +50,6 @@ const Library = () => {
 
   const handleEdit = (item: LibraryItem) => {
     setEditingItem(item);
-    setDialogType('item');
-    setIsDialogOpen(true);
-  };
-
-  const handleAddClick = (type: 'item' | 'album') => {
-    setEditingItem(null);
-    setDialogType(type);
     setIsDialogOpen(true);
   };
 
@@ -82,15 +74,10 @@ const Library = () => {
             className="max-w-xs"
           />
           <Button 
-            onClick={() => handleAddClick('album')}
-            variant="outline"
-            className="gap-2"
-          >
-            <ImagePlus className="w-4 h-4" />
-            הוסף אלבום תמונות
-          </Button>
-          <Button 
-            onClick={() => handleAddClick('item')}
+            onClick={() => {
+              setEditingItem(null);
+              setIsDialogOpen(true);
+            }}
             className="gap-2"
           >
             הוסף פריט
@@ -134,7 +121,7 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_album') && (
+            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard
                   type={item.type as "image" | "video" | "pdf"}
@@ -155,7 +142,6 @@ const Library = () => {
           setIsDialogOpen(false);
           setEditingItem(null);
         }}
-        defaultType={dialogType === 'album' ? 'image_album' : undefined}
       />
     </div>
   );
