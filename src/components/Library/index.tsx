@@ -3,10 +3,8 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -60,6 +58,32 @@ const Library = () => {
       </div>
     );
   }
+
+  const renderMediaContent = (item: LibraryItem) => {
+    if (!item.file_details) return null;
+
+    if (item.type === 'image_album' && Array.isArray(item.file_details)) {
+      return (
+        <MediaCard
+          type="image_album"
+          src={item.file_details}
+          title={item.title}
+        />
+      );
+    }
+
+    if ((item.type === 'image' || item.type === 'video' || item.type === 'pdf') && !Array.isArray(item.file_details)) {
+      return (
+        <MediaCard
+          type={item.type}
+          src={item.file_details.path}
+          title={item.title}
+        />
+      );
+    }
+
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -121,15 +145,7 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
-              <div className="mt-2">
-                <MediaCard
-                  type={item.type as "image" | "video" | "pdf"}
-                  src={item.file_details.path}
-                  title={item.title}
-                />
-              </div>
-            )}
+            {renderMediaContent(item)}
           </Card>
         ))}
       </div>

@@ -38,7 +38,25 @@ export const useLibraryQuery = (filter: string) => {
         return [];
       }
 
-      return data as LibraryItem[];
+      return data.map((item: any): LibraryItem => ({
+        ...item,
+        file_details: item.file_details ? 
+          (Array.isArray(item.file_details) ? 
+            item.file_details.map((detail: any) => ({
+              path: detail.path,
+              title: detail.title,
+              type: detail.type,
+              name: detail.name,
+              size: detail.size,
+            })) : 
+            {
+              path: item.file_details.path,
+              type: item.file_details.type,
+              name: item.file_details.name,
+              size: item.file_details.size,
+            }
+          ) : undefined
+      }));
     },
   });
 };

@@ -12,7 +12,6 @@ interface MediaCardProps {
 
 export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   if (type === "pdf") {
     return (
