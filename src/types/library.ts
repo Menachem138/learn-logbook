@@ -7,6 +7,7 @@ export interface LibraryItem {
   type: LibraryItemType;
   file_details?: {
     path?: string;
+    paths?: string[];
     name?: string;
     size?: number;
     type?: string;
