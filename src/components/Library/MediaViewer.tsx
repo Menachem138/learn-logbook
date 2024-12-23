@@ -1,6 +1,6 @@
 import React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -28,6 +28,7 @@ export function MediaViewer({
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl w-full p-6 bg-black/95 border-none">
+          <DialogTitle className="text-white mb-4">{title}</DialogTitle>
           <Button
             variant="ghost"
             size="icon"
@@ -51,8 +52,8 @@ export function MediaViewer({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
+            <CarouselPrevious className="left-4 bg-white/10 hover:bg-white/20" />
+            <CarouselNext className="right-4 bg-white/10 hover:bg-white/20" />
           </Carousel>
           
           <ScrollArea className="w-full mt-4">
@@ -82,6 +83,7 @@ export function MediaViewer({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full p-6">
+        <DialogTitle>{title}</DialogTitle>
         <div className="relative">
           <Button
             variant="ghost"

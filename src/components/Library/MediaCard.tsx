@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
-import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface MediaCardProps {
@@ -42,31 +41,38 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
 
   if (type === "image_gallery" && Array.isArray(src)) {
     console.log("Rendering image gallery with sources:", src);
+    const displayedImages = src.slice(0, 4);
+    const remainingCount = src.length - 4;
+
     return (
       <>
         <Card className="p-4 bg-background/50 backdrop-blur-sm">
-          <Carousel className="w-full">
-            <CarouselContent>
-              {src.map((imgSrc, index) => (
-                <CarouselItem key={index} onClick={handleMediaClick}>
-                  <div className="relative aspect-square">
-                    <img 
-                      src={imgSrc} 
-                      alt={`${title} ${index + 1}`}
-                      className="w-full h-full object-cover rounded-lg transition-all duration-200 hover:scale-[1.02]"
-                      loading="lazy"
-                      onError={(e) => {
-                        console.error("Image failed to load:", imgSrc);
-                        e.currentTarget.src = "/placeholder.svg";
-                      }}
-                    />
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {displayedImages.map((imgSrc, index) => (
+              <div 
+                key={index} 
+                className="relative aspect-square cursor-pointer group"
+                onClick={handleMediaClick}
+              >
+                {index === 3 && remainingCount > 0 ? (
+                  <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">+{remainingCount}</span>
                   </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
-          </Carousel>
+                ) : null}
+                <img 
+                  src={imgSrc} 
+                  alt={`${title} ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error("Image failed to load:", imgSrc);
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground text-center">{title}</p>
         </Card>
 
         <MediaViewer
