@@ -86,49 +86,57 @@ const Library = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {items.map((item: LibraryItem) => {
           console.log("Rendering item:", item);
+          if (item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_gallery')) {
+            return (
+              <MediaCard
+                key={item.id}
+                type={item.type as "image" | "video" | "pdf" | "image_gallery"}
+                src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
+                title={item.title}
+                onEdit={() => handleEdit(item)}
+                onDelete={() => deleteItem.mutate(item.id)}
+                onStar={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
+                isStarred={item.is_starred}
+              />
+            );
+          }
+
           return (
-            <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow duration-300">
-              <div className="relative">
-                {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_gallery') && (
-                  <MediaCard
-                    type={item.type as "image" | "video" | "pdf" | "image_gallery"}
-                    src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
-                    title={item.title}
-                  />
-                )}
-                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
-                    className="bg-white/80 hover:bg-white shadow-sm"
-                  >
-                    <Star className={`w-4 h-4 ${item.is_starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={() => handleEdit(item)}
-                    className="bg-white/80 hover:bg-white shadow-sm"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={() => deleteItem.mutate(item.id)}
-                    className="bg-white/80 hover:bg-white shadow-sm"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+            <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  {getIcon(item.type)}
-                  <h3 className="font-semibold">{item.title}</h3>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2">
+                    {getIcon(item.type)}
+                    <h3 className="font-semibold">{item.title}</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
+                      className="hover:text-yellow-400"
+                    >
+                      <Star className={`w-4 h-4 ${item.is_starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(item)}
+                      className="hover:text-blue-500"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteItem.mutate(item.id)}
+                      className="hover:text-red-500"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">{item.content}</p>
+                <p className="text-sm text-gray-600">{item.content}</p>
               </div>
             </Card>
           );
