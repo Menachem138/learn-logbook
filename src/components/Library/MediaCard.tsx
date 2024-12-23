@@ -83,14 +83,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <div 
-        className="h-full cursor-pointer group flex items-center justify-center p-2"
+        className="h-full cursor-pointer group"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
             src={typeof src === 'string' ? src : src[0]} 
             alt={title} 
-            className="max-h-full w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               console.error("Image failed to load:", src);
@@ -98,7 +98,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
             }}
           />
         ) : type === "video" ? (
-          <video controls className="w-full h-full object-contain">
+          <video controls className="w-full h-full object-cover">
             <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
