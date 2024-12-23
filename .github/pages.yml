@@ -1,6 +1,0 @@
-pages:
-  enabled: true
-  source:
-    branch: gh-pages
-    path: /
-

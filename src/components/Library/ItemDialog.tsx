@@ -1,101 +1,107 @@
 import React from "react";
-import { useForm } from "react-hook-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
+import { Upload } from "lucide-react";
 
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
+  onSubmit: (data: Partial<LibraryItem> & { file?: File }) => void;
   initialData?: LibraryItem | null;
-  defaultType?: LibraryItemType;
 }
 
-export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType = "note" }: ItemDialogProps) {
+export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
       content: "",
-      type: defaultType,
+      type: "note" as LibraryItemType,
     },
   });
 
   const selectedType = watch("type");
-  const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
-
-  React.useEffect(() => {
-    if (!isOpen) {
-      setSelectedFiles(null);
-      reset(initialData || { title: "", content: "", type: defaultType });
-    }
-  }, [isOpen, initialData, reset, defaultType]);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
   const onSubmitForm = (data: any) => {
     const formData = {
       ...data,
-      files: selectedFiles,
+      file: selectedFile,
     };
     onSubmit(formData);
+    setSelectedFile(null);
+    reset();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[425px]" aria-describedby="dialog-description">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>{initialData ? 'ערוך פריט' : 'הוסף פריט חדש'}</DialogTitle>
-          <DialogDescription id="dialog-description">
-            {initialData ? 'ערוך את פרטי הפריט' : 'הוסף פריט חדש לספרייה'}
-          </DialogDescription>
+          <DialogTitle>{initialData ? "ערוך פריט" : "הוסף פריט חדש"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
-          <div className="space-y-2">
-            <Select
-              {...register("type")}
-              defaultValue={defaultType}
-              onValueChange={(value) => reset({ ...watch(), type: value as LibraryItemType })}
+          <div>
+            <Input
+              placeholder="כותרת"
+              {...register("title", { required: true })}
+            />
+          </div>
+          <div>
+            <select
+              className="w-full p-2 border rounded-md"
+              {...register("type", { required: true })}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="בחר סוג" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="note">הערה</SelectItem>
-                <SelectItem value="link">קישור</SelectItem>
-                <SelectItem value="image">תמונה</SelectItem>
-                <SelectItem value="image_album">אלבום תמונות</SelectItem>
-                <SelectItem value="video">וידאו</SelectItem>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="question">שאלה</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="note">הערה</option>
+              <option value="link">קישור</option>
+              <option value="image">תמונה</option>
+              <option value="video">וידאו</option>
+              <option value="whatsapp">וואטסאפ</option>
+              <option value="pdf">PDF</option>
+              <option value="question">שאלה</option>
+            </select>
+          </div>
+          <div>
+            <Textarea
+              placeholder={selectedType === 'question' ? "מה השאלה שלך?" : "תוכן"}
+              {...register("content", { required: true })}
+            />
           </div>
 
-          <Input
-            {...register("title")}
-            placeholder="כותרת"
-          />
-
-          <Input
-            {...register("content")}
-            placeholder="תוכן"
-          />
-
-          {(selectedType === "image" || selectedType === "image_album" || selectedType === "video" || selectedType === "pdf") && (
-            <Input
-              type="file"
-              onChange={(e) => setSelectedFiles(e.target.files)}
-              multiple={selectedType === "image_album"}
-              accept={
-                selectedType === "image" || selectedType === "image_album"
-                  ? "image/*"
-                  : selectedType === "video"
-                  ? "video/*"
-                  : "application/pdf"
-              }
-            />
+          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {selectedType === 'image' ? 'העלה תמונה' : selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
+              </label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept={
+                    selectedType === 'image' 
+                      ? "image/*" 
+                      : selectedType === 'video' 
+                      ? "video/*" 
+                      : "application/pdf"
+                  }
+                  onChange={handleFileChange}
+                  className="flex-1"
+                />
+                {selectedFile && (
+                  <span className="text-sm text-gray-500">
+                    {selectedFile.name}
+                  </span>
+                )}
+              </div>
+            </div>
           )}
 
           <div className="flex justify-end gap-2">
@@ -103,7 +109,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, defaultType
               ביטול
             </Button>
             <Button type="submit">
-              {initialData ? 'עדכן' : 'הוסף'}
+              {initialData ? "עדכן" : "הוסף"}
             </Button>
           </div>
         </form>

@@ -3,8 +3,10 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle, Images } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
+import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -16,8 +18,6 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4" />;
     case 'image':
       return <Image className="w-4 h-4" />;
-    case 'image_album':
-      return <Images className="w-4 h-4" />;
     case 'video':
       return <Video className="w-4 h-4" />;
     case 'whatsapp':
@@ -33,7 +33,6 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
-  const [selectedType, setSelectedType] = useState<LibraryItemType>("note");
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -51,12 +50,6 @@ const Library = () => {
 
   const handleEdit = (item: LibraryItem) => {
     setEditingItem(item);
-    setIsDialogOpen(true);
-  };
-
-  const handleAddNew = (type: LibraryItemType) => {
-    setSelectedType(type);
-    setEditingItem(null);
     setIsDialogOpen(true);
   };
 
@@ -80,23 +73,15 @@ const Library = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-xs"
           />
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => handleAddNew("note")}
-              className="gap-2"
-            >
-              הוסף פריט
-              <Upload className="w-4 h-4" />
-            </Button>
-            <Button 
-              onClick={() => handleAddNew("image_album")}
-              variant="secondary"
-              className="gap-2"
-            >
-              הוסף אלבום
-              <Images className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button 
+            onClick={() => {
+              setEditingItem(null);
+              setIsDialogOpen(true);
+            }}
+            className="gap-2"
+          >
+            הוסף פריט
+          </Button>
         </div>
       </div>
 
@@ -136,11 +121,11 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {(item.file_details?.path || (item.type === 'image_album' && item.file_details?.paths)) && (
+            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type as "image" | "video" | "pdf" | "image_album"}
-                  src={item.type === 'image_album' ? item.file_details.paths! : item.file_details.path!}
+                  type={item.type as "image" | "video" | "pdf"}
+                  src={item.file_details.path}
                   title={item.title}
                 />
               </div>
@@ -157,10 +142,9 @@ const Library = () => {
           setIsDialogOpen(false);
           setEditingItem(null);
         }}
-        defaultType={selectedType}
       />
     </div>
   );
-}
+};
 
 export default Library;
