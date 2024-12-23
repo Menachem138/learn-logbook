@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_gallery";
@@ -14,11 +13,9 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  console.log("MediaCard props:", { type, src, title });
-
   if (type === "pdf") {
     return (
-      <Card className="p-4 flex items-center gap-2">
+      <div className="p-4 flex items-center gap-2">
         <FileText className="w-6 h-6 text-red-500" />
         <a 
           href={typeof src === 'string' ? src : '#'} 
@@ -28,52 +25,47 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         >
           {title}
         </a>
-      </Card>
+      </div>
     );
   }
 
   const handleMediaClick = () => {
-    console.log("Media clicked:", { type, isViewerOpen });
     if (type === "image" || type === "video" || type === "image_gallery") {
       setIsViewerOpen(true);
     }
   };
 
   if (type === "image_gallery" && Array.isArray(src)) {
-    console.log("Rendering image gallery with sources:", src);
     const displayedImages = src.slice(0, 4);
     const remainingCount = src.length - 4;
 
     return (
       <>
-        <Card className="p-4 bg-background/50 backdrop-blur-sm">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {displayedImages.map((imgSrc, index) => (
-              <div 
-                key={index} 
-                className="relative aspect-square cursor-pointer group"
-                onClick={handleMediaClick}
-              >
-                {index === 3 && remainingCount > 0 ? (
-                  <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-2xl font-bold">+{remainingCount}</span>
-                  </div>
-                ) : null}
-                <img 
-                  src={imgSrc} 
-                  alt={`${title} ${index + 1}`}
-                  className="w-full h-full object-cover rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error("Image failed to load:", imgSrc);
-                    e.currentTarget.src = "/placeholder.svg";
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-          <p className="text-sm text-muted-foreground text-center">{title}</p>
-        </Card>
+        <div className="grid grid-cols-2 gap-2 p-2">
+          {displayedImages.map((imgSrc, index) => (
+            <div 
+              key={index} 
+              className="relative aspect-square cursor-pointer group"
+              onClick={handleMediaClick}
+            >
+              {index === 3 && remainingCount > 0 && (
+                <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-2xl font-bold">+{remainingCount}</span>
+                </div>
+              )}
+              <img 
+                src={imgSrc} 
+                alt={`${title} ${index + 1}`}
+                className="w-full h-full object-cover rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
+                loading="lazy"
+                onError={(e) => {
+                  console.error("Image failed to load:", imgSrc);
+                  e.currentTarget.src = "/placeholder.svg";
+                }}
+              />
+            </div>
+          ))}
+        </div>
 
         <MediaViewer
           isOpen={isViewerOpen}
@@ -91,14 +83,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <div 
-        className="cursor-pointer group relative aspect-video"
+        className="cursor-pointer group relative"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
             src={typeof src === 'string' ? src : src[0]} 
             alt={title} 
-            className="w-full h-full object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               console.error("Image failed to load:", src);
@@ -106,7 +98,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
             }}
           />
         ) : type === "video" ? (
-          <video controls className="w-full h-full object-cover rounded-lg">
+          <video controls className="w-full h-full object-cover">
             <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
