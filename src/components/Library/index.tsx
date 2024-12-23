@@ -31,6 +31,7 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
+  const [initialType, setInitialType] = useState<LibraryItemType | undefined>(undefined);
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -71,15 +72,29 @@ const Library = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-xs"
           />
-          <Button 
-            onClick={() => {
-              setEditingItem(null);
-              setIsDialogOpen(true);
-            }}
-            className="gap-2"
-          >
-            הוסף פריט
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => {
+                setEditingItem(null);
+                setInitialType(undefined);
+                setIsDialogOpen(true);
+              }}
+              className="gap-2"
+            >
+              הוסף פריט
+            </Button>
+            <Button 
+              onClick={() => {
+                setEditingItem(null);
+                setInitialType('image_gallery');
+                setIsDialogOpen(true);
+              }}
+              className="gap-2"
+              variant="outline"
+            >
+              אלבום תמונות
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -137,10 +152,12 @@ const Library = () => {
       <ItemDialog
         onSubmit={handleAddOrUpdateItem}
         initialData={editingItem}
+        initialType={editingItem?.type || initialType}
         isOpen={isDialogOpen}
         onClose={() => {
           setIsDialogOpen(false);
           setEditingItem(null);
+          setInitialType(undefined);
         }}
       />
     </div>
