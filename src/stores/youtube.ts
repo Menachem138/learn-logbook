@@ -95,17 +95,17 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
         throw new Error('Unauthorized');
       }
 
-      // Call the Edge Function to delete the video
-      const { error: functionError } = await supabase.functions.invoke('delete-youtube-video', {
-        body: { videoId: id }
-      });
+      const { error } = await supabase
+        .from('youtube_videos')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
 
-      if (functionError) {
-        console.error('Delete video - Edge Function error:', functionError);
-        throw functionError;
+      if (error) {
+        console.error('Delete video - Database error:', error);
+        throw error;
       }
 
-      // Only update local state after successful server deletion
       set(state => ({
         videos: state.videos.filter(video => video.id !== id),
         isLoading: false,

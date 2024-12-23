@@ -25,7 +25,8 @@ export function YouTubeLibrary() {
       console.log('YouTubeLibrary: Initializing...', {
         authLoading,
         user: user?.id,
-        isLoading
+        isLoading,
+        videosCount: videos?.length
       });
 
       if (!authLoading) {
