@@ -13,7 +13,6 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // Add debug logging
   console.log("MediaCard props:", { type, src, title });
 
   if (type === "pdf") {
@@ -43,8 +42,8 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     console.log("Rendering image gallery with sources:", src);
     return (
       <>
-        <Card 
-          className="overflow-hidden cursor-pointer group"
+        <div 
+          className="cursor-pointer group"
           onClick={handleMediaClick}
         >
           <div className="grid grid-cols-2 gap-0.5">
@@ -68,7 +67,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
         <MediaViewer
           isOpen={isViewerOpen}
@@ -85,15 +84,15 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
 
   return (
     <>
-      <Card 
-        className="overflow-hidden cursor-pointer group relative"
+      <div 
+        className="cursor-pointer group relative w-full h-full"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
             src={typeof src === 'string' ? src : src[0]} 
             alt={title} 
-            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               console.error("Image failed to load:", src);
@@ -101,12 +100,12 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
             }}
           />
         ) : type === "video" ? (
-          <video controls className="w-full h-auto">
+          <video controls className="w-full h-full object-cover">
             <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
         ) : null}
-      </Card>
+      </div>
 
       {(type === "image" || type === "video") && (
         <MediaViewer
