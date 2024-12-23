@@ -32,10 +32,17 @@ const Library = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
 
-  const handleAddOrUpdateItem = async (data: any) => {
+  const handleAddOrUpdateItem = async (data: Partial<LibraryItem> & { files?: File[] }) => {
     try {
       if (editingItem) {
-        await updateItem.mutateAsync({ id: editingItem.id, ...data });
+        await updateItem.mutateAsync({
+          id: editingItem.id,
+          title: data.title || '',
+          content: data.content || '',
+          type: data.type || 'note',
+          files: data.files,
+          file_details: data.file_details
+        });
       } else {
         await addItem.mutateAsync(data);
       }
@@ -61,7 +68,10 @@ const Library = () => {
       } else {
         await updateItem.mutateAsync({
           id: item.id,
-          file_details: { ...item.file_details, paths: newPaths }
+          title: item.title,
+          content: item.content,
+          type: item.type,
+          file_details: { paths: newPaths }
         });
       }
     }
