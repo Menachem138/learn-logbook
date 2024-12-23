@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { Play as PlayIcon, Trash2 } from "lucide-react";
+import { Play as PlayIcon, Trash2, Loader2 } from "lucide-react";
 import { useYouTubeStore } from "../../stores/youtube";
 import { YouTubePlayer } from "./YouTubePlayer";
 import { AddVideoDialog } from "./AddVideoDialog";
@@ -28,10 +28,8 @@ export function YouTubeLibrary() {
         return;
       }
 
-      try {
-        console.log('Fetching videos from Supabase...');
-        fetchVideos();
-      } catch (error) {
+      console.log('Fetching videos for user:', user.id);
+      fetchVideos().catch((error) => {
         console.error('Error fetching videos:', error);
         setError('אירעה שגיאה בטעינת הסרטונים');
         toast({
@@ -39,7 +37,7 @@ export function YouTubeLibrary() {
           description: "אירעה שגיאה בטעינת הסרטונים",
           variant: "destructive",
         });
-      }
+      });
     }
   }, [user, authLoading, navigate, fetchVideos, toast]);
 
@@ -70,59 +68,73 @@ export function YouTubeLibrary() {
   if (authLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center min-h-[200px] flex-col">
-        <div className="text-red-500 mb-4">{error}</div>
+      <div className="flex justify-center items-center min-h-[200px] flex-col gap-4">
+        <div className="text-red-500">{error}</div>
         <Button onClick={() => navigate('/login')}>התחבר</Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+    <div className="space-y-8">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
+      
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">ספריית סרטוני YouTube</h2>
         <div className="space-x-2 flex flex-row-reverse">
-          <Button onClick={() => setIsAddingVideo(true)}>
+          <Button onClick={() => setIsAddingVideo(true)} className="bg-primary hover:bg-primary/90">
             הוסף סרטון
           </Button>
-          <Button onClick={handleSignOut}>התנתק</Button>
+          <Button variant="outline" onClick={handleSignOut}>
+            התנתק
+          </Button>
         </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center min-h-[200px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : videos.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          אין סרטונים בספרייה
+        <div className="text-center py-12 bg-muted/50 rounded-lg">
+          <div className="text-muted-foreground">אין סרטונים בספרייה</div>
+          <Button 
+            variant="link" 
+            onClick={() => setIsAddingVideo(true)}
+            className="mt-2"
+          >
+            לחץ כאן להוספת סרטון
+          </Button>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {videos.map((video) => (
-            <Card key={video.id} className="p-4 group relative">
+            <Card key={video.id} className="p-4 group relative hover:shadow-lg transition-shadow">
               <div
-                className="relative aspect-video cursor-pointer"
+                className="relative aspect-video cursor-pointer rounded-md overflow-hidden"
                 onClick={() => setSelectedVideo(video.video_id)}
               >
                 <img
                   src={video.thumbnail_url}
                   alt={video.title}
-                  className="w-full h-full object-cover rounded"
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
                   <PlayIcon className="w-12 h-12 text-white" />
                 </div>
               </div>
-              <h3 className="mt-2 font-medium line-clamp-2">{video.title}</h3>
+              <h3 className="mt-3 font-medium line-clamp-2">{video.title}</h3>
               <Button
                 variant="destructive"
                 size="icon"
