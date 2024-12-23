@@ -7,6 +7,7 @@ import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpC
 import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -31,6 +32,7 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
+  const { toast } = useToast();
 
   const handleAddOrUpdateItem = async (data: LibraryItemInput) => {
     try {
@@ -44,13 +46,23 @@ const Library = () => {
           file_details: data.file_details
         };
         await updateItem.mutateAsync(updateData);
+        toast({
+          title: "פריט עודכן בהצלחה",
+        });
       } else {
         await addItem.mutateAsync(data);
+        toast({
+          title: "פריט נוסף בהצלחה",
+        });
       }
       setIsDialogOpen(false);
       setEditingItem(null);
     } catch (error) {
       console.error('Error adding/updating item:', error);
+      toast({
+        title: "שגיאה בשמירת הפריט",
+        variant: "destructive",
+      });
     }
   };
 
@@ -60,12 +72,17 @@ const Library = () => {
   };
 
   const handleDeleteImage = async (item: LibraryItem, imageIndex: number) => {
-    if (item.file_details?.paths) {
+    if (!item.file_details?.paths) return;
+
+    try {
       const newPaths = [...item.file_details.paths];
       newPaths.splice(imageIndex, 1);
       
       if (newPaths.length === 0) {
         await deleteItem.mutateAsync(item.id);
+        toast({
+          title: "אלבום נמחק בהצלחה",
+        });
       } else {
         const updateData: LibraryItemUpdate = {
           id: item.id,
@@ -75,7 +92,16 @@ const Library = () => {
           file_details: { paths: newPaths }
         };
         await updateItem.mutateAsync(updateData);
+        toast({
+          title: "תמונה נמחקה בהצלחה",
+        });
       }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast({
+        title: "שגיאה במחיקת התמונה",
+        variant: "destructive",
+      });
     }
   };
 
