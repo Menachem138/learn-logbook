@@ -13,6 +13,9 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+  // Add debug logging
+  console.log("MediaCard props:", { type, src, title });
+
   if (type === "pdf") {
     return (
       <Card className="p-4 flex items-center gap-2">
@@ -30,12 +33,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   const handleMediaClick = () => {
+    console.log("Media clicked:", { type, isViewerOpen });
     if (type === "image" || type === "video" || type === "image_gallery") {
       setIsViewerOpen(true);
     }
   };
 
   if (type === "image_gallery" && Array.isArray(src)) {
+    console.log("Rendering image gallery with sources:", src);
     return (
       <>
         <Card 
@@ -50,6 +55,10 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
                   alt={`${title} ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={(e) => {
+                    console.error("Image failed to load:", imgSrc);
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
                 />
                 {index === 3 && src.length > 4 && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -86,6 +95,10 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
             alt={title} 
             className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              console.error("Image failed to load:", src);
+              e.currentTarget.src = "/placeholder.svg";
+            }}
           />
         ) : type === "video" ? (
           <video controls className="w-full h-auto">

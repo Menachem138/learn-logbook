@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { useDropzone } from "react-dropzone";
+import { toast } from "@/components/ui/use-toast";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -27,13 +28,43 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
   const onSubmitForm = (data: any) => {
-    const formData = {
-      ...data,
-      files: selectedFiles,
-    };
-    onSubmit(formData);
-    setSelectedFiles([]);
-    reset();
+    try {
+      console.log("Submitting form with data:", { ...data, files: selectedFiles });
+      
+      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להעלות קובץ",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (selectedType === 'image_gallery' && selectedFiles.length === 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להעלות לפחות תמונה אחת",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const formData = {
+        ...data,
+        files: selectedFiles,
+      };
+      
+      onSubmit(formData);
+      setSelectedFiles([]);
+      reset();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בשמירת הפריט",
+        variant: "destructive",
+      });
+    }
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -43,6 +74,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       'application/pdf': []
     },
     onDrop: (acceptedFiles) => {
+      console.log("Files dropped:", acceptedFiles);
       if (selectedType === 'image_gallery') {
         setSelectedFiles(prev => [...prev, ...acceptedFiles]);
       } else {
