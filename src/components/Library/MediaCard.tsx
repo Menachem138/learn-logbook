@@ -2,15 +2,15 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_gallery";
   src: string | string[];
   title: string;
+  content?: string;
 }
 
-export function MediaCard({ type, src, title }: MediaCardProps) {
+export function MediaCard({ type, src, title, content }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -46,8 +46,12 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
 
     return (
       <>
-        <Card className="p-4 bg-background/50 backdrop-blur-sm">
-          <div className="grid grid-cols-2 gap-4 mb-4">
+        <Card className="overflow-hidden">
+          <div className="p-4 space-y-2">
+            <h3 className="text-lg font-semibold">{title}</h3>
+            {content && <p className="text-sm text-muted-foreground">{content}</p>}
+          </div>
+          <div className="grid grid-cols-2 gap-2 p-4 pt-0">
             {displayedImages.map((imgSrc, index) => (
               <div 
                 key={index} 
@@ -72,7 +76,6 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
               </div>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground text-center">{title}</p>
         </Card>
 
         <MediaViewer
@@ -90,28 +93,34 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
 
   return (
     <>
-      <div 
-        className="cursor-pointer group relative aspect-video"
-        onClick={handleMediaClick}
-      >
-        {type === "image" ? (
-          <img 
-            src={typeof src === 'string' ? src : src[0]} 
-            alt={title} 
-            className="w-full h-full object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => {
-              console.error("Image failed to load:", src);
-              e.currentTarget.src = "/placeholder.svg";
-            }}
-          />
-        ) : type === "video" ? (
-          <video controls className="w-full h-full object-cover rounded-lg">
-            <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
-            הדפדפן שלך לא תומך בתגית וידאו.
-          </video>
-        ) : null}
-      </div>
+      <Card className="overflow-hidden">
+        <div className="p-4 space-y-2">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          {content && <p className="text-sm text-muted-foreground">{content}</p>}
+        </div>
+        <div 
+          className="cursor-pointer group relative aspect-video"
+          onClick={handleMediaClick}
+        >
+          {type === "image" ? (
+            <img 
+              src={typeof src === 'string' ? src : src[0]} 
+              alt={title} 
+              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+              loading="lazy"
+              onError={(e) => {
+                console.error("Image failed to load:", src);
+                e.currentTarget.src = "/placeholder.svg";
+              }}
+            />
+          ) : type === "video" ? (
+            <video controls className="w-full h-full object-cover">
+              <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
+              הדפדפן שלך לא תומך בתגית וידאו.
+            </video>
+          ) : null}
+        </div>
+      </Card>
 
       {(type === "image" || type === "video") && (
         <MediaViewer
