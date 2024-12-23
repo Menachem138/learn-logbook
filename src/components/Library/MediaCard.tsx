@@ -83,7 +83,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <div 
-        className="cursor-pointer group relative"
+        className="h-full cursor-pointer group"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
