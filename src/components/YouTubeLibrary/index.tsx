@@ -57,6 +57,25 @@ export function YouTubeLibrary() {
     initializeLibrary();
   }, [user, authLoading, navigate, fetchVideos, toast]);
 
+  const handleDeleteVideo = async (id: string) => {
+    try {
+      console.log('YouTubeLibrary: Initiating video deletion for ID:', id);
+      await deleteVideo(id);
+      console.log('YouTubeLibrary: Video deletion completed');
+      toast({
+        title: "הצלחה",
+        description: "הסרטון נמחק בהצלחה",
+      });
+    } catch (error) {
+      console.error('YouTubeLibrary: Error deleting video:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת הסרטון",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Show loading state while authentication is in progress
   if (authLoading) {
     return (
