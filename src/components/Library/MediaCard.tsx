@@ -1,33 +1,20 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText, Star, Edit2, Trash2 } from "lucide-react";
+import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
-import { Button } from "@/components/ui/button";
-import { ImageGalleryGrid } from "./ImageGalleryGrid";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_gallery";
   src: string | string[];
   title: string;
-  content?: string;
-  onEdit?: () => void;
-  onDelete?: () => void;
-  onStar?: () => void;
-  isStarred?: boolean;
 }
 
-export function MediaCard({ 
-  type, 
-  src, 
-  title,
-  content, 
-  onEdit, 
-  onDelete, 
-  onStar, 
-  isStarred 
-}: MediaCardProps) {
+export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  console.log("MediaCard props:", { type, src, title });
 
   if (type === "pdf") {
     return (
@@ -46,105 +33,93 @@ export function MediaCard({
   }
 
   const handleMediaClick = () => {
+    console.log("Media clicked:", { type, isViewerOpen });
     if (type === "image" || type === "video" || type === "image_gallery") {
       setIsViewerOpen(true);
     }
   };
 
+  if (type === "image_gallery" && Array.isArray(src)) {
+    console.log("Rendering image gallery with sources:", src);
+    const displayedImages = src.slice(0, 4);
+    const remainingCount = src.length - 4;
+
+    return (
+      <>
+        <Card className="p-4 bg-background/50 backdrop-blur-sm">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {displayedImages.map((imgSrc, index) => (
+              <div 
+                key={index} 
+                className="relative aspect-square cursor-pointer group"
+                onClick={handleMediaClick}
+              >
+                {index === 3 && remainingCount > 0 ? (
+                  <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">+{remainingCount}</span>
+                  </div>
+                ) : null}
+                <img 
+                  src={imgSrc} 
+                  alt={`${title} ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error("Image failed to load:", imgSrc);
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground text-center">{title}</p>
+        </Card>
+
+        <MediaViewer
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          type="image_gallery"
+          src={src}
+          title={title}
+          selectedIndex={selectedImageIndex}
+          onImageChange={setSelectedImageIndex}
+        />
+      </>
+    );
+  }
+
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
-        <div className="p-4 space-y-2">
-          <div className="flex justify-between items-start">
-            <div className="space-y-1 flex-1">
-              <h3 className="font-semibold text-lg">{title}</h3>
-              {content && <p className="text-sm text-gray-600">{content}</p>}
-            </div>
-            <div className="flex gap-2 shrink-0">
-              {onStar && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onStar();
-                  }}
-                  className="hover:text-yellow-400"
-                >
-                  <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                </Button>
-              )}
-              {onEdit && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit();
-                  }}
-                  className="hover:text-blue-500"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </Button>
-              )}
-              {onDelete && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete();
-                  }}
-                  className="hover:text-red-500"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {type === "image_gallery" && Array.isArray(src) ? (
-          <ImageGalleryGrid
-            images={src}
-            title={title}
-            onImageClick={handleMediaClick}
+      <div 
+        className="cursor-pointer group relative aspect-video"
+        onClick={handleMediaClick}
+      >
+        {type === "image" ? (
+          <img 
+            src={typeof src === 'string' ? src : src[0]} 
+            alt={title} 
+            className="w-full h-full object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
+            loading="lazy"
+            onError={(e) => {
+              console.error("Image failed to load:", src);
+              e.currentTarget.src = "/placeholder.svg";
+            }}
           />
-        ) : (
-          <div 
-            className="cursor-pointer group relative"
-            onClick={handleMediaClick}
-          >
-            {type === "image" ? (
-              <img 
-                src={typeof src === 'string' ? src : src[0]} 
-                alt={title} 
-                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                loading="lazy"
-                onError={(e) => {
-                  console.error("Image failed to load:", src);
-                  e.currentTarget.src = "/placeholder.svg";
-                }}
-              />
-            ) : type === "video" ? (
-              <video controls className="w-full h-full object-cover">
-                <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
-                הדפדפן שלך לא תומך בתגית וידאו.
-              </video>
-            ) : null}
-          </div>
-        )}
-      </Card>
+        ) : type === "video" ? (
+          <video controls className="w-full h-full object-cover rounded-lg">
+            <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
+            הדפדפן שלך לא תומך בתגית וידאו.
+          </video>
+        ) : null}
+      </div>
 
-      {(type === "image" || type === "video" || type === "image_gallery") && (
+      {(type === "image" || type === "video") && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
           type={type}
-          src={type === "image_gallery" ? src : (typeof src === 'string' ? src : src[0])}
+          src={typeof src === 'string' ? src : src[0]}
           title={title}
-          selectedIndex={selectedImageIndex}
-          onImageChange={setSelectedImageIndex}
         />
       )}
     </>
