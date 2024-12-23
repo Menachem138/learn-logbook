@@ -43,12 +43,12 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     return (
       <>
         <div 
-          className="cursor-pointer group"
+          className="cursor-pointer group relative"
           onClick={handleMediaClick}
         >
-          <div className="grid grid-cols-2 gap-0.5">
+          <div className="grid grid-cols-2 gap-0.5 aspect-square">
             {src.slice(0, 4).map((imgSrc, index) => (
-              <div key={index} className="relative aspect-square">
+              <div key={index} className="relative">
                 <img 
                   src={imgSrc} 
                   alt={`${title} ${index + 1}`}
@@ -85,7 +85,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <div 
-        className="cursor-pointer group relative w-full h-full"
+        className="cursor-pointer group relative aspect-video"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
