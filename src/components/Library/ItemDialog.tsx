@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
-import { LibraryItem, LibraryItemType } from "@/types/library";
+import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
 import { useDropzone } from "react-dropzone";
 import { toast } from "@/components/ui/use-toast";
 import { Trash2 } from "lucide-react";
@@ -12,7 +12,7 @@ import { Trash2 } from "lucide-react";
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { files?: File[] }) => void;
+  onSubmit: (data: LibraryItemInput) => void;
   initialData?: LibraryItem | null;
 }
 
