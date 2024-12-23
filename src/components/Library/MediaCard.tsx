@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
+import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_gallery";
@@ -42,32 +44,30 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     console.log("Rendering image gallery with sources:", src);
     return (
       <>
-        <div 
-          className="cursor-pointer group relative"
-          onClick={handleMediaClick}
-        >
-          <div className="grid grid-cols-2 gap-0.5 aspect-square">
-            {src.slice(0, 4).map((imgSrc, index) => (
-              <div key={index} className="relative">
-                <img 
-                  src={imgSrc} 
-                  alt={`${title} ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error("Image failed to load:", imgSrc);
-                    e.currentTarget.src = "/placeholder.svg";
-                  }}
-                />
-                {index === 3 && src.length > 4 && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">+{src.length - 4}</span>
+        <Card className="p-4 bg-background/50 backdrop-blur-sm">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {src.map((imgSrc, index) => (
+                <CarouselItem key={index} onClick={handleMediaClick}>
+                  <div className="relative aspect-square">
+                    <img 
+                      src={imgSrc} 
+                      alt={`${title} ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg transition-all duration-200 hover:scale-[1.02]"
+                      loading="lazy"
+                      onError={(e) => {
+                        console.error("Image failed to load:", imgSrc);
+                        e.currentTarget.src = "/placeholder.svg";
+                      }}
+                    />
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
+          </Carousel>
+        </Card>
 
         <MediaViewer
           isOpen={isViewerOpen}
@@ -92,7 +92,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           <img 
             src={typeof src === 'string' ? src : src[0]} 
             alt={title} 
-            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+            className="w-full h-full object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               console.error("Image failed to load:", src);
@@ -100,7 +100,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
             }}
           />
         ) : type === "video" ? (
-          <video controls className="w-full h-full object-cover">
+          <video controls className="w-full h-full object-cover rounded-lg">
             <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
