@@ -3,43 +3,71 @@ import { useTwitterLibrary } from '@/hooks/useTwitterLibrary';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Add Twitter widgets script
+// Add Twitter widgets script with error handling
 const loadTwitterScript = () => {
-  if ((window as any).twttr) return Promise.resolve();
+  if ((window as any).twttr) return Promise.resolve(true);
   
-  return new Promise<void>((resolve) => {
+  return new Promise<boolean>((resolve) => {
     const script = document.createElement('script');
     script.src = 'https://platform.twitter.com/widgets.js';
-    script.onload = () => resolve();
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
     document.head.appendChild(script);
   });
 };
 
 const TweetEmbed = ({ tweetId }: { tweetId: string }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
     
     const renderTweet = async () => {
-      await loadTwitterScript();
+      const scriptLoaded = await loadTwitterScript();
+      if (!scriptLoaded) {
+        setIsBlocked(true);
+        return;
+      }
+
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
-        (window as any).twttr.widgets.createTweet(
-          tweetId,
-          containerRef.current,
-          {
-            align: 'center',
-            conversation: 'none',
+        try {
+          const tweet = await (window as any).twttr.widgets.createTweet(
+            tweetId,
+            containerRef.current,
+            {
+              align: 'center',
+              conversation: 'none',
+            }
+          );
+          
+          if (!tweet) {
+            setIsBlocked(true);
           }
-        );
+        } catch (error) {
+          console.error('Error rendering tweet:', error);
+          setIsBlocked(true);
+        }
       }
     };
 
     renderTweet();
   }, [tweetId]);
+
+  if (isBlocked) {
+    return (
+      <Alert variant="warning" className="mb-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          לא ניתן לטעון את הציוץ. ייתכן שחוסם פרסומות או הגדרות פרטיות מונעים את הטעינה.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return <div ref={containerRef} />;
 };
