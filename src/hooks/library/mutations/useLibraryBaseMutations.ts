@@ -16,6 +16,8 @@ export const useLibraryBaseMutations = () => {
       type: LibraryItemType;
       files?: File[];
     }) => {
+      console.log('Starting mutation with:', { title, content, type, filesCount: files?.length });
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -24,13 +26,17 @@ export const useLibraryBaseMutations = () => {
       let cloudinaryResponses: CloudinaryResponse[] = [];
 
       if (files && files.length > 0) {
-        console.log('Uploading files to Cloudinary:', files);
+        console.log('Uploading files to Cloudinary:', files.map(f => f.name));
         
         // Upload all files to Cloudinary
         const uploadPromises = files.map(file => uploadToCloudinary(file));
-        cloudinaryResponses = await Promise.all(uploadPromises);
-        
-        console.log('Cloudinary upload responses:', cloudinaryResponses);
+        try {
+          cloudinaryResponses = await Promise.all(uploadPromises);
+          console.log('Cloudinary upload responses:', cloudinaryResponses);
+        } catch (error) {
+          console.error('Error uploading to Cloudinary:', error);
+          throw new Error('Failed to upload images to Cloudinary');
+        }
       }
 
       // For image_gallery, we'll store all URLs in the file_details
@@ -38,7 +44,7 @@ export const useLibraryBaseMutations = () => {
         ? {
             path: cloudinaryResponses.map(response => response.url),
             type: 'image_gallery',
-            name: files?.map(f => f.name).join(', '),
+            name: files?.map(f => f.name).join(', ')
           }
         : cloudinaryResponses[0]
           ? {
@@ -48,6 +54,8 @@ export const useLibraryBaseMutations = () => {
               size: files?.[0]?.size,
             }
           : null;
+
+      console.log('Saving to Supabase with file_details:', fileDetails);
 
       const { error } = await supabase
         .from('library_items')
@@ -62,7 +70,10 @@ export const useLibraryBaseMutations = () => {
           file_details: fileDetails,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library-items'] });

@@ -57,6 +57,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       onSubmit(formData);
       setSelectedFiles([]);
       reset();
+      onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -82,6 +83,13 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       }
     }
   });
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedFiles([]);
+      reset();
+    }
+  }, [isOpen, reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
