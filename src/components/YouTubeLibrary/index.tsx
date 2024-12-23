@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Play as PlayIcon, Trash2, Loader2 } from "lucide-react";
 import { useYouTubeStore } from "../../stores/youtube";
 import { YouTubePlayer } from "./YouTubePlayer";
 import { AddVideoDialog } from "./AddVideoDialog";
-import { useAuth } from "../../components/auth/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -16,46 +13,27 @@ export function YouTubeLibrary() {
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { videos, isLoading, fetchVideos, deleteVideo } = useYouTubeStore();
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const initializeLibrary = async () => {
-      console.log('YouTubeLibrary: Authentication State:', {
-        authLoading,
-        isAuthenticated: !!user,
-        userId: user?.id,
-        isLoading,
-        videosCount: videos?.length
-      });
-
-      if (!authLoading) {
-        if (!user) {
-          console.log('YouTubeLibrary: No authenticated user, redirecting to login');
-          setError('נא להתחבר כדי לצפות בסרטונים');
-          navigate('/login');
-          return;
-        }
-
-        try {
-          console.log('YouTubeLibrary: Starting to fetch videos for user:', user.id);
-          await fetchVideos();
-          console.log('YouTubeLibrary: Videos fetched successfully');
-        } catch (error) {
-          console.error('YouTubeLibrary: Error fetching videos:', error);
-          setError('אירעה שגיאה בטעינת הסרטונים');
-          toast({
-            title: "שגיאה",
-            description: "אירעה שגיאה בטעינת הסרטונים",
-            variant: "destructive",
-          });
-        }
+      try {
+        console.log('YouTubeLibrary: Starting to fetch videos');
+        await fetchVideos();
+        console.log('YouTubeLibrary: Videos fetched successfully');
+      } catch (error) {
+        console.error('YouTubeLibrary: Error fetching videos:', error);
+        setError('אירעה שגיאה בטעינת הסרטונים');
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בטעינת הסרטונים",
+          variant: "destructive",
+        });
       }
     };
 
     initializeLibrary();
-  }, [user, authLoading, navigate, fetchVideos, toast]);
+  }, [fetchVideos, toast]);
 
   const handleDeleteVideo = async (id: string) => {
     try {
@@ -76,24 +54,11 @@ export function YouTubeLibrary() {
     }
   };
 
-  // Show loading state while authentication is in progress
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px] flex-col gap-2">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span>מאמת משתמש...</span>
-      </div>
-    );
-  }
-
-  // Show login prompt if no authenticated user
-  if (!user) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px] flex-col gap-4">
-        <Alert variant="destructive">
-          <AlertDescription>{error || 'נא להתחבר כדי לצפות בסרטונים'}</AlertDescription>
-        </Alert>
-        <Button onClick={() => navigate('/login')}>התחבר</Button>
+        <span>טוען את הספרייה...</span>
       </div>
     );
   }
@@ -108,22 +73,12 @@ export function YouTubeLibrary() {
       
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">ספריית סרטוני YouTube</h2>
-        <div className="space-x-2 flex flex-row-reverse">
-          <Button onClick={() => setIsAddingVideo(true)} className="bg-primary hover:bg-primary/90">
-            הוסף סרטון
-          </Button>
-          <Button variant="outline" onClick={() => supabase.auth.signOut()}>
-            התנתק
-          </Button>
-        </div>
+        <Button onClick={() => setIsAddingVideo(true)} className="bg-primary hover:bg-primary/90">
+          הוסף סרטון
+        </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center min-h-[200px] flex-col gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span>טוען את הספרייה...</span>
-        </div>
-      ) : videos.length === 0 ? (
+      {videos.length === 0 ? (
         <div className="text-center py-12 bg-muted/50 rounded-lg">
           <div className="text-muted-foreground">אין סרטונים בספרייה</div>
           <Button 
