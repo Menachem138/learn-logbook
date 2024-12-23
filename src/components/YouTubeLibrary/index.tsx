@@ -9,6 +9,7 @@ import { AddVideoDialog } from "./AddVideoDialog";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function YouTubeLibrary() {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
@@ -20,25 +21,38 @@ export function YouTubeLibrary() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        console.log('No authenticated user, redirecting to login');
-        setError('נא להתחבר כדי לצפות בסרטונים');
-        navigate('/login', { replace: true });
-        return;
-      }
-
-      console.log('Fetching videos for user:', user.id);
-      fetchVideos().catch((error) => {
-        console.error('Error fetching videos:', error);
-        setError('אירעה שגיאה בטעינת הסרטונים');
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה בטעינת הסרטונים",
-          variant: "destructive",
-        });
+    const initializeLibrary = async () => {
+      console.log('YouTubeLibrary: Initializing...', {
+        authLoading,
+        user: user?.id,
+        isLoading
       });
-    }
+
+      if (!authLoading) {
+        if (!user) {
+          console.log('YouTubeLibrary: No authenticated user, redirecting to login');
+          setError('נא להתחבר כדי לצפות בסרטונים');
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        try {
+          console.log('YouTubeLibrary: Fetching videos for user:', user.id);
+          await fetchVideos();
+          console.log('YouTubeLibrary: Videos fetched successfully:', videos.length);
+        } catch (error) {
+          console.error('YouTubeLibrary: Error fetching videos:', error);
+          setError('אירעה שגיאה בטעינת הסרטונים');
+          toast({
+            title: "שגיאה",
+            description: "אירעה שגיאה בטעינת הסרטונים",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    initializeLibrary();
   }, [user, authLoading, navigate, fetchVideos, toast]);
 
   const handleSignOut = async () => {
@@ -69,6 +83,7 @@ export function YouTubeLibrary() {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="mr-2">טוען...</span>
       </div>
     );
   }
@@ -76,7 +91,9 @@ export function YouTubeLibrary() {
   if (!user) {
     return (
       <div className="flex justify-center items-center min-h-[200px] flex-col gap-4">
-        <div className="text-red-500">{error}</div>
+        <Alert variant="destructive">
+          <AlertDescription>{error || 'נא להתחבר כדי לצפות בסרטונים'}</AlertDescription>
+        </Alert>
         <Button onClick={() => navigate('/login')}>התחבר</Button>
       </div>
     );
@@ -85,9 +102,9 @@ export function YouTubeLibrary() {
   return (
     <div className="space-y-8">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
       
       <div className="flex justify-between items-center">
@@ -103,8 +120,9 @@ export function YouTubeLibrary() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center min-h-[200px]">
+        <div className="flex justify-center items-center min-h-[200px] flex-col gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span>טוען את הספרייה...</span>
         </div>
       ) : videos.length === 0 ? (
         <div className="text-center py-12 bg-muted/50 rounded-lg">
