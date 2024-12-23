@@ -8,6 +8,7 @@ import { YouTubePlayer } from "./YouTubePlayer";
 import { AddVideoDialog } from "./AddVideoDialog";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export function YouTubeLibrary() {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
@@ -16,6 +17,7 @@ export function YouTubeLibrary() {
   const { videos, isLoading, fetchVideos, deleteVideo } = useYouTubeStore();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!authLoading) {
@@ -32,9 +34,14 @@ export function YouTubeLibrary() {
       } catch (error) {
         console.error('Error fetching videos:', error);
         setError('אירעה שגיאה בטעינת הסרטונים');
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בטעינת הסרטונים",
+          variant: "destructive",
+        });
       }
     }
-  }, [user, authLoading, navigate, fetchVideos]);
+  }, [user, authLoading, navigate, fetchVideos, toast]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -46,18 +53,31 @@ export function YouTubeLibrary() {
       console.log('YouTubeLibrary: Initiating video deletion for ID:', id);
       await deleteVideo(id);
       console.log('YouTubeLibrary: Video deletion completed');
+      toast({
+        title: "הצלחה",
+        description: "הסרטון נמחק בהצלחה",
+      });
     } catch (error) {
       console.error('YouTubeLibrary: Error deleting video:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת הסרטון",
+        variant: "destructive",
+      });
     }
   };
 
   if (authLoading) {
-    return <div className="flex justify-center items-center h-screen">טוען...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center h-screen flex-col">
+      <div className="flex justify-center items-center min-h-[200px] flex-col">
         <div className="text-red-500 mb-4">{error}</div>
         <Button onClick={() => navigate('/login')}>התחבר</Button>
       </div>
@@ -77,37 +97,47 @@ export function YouTubeLibrary() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {videos.map((video) => (
-          <Card key={video.id} className="p-4 group relative">
-            <div
-              className="relative aspect-video cursor-pointer"
-              onClick={() => setSelectedVideo(video.video_id)}
-            >
-              <img
-                src={video.thumbnail_url}
-                alt={video.title}
-                className="w-full h-full object-cover rounded"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
-                <PlayIcon className="w-12 h-12 text-white" />
+      {isLoading ? (
+        <div className="flex justify-center items-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : videos.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          אין סרטונים בספרייה
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {videos.map((video) => (
+            <Card key={video.id} className="p-4 group relative">
+              <div
+                className="relative aspect-video cursor-pointer"
+                onClick={() => setSelectedVideo(video.video_id)}
+              >
+                <img
+                  src={video.thumbnail_url}
+                  alt={video.title}
+                  className="w-full h-full object-cover rounded"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                  <PlayIcon className="w-12 h-12 text-white" />
+                </div>
               </div>
-            </div>
-            <h3 className="mt-2 font-medium line-clamp-2">{video.title}</h3>
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteVideo(video.id);
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </Card>
-        ))}
-      </div>
+              <h3 className="mt-2 font-medium line-clamp-2">{video.title}</h3>
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteVideo(video.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {selectedVideo && (
         <YouTubePlayer
