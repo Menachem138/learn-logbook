@@ -41,7 +41,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
 
     return (
       <>
-        <div className="grid grid-cols-2 gap-1 p-1">
+        <div className="grid grid-cols-2 gap-1">
           {displayedImages.map((imgSrc, index) => (
             <div 
               key={index} 
@@ -83,7 +83,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <div 
-        className="aspect-video cursor-pointer group"
+        className="cursor-pointer group min-h-[200px] max-h-[400px]"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
