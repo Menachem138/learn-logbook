@@ -27,11 +27,18 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
+  React.useEffect(() => {
+    if (initialData?.type === 'image_gallery' && initialData.file_details?.paths) {
+      // כאשר עורכים אלבום קיים, נשמור את הנתיבים הקיימים
+      setSelectedFiles([]);
+    }
+  }, [initialData]);
+
   const onSubmitForm = (data: any) => {
     try {
       console.log("Submitting form with data:", { ...data, files: selectedFiles });
       
-      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0) {
+      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
         toast({
           title: "שגיאה",
           description: "נא להעלות קובץ",
@@ -40,7 +47,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         return;
       }
 
-      if (selectedType === 'image_gallery' && selectedFiles.length === 0) {
+      if (selectedType === 'image_gallery' && selectedFiles.length === 0 && !initialData?.file_details?.paths) {
         toast({
           title: "שגיאה",
           description: "נא להעלות לפחות תמונה אחת",
@@ -52,6 +59,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       const formData = {
         ...data,
         files: selectedFiles,
+        file_details: initialData?.file_details, // שמירת הקבצים הקיימים בעריכה
       };
       
       onSubmit(formData);
@@ -88,8 +96,10 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     if (!isOpen) {
       setSelectedFiles([]);
       reset();
+    } else if (initialData) {
+      reset(initialData);
     }
-  }, [isOpen, reset]);
+  }, [isOpen, reset, initialData]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -108,6 +118,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             <select
               className="w-full p-2 border rounded-md"
               {...register("type", { required: true })}
+              disabled={!!initialData}
             >
               <option value="note">הערה</option>
               <option value="link">קישור</option>
@@ -148,6 +159,18 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                       </Button>
                     </div>
                   ))}
+                </div>
+              )}
+              {initialData?.type === 'image_gallery' && initialData.file_details?.paths && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500 mb-2">תמונות קיימות באלבום:</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {initialData.file_details.paths.map((path, index) => (
+                      <div key={index} className="relative aspect-square">
+                        <img src={path} alt={`תמונה ${index + 1}`} className="w-full h-full object-cover rounded" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
