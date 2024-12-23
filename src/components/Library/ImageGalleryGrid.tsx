@@ -11,7 +11,7 @@ export function ImageGalleryGrid({ images, title, onImageClick }: ImageGalleryGr
   const remainingCount = images.length - 4;
 
   return (
-    <div className="p-4 pt-0">
+    <div className="p-4 pt-0 pb-0">
       <div className="grid grid-cols-2 gap-4">
         {displayedImages.map((imgSrc, index) => (
           <div 
