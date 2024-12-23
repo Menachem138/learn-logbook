@@ -86,23 +86,17 @@ const Library = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {items.map((item: LibraryItem) => {
           console.log("Rendering item:", item);
-          if (item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_gallery')) {
-            return (
-              <MediaCard
-                key={item.id}
-                type={item.type as "image" | "video" | "pdf" | "image_gallery"}
-                src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
-                title={item.title}
-                onEdit={() => handleEdit(item)}
-                onDelete={() => deleteItem.mutate(item.id)}
-                onStar={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
-                isStarred={item.is_starred}
-              />
-            );
-          }
-
           return (
             <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_gallery') && (
+                <div className="relative aspect-video">
+                  <MediaCard
+                    type={item.type as "image" | "video" | "pdf" | "image_gallery"}
+                    src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
+                    title={item.title}
+                  />
+                </div>
+              )}
               <div className="p-4">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-2">
