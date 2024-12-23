@@ -28,6 +28,13 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, initialType
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedFiles([]);
+      reset();
+    }
+  }, [isOpen, reset]);
+
   const onSubmitForm = (data: any) => {
     try {
       console.log("Submitting form with data:", { ...data, files: selectedFiles });
@@ -56,8 +63,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, initialType
       };
       
       onSubmit(formData);
-      setSelectedFiles([]);
-      reset();
+      onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -68,14 +74,25 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, initialType
     }
   };
 
-  const { getRootProps, getInputProps } = useDropzone({
-    accept: {
-      'image/*': [],
-      'video/*': [],
-      'application/pdf': []
-    },
-    onDrop: (acceptedFiles) => {
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: selectedType === 'image_gallery' 
+      ? { 'image/*': [] }
+      : {
+          'image/*': [],
+          'video/*': [],
+          'application/pdf': []
+        },
+    multiple: selectedType === 'image_gallery',
+    maxSize: 10485760, // 10MB
+    onDrop: (acceptedFiles, rejectedFiles) => {
       console.log("Files dropped:", acceptedFiles);
+      if (rejectedFiles.length > 0) {
+        toast({
+          title: "שגיאה",
+          description: "חלק מהקבצים לא התקבלו. וודא שהם תמונות ושגודלם אינו עולה על 10MB",
+          variant: "destructive",
+        });
+      }
       if (selectedType === 'image_gallery') {
         setSelectedFiles(prev => [...prev, ...acceptedFiles]);
       } else {
@@ -121,26 +138,49 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData, initialType
 
           {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
-              <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
+              <div 
+                {...getRootProps()} 
+                className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                  isDragActive ? 'border-primary bg-primary/5' : 'hover:border-primary'
+                }`}
+              >
                 <input {...getInputProps()} />
                 <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
-                {selectedType === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
+                {selectedType === 'image_gallery' && (
+                  <>
+                    <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות ללא הגבלה</p>
+                    <p className="text-sm text-gray-500">לחץ או גרור שוב להוספת תמונות נוספות</p>
+                  </>
+                )}
               </div>
               {selectedFiles.length > 0 && (
                 <div className="space-y-2">
-                  {selectedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm text-gray-500">{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
-                      >
-                        הסר
-                      </Button>
-                    </div>
-                  ))}
+                  <div className="flex justify-between items-center p-2 bg-gray-100 rounded">
+                    <span className="text-sm font-medium">תמונות נבחרו: {selectedFiles.length}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedFiles([])}
+                    >
+                      נקה הכל
+                    </Button>
+                  </div>
+                  <div className="max-h-40 overflow-y-auto space-y-1">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="text-sm text-gray-500">{file.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                        >
+                          הסר
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
