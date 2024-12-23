@@ -41,7 +41,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
 
     return (
       <>
-        <div className="grid grid-cols-2 gap-1">
+        <div className="grid grid-cols-2 gap-2 p-2">
           {displayedImages.map((imgSrc, index) => (
             <div 
               key={index} 
@@ -83,14 +83,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <div 
-        className="cursor-pointer group min-h-[200px] max-h-[400px]"
+        className="h-full cursor-pointer group flex items-center justify-center p-2"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
             src={typeof src === 'string' ? src : src[0]} 
             alt={title} 
-            className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
+            className="max-h-full w-auto object-contain transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               console.error("Image failed to load:", src);
@@ -98,7 +98,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
             }}
           />
         ) : type === "video" ? (
-          <video controls className="w-full h-full">
+          <video controls className="w-full h-full object-contain">
             <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>

@@ -83,10 +83,10 @@ const Library = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-auto">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {items.map((item: LibraryItem) => (
-          <Card key={item.id}>
-            <div className="p-4">
+          <Card key={item.id} className="overflow-hidden">
+            <div className="p-4 border-b">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
                   {getIcon(item.type)}
@@ -145,6 +145,6 @@ const Library = () => {
       />
     </div>
   );
-}
+};
 
 export default Library;
