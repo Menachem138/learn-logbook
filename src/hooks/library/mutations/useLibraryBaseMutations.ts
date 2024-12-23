@@ -36,9 +36,10 @@ export const useLibraryBaseMutations = () => {
       // For image_gallery, we'll store all URLs in the file_details
       const fileDetails = type === 'image_gallery' && cloudinaryResponses.length > 0
         ? {
-            path: cloudinaryResponses.map(response => response.url),
+            path: cloudinaryResponses.map(response => response.url), // Array of URLs for gallery
             type: 'image_gallery',
             name: files?.map(f => f.name).join(', '),
+            urls: cloudinaryResponses.map(response => response.url), // Duplicate URLs to ensure backward compatibility
           }
         : cloudinaryResponses[0]
           ? {

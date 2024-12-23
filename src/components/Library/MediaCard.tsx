@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { FileText, Trash2, Pencil, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
@@ -14,6 +15,16 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   console.log("MediaCard props:", { type, src, title });
+
+  // Handle case where src might be in file_details.urls for backward compatibility
+  const getSources = () => {
+    if (Array.isArray(src)) return src;
+    if (typeof src === 'object' && src !== null) {
+      // @ts-ignore
+      return src.urls || src.path || [];
+    }
+    return [src];
+  };
 
   if (type === "pdf") {
     return (
@@ -38,42 +49,64 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     }
   };
 
-  if (type === "image_gallery" && Array.isArray(src)) {
-    console.log("Rendering image gallery with sources:", src);
+  if (type === "image_gallery") {
+    const sources = getSources();
+    console.log("Rendering image gallery with sources:", sources);
     return (
       <>
-        <div 
-          className="cursor-pointer group"
-          onClick={handleMediaClick}
-        >
-          <div className="grid grid-cols-2 gap-0.5">
-            {src.slice(0, 4).map((imgSrc, index) => (
-              <div key={index} className="relative aspect-square">
-                <img 
-                  src={imgSrc} 
-                  alt={`${title} ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error("Image failed to load:", imgSrc);
-                    e.currentTarget.src = "/placeholder.svg";
-                  }}
-                />
-                {index === 3 && src.length > 4 && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">+{src.length - 4}</span>
-                  </div>
-                )}
-              </div>
-            ))}
+        <Card className="overflow-hidden bg-white">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+            <div className="flex gap-2">
+              <Button size="icon" variant="ghost">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost">
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost">
+                <Star className="h-4 w-4" />
+              </Button>
+            </div>
+            <span className="text-sm text-muted-foreground">{title}</span>
           </div>
-        </div>
+          
+          <div 
+            className="cursor-pointer group"
+            onClick={handleMediaClick}
+          >
+            <div className="grid grid-cols-2 gap-0.5">
+              {sources.slice(0, 4).map((imgSrc, index) => (
+                <div key={index} className="relative aspect-square">
+                  <img 
+                    src={imgSrc} 
+                    alt={`${title} ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      console.error("Image failed to load:", imgSrc);
+                      e.currentTarget.src = "/placeholder.svg";
+                    }}
+                  />
+                  {index === 3 && sources.length > 4 && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="text-white text-xl font-bold">+{sources.length - 4}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="p-4">
+            <p className="text-sm text-right">{title}</p>
+          </div>
+        </Card>
 
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
           type="image_gallery"
-          src={src}
+          src={sources}
           title={title}
           selectedIndex={selectedImageIndex}
           onImageChange={setSelectedImageIndex}
