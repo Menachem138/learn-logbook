@@ -22,9 +22,10 @@ export function YouTubeLibrary() {
 
   useEffect(() => {
     const initializeLibrary = async () => {
-      console.log('YouTubeLibrary: Initializing...', {
+      console.log('YouTubeLibrary: Authentication State:', {
         authLoading,
-        user: user?.id,
+        isAuthenticated: !!user,
+        userId: user?.id,
         isLoading,
         videosCount: videos?.length
       });
@@ -33,14 +34,14 @@ export function YouTubeLibrary() {
         if (!user) {
           console.log('YouTubeLibrary: No authenticated user, redirecting to login');
           setError('נא להתחבר כדי לצפות בסרטונים');
-          navigate('/login', { replace: true });
+          navigate('/login');
           return;
         }
 
         try {
-          console.log('YouTubeLibrary: Fetching videos for user:', user.id);
+          console.log('YouTubeLibrary: Starting to fetch videos for user:', user.id);
           await fetchVideos();
-          console.log('YouTubeLibrary: Videos fetched successfully:', videos.length);
+          console.log('YouTubeLibrary: Videos fetched successfully');
         } catch (error) {
           console.error('YouTubeLibrary: Error fetching videos:', error);
           setError('אירעה שגיאה בטעינת הסרטונים');
@@ -56,39 +57,17 @@ export function YouTubeLibrary() {
     initializeLibrary();
   }, [user, authLoading, navigate, fetchVideos, toast]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/login', { replace: true });
-  };
-
-  const handleDeleteVideo = async (id: string) => {
-    try {
-      console.log('YouTubeLibrary: Initiating video deletion for ID:', id);
-      await deleteVideo(id);
-      console.log('YouTubeLibrary: Video deletion completed');
-      toast({
-        title: "הצלחה",
-        description: "הסרטון נמחק בהצלחה",
-      });
-    } catch (error) {
-      console.error('YouTubeLibrary: Error deleting video:', error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה במחיקת הסרטון",
-        variant: "destructive",
-      });
-    }
-  };
-
+  // Show loading state while authentication is in progress
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[200px]">
+      <div className="flex justify-center items-center min-h-[200px] flex-col gap-2">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="mr-2">טוען...</span>
+        <span>מאמת משתמש...</span>
       </div>
     );
   }
 
+  // Show login prompt if no authenticated user
   if (!user) {
     return (
       <div className="flex justify-center items-center min-h-[200px] flex-col gap-4">
@@ -114,7 +93,7 @@ export function YouTubeLibrary() {
           <Button onClick={() => setIsAddingVideo(true)} className="bg-primary hover:bg-primary/90">
             הוסף סרטון
           </Button>
-          <Button variant="outline" onClick={handleSignOut}>
+          <Button variant="outline" onClick={() => supabase.auth.signOut()}>
             התנתק
           </Button>
         </div>
