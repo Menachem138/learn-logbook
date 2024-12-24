@@ -9,11 +9,21 @@ export default function AuthLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate('/');
       }
     });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        navigate('/');
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return (
