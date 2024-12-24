@@ -17,16 +17,23 @@ export default function CourseContent() {
     0
   );
 
-  const progress = (completedLessons?.size || 0 / totalLessons) * 100;
+  // Fix progress calculation by ensuring proper division
+  const progress = completedLessons ? (completedLessons.size / totalLessons) * 100 : 0;
 
   const handleToggleLesson = async (lessonId: string) => {
     try {
-      const wasCompleted = completedLessons?.has(lessonId);
+      if (!completedLessons) return;
+      
+      const wasCompleted = completedLessons.has(lessonId);
       await toggleLesson(lessonId);
       
       // Only trigger confetti when completing a lesson, not when unchecking
       if (!wasCompleted) {
         triggerConfetti();
+        toast({
+          title: "כל הכבוד!",
+          description: "השיעור סומן כהושלם",
+        });
       }
     } catch (err) {
       console.error("Error toggling lesson:", err);

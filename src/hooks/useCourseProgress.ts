@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { getTotalLessons } from '@/components/CourseContent/sections';
+import { useToast } from '@/hooks/use-toast';
 
 export function useCourseProgress() {
   const [completedLessons, setCompletedLessons] = useState<Set<string> | null>(null);
@@ -88,14 +87,6 @@ export function useCourseProgress() {
           return new Set([...prev, lessonId]);
         });
       }
-
-      const totalLessons = getTotalLessons();
-      const completedCount = (completedLessons?.size || 0) + (isCompleted ? -1 : 1);
-      
-      toast({
-        title: "התקדמות עודכנה",
-        description: `השלמת ${completedCount} מתוך ${totalLessons} שיעורים`,
-      });
     } catch (err) {
       console.error('Error updating progress:', err);
       toast({
