@@ -11,12 +11,18 @@ export function useCourseProgress() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (session?.user?.id) {
-      loadProgress();
+    if (!session?.user?.id) {
+      setLoading(false);
+      return;
     }
+    loadProgress();
   }, [session?.user?.id]);
 
   const loadProgress = async () => {
+    if (!session?.user?.id) {
+      setLoading(false);
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from('course_progress')
@@ -40,7 +46,14 @@ export function useCourseProgress() {
   };
 
   const toggleLesson = async (lessonId: string) => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      toast({
+        title: "שגיאה בשמירת ההתקדמות",
+        description: "עליך להתחבר כדי לעקוב אחר ההתקדמות שלך",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const isCompleted = completedLessons.has(lessonId);
     
