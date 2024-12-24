@@ -17,7 +17,6 @@ export default function CourseContent() {
     0
   );
 
-  // Fix progress calculation by ensuring proper division
   const progress = completedLessons ? (completedLessons.size / totalLessons) * 100 : 0;
 
   const handleToggleLesson = async (lessonId: string) => {
@@ -27,7 +26,6 @@ export default function CourseContent() {
       const wasCompleted = completedLessons.has(lessonId);
       await toggleLesson(lessonId);
       
-      // Only trigger confetti when completing a lesson, not when unchecking
       if (!wasCompleted) {
         triggerConfetti();
         toast({
