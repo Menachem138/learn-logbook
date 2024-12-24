@@ -27,9 +27,7 @@ export function useCourseProgress() {
         .eq('user_id', session?.user?.id)
         .eq('completed', true);
 
-      if (supabaseError) {
-        throw supabaseError;
-      }
+      if (supabaseError) throw supabaseError;
 
       console.log("Loaded progress data:", data);
       setCompletedLessons(new Set(data.map(item => item.lesson_id)));
@@ -37,11 +35,6 @@ export function useCourseProgress() {
     } catch (err) {
       console.error('Error loading progress:', err);
       setError(err as Error);
-      toast({
-        title: "שגיאה בטעינת ההתקדמות",
-        description: "לא הצלחנו לטעון את ההתקדמות שלך. נסה שוב מאוחר יותר.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -53,8 +46,8 @@ export function useCourseProgress() {
     const isCompleted = completedLessons.has(lessonId);
     
     try {
-      console.log("Toggling lesson:", lessonId, "completed:", !isCompleted);
       if (isCompleted) {
+        // Delete the progress record
         const { error: deleteError } = await supabase
           .from('course_progress')
           .delete()
@@ -64,12 +57,12 @@ export function useCourseProgress() {
         if (deleteError) throw deleteError;
 
         setCompletedLessons(prev => {
-          if (!prev) return new Set();
           const next = new Set(prev);
           next.delete(lessonId);
           return next;
         });
       } else {
+        // Insert new progress record
         const { error: insertError } = await supabase
           .from('course_progress')
           .insert([
@@ -89,11 +82,6 @@ export function useCourseProgress() {
       }
     } catch (err) {
       console.error('Error updating progress:', err);
-      toast({
-        title: "שגיאה בשמירת ההתקדמות",
-        description: "לא הצלחנו לשמור את ההתקדמות שלך. נסה שוב מאוחר יותר.",
-        variant: "destructive",
-      });
       throw err;
     }
   };
