@@ -15,8 +15,14 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('YouTubeStore: Auth state:', { 
+        isAuthenticated: !!user, 
+        userId: user?.id 
+      });
+
       if (!user) {
-        throw new Error('User not authenticated');
+        console.log('YouTubeStore: No authenticated user found');
+        throw new Error('Unauthorized');
       }
 
       console.log('YouTubeStore: Fetching videos for user:', user.id);
@@ -46,7 +52,7 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('User not authenticated');
+        throw new Error('Unauthorized');
       }
 
       const videoId = parseYouTubeUrl(url);
@@ -62,7 +68,7 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
           video_id: videoId,
           title: details.title,
           thumbnail_url: details.thumbnail,
-          user_id: user.id
+          user_id: user.id,
         });
 
       if (error) throw error;
@@ -81,23 +87,25 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
+      console.log('Delete video - Auth state:', { isAuthenticated: !!user, userId: user?.id });
       console.log('Attempting to delete video:', { videoId: id });
 
-      const { error } = await supabase
-        .from('youtube_videos')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Delete video - Database error:', error);
-        throw error;
+      if (!user) {
+        console.error('Delete video - No authenticated user');
+        throw new Error('Unauthorized');
       }
 
+      // Call the Edge Function to delete the video
+      const { error: functionError } = await supabase.functions.invoke('delete-youtube-video', {
+        body: { videoId: id }
+      });
+
+      if (functionError) {
+        console.error('Delete video - Edge Function error:', functionError);
+        throw functionError;
+      }
+
+      // Only update local state after successful server deletion
       set(state => ({
         videos: state.videos.filter(video => video.id !== id),
         isLoading: false,

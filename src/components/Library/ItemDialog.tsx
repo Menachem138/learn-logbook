@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { useDropzone } from "react-dropzone";
 import { toast } from "@/components/ui/use-toast";
-import { Trash2 } from "lucide-react";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -27,19 +26,12 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
-  const [existingPaths, setExistingPaths] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    if (initialData?.type === 'image_gallery' && initialData.file_details?.paths) {
-      setExistingPaths(initialData.file_details.paths);
-    }
-  }, [initialData]);
 
   const onSubmitForm = (data: any) => {
     try {
       console.log("Submitting form with data:", { ...data, files: selectedFiles });
       
-      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
+      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0) {
         toast({
           title: "שגיאה",
           description: "נא להעלות קובץ",
@@ -48,7 +40,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         return;
       }
 
-      if (selectedType === 'image_gallery' && selectedFiles.length === 0 && existingPaths.length === 0) {
+      if (selectedType === 'image_gallery' && selectedFiles.length === 0) {
         toast({
           title: "שגיאה",
           description: "נא להעלות לפחות תמונה אחת",
@@ -60,12 +52,10 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       const formData = {
         ...data,
         files: selectedFiles,
-        file_details: selectedType === 'image_gallery' ? { paths: existingPaths } : initialData?.file_details,
       };
       
       onSubmit(formData);
       setSelectedFiles([]);
-      setExistingPaths([]);
       reset();
       onClose();
     } catch (error) {
@@ -94,22 +84,12 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     }
   });
 
-  const handleRemoveExistingImage = (indexToRemove: number) => {
-    setExistingPaths(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
-
   React.useEffect(() => {
     if (!isOpen) {
       setSelectedFiles([]);
-      setExistingPaths([]);
       reset();
-    } else if (initialData) {
-      reset(initialData);
-      if (initialData.type === 'image_gallery' && initialData.file_details?.paths) {
-        setExistingPaths(initialData.file_details.paths);
-      }
     }
-  }, [isOpen, reset, initialData]);
+  }, [isOpen, reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -128,7 +108,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             <select
               className="w-full p-2 border rounded-md"
               {...register("type", { required: true })}
-              disabled={!!initialData}
             >
               <option value="note">הערה</option>
               <option value="link">קישור</option>
@@ -169,27 +148,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                       </Button>
                     </div>
                   ))}
-                </div>
-              )}
-              {initialData?.type === 'image_gallery' && existingPaths.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-500 mb-2">תמונות קיימות באלבום:</p>
-                  <div className="grid grid-cols-4 gap-2">
-                    {existingPaths.map((path, index) => (
-                      <div key={index} className="relative aspect-square group">
-                        <img src={path} alt={`תמונה ${index + 1}`} className="w-full h-full object-cover rounded" />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleRemoveExistingImage(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
             </div>
