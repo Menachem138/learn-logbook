@@ -1,67 +1,47 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { Session, User } from '@supabase/supabase-js'
-import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/components/ui/use-toast'
-import { useNavigate } from 'react-router-dom'
+'use client';
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Session, User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  loading: boolean;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
-  loading: true,
   signOut: async () => {},
 });
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get initial session and set up refresh
-    const setupAuth = async () => {
-      try {
-        // Get current session
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          throw sessionError;
-        }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      console.log('Initial session:', initialSession?.user?.id);
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      setLoading(false);
+    });
 
-        if (currentSession) {
-          console.log('Initial session loaded:', currentSession);
-          setSession(currentSession);
-        } else {
-          console.log('No initial session found');
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error('Error setting up auth:', error);
-        toast({
-          title: "שגיאה בטעינת המשתמש",
-          description: "אנא נסה להתחבר מחדש",
-          variant: "destructive",
-        });
-        navigate('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    setupAuth();
-
-    // Listen for auth changes
+    // Set up auth state listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
@@ -69,45 +49,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (event === 'SIGNED_OUT') {
         setSession(null);
+        setUser(null);
         navigate('/login');
+        toast.info('התנתקת בהצלחה');
       } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('Setting new session after', event);
         setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         navigate('/');
+        if (event === 'SIGNED_IN') {
+          toast.success('התחברת בהצלחה!');
+        }
       }
-      
-      setLoading(false);
     });
 
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      setSession(null);
-      navigate('/login');
+      await supabase.auth.signOut();
+      toast.success('התנתקת בהצלחה');
     } catch (error) {
       console.error('Error signing out:', error);
-      toast({
-        title: "שגיאה בהתנתקות",
-        description: "אנא נסה שוב",
-        variant: "destructive",
-      });
+      toast.error('שגיאה בהתנתקות');
     }
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">טוען...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <AuthContext.Provider value={{ 
-      session, 
-      user: session?.user ?? null,
-      loading,
-      signOut
-    }}>
+    <AuthContext.Provider value={{ session, user, signOut }}>
       {children}
     </AuthContext.Provider>
   );
