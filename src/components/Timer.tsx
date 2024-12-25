@@ -27,16 +27,14 @@ export default function Timer() {
   const [timerType, setTimerType] = useState<"study" | "break">("study");
   const [timerLog, setTimerLog] = useState<TimerSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const { session, loading: authLoading } = useAuth();
+  const { session } = useAuth();
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [totalStudyTime, setTotalStudyTime] = useState(0);
   const [totalBreakTime, setTotalBreakTime] = useState(0);
 
   useEffect(() => {
-    if (!authLoading && session?.user?.id) {
-      loadTimerHistory();
-    }
-  }, [session?.user?.id, authLoading]);
+    loadTimerHistory();
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

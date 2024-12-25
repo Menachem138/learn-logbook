@@ -6,7 +6,6 @@ import { CloudinaryResponse } from '@/types/cloudinary';
 import { isCloudinaryResponse } from '@/utils/cloudinaryTypeGuards';
 import { useLibraryBaseMutations } from './mutations/useLibraryBaseMutations';
 import { useLibraryUpdateMutations } from './mutations/useLibraryUpdateMutations';
-import { LibraryItemInput, LibraryItemUpdate } from '@/types/library';
 
 export const useLibraryMutations = () => {
   const { toast } = useToast();
