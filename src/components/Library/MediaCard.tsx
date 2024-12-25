@@ -7,9 +7,10 @@ interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_gallery";
   src: string | string[];
   title: string;
+  onDeleteImage?: (index: number) => void;
 }
 
-export function MediaCard({ type, src, title }: MediaCardProps) {
+export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -77,6 +78,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           title={title}
           selectedIndex={selectedImageIndex}
           onImageChange={setSelectedImageIndex}
+          onDeleteImage={onDeleteImage}
         />
       </>
     );
