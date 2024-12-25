@@ -5,7 +5,7 @@ import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf";
-  src: string;
+  src: string | string[];
   title: string;
 }
 
@@ -17,7 +17,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
       <Card className="p-4 flex items-center gap-2">
         <FileText className="w-6 h-6 text-red-500" />
         <a 
-          href={src} 
+          href={typeof src === 'string' ? src : src[0]} 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
@@ -34,6 +34,32 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     }
   };
 
+  const renderImageGalleryPreview = () => {
+    const images = Array.isArray(src) ? src : [src];
+    const displayImages = images.slice(0, 4);
+    const remainingCount = images.length - 4;
+
+    return (
+      <div className="grid grid-cols-2 gap-1 aspect-square">
+        {displayImages.map((image, index) => (
+          <div key={index} className="relative">
+            <img
+              src={image}
+              alt={`${title} - ${index + 1}`}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {index === 3 && remainingCount > 0 && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span className="text-white text-lg font-bold">+{remainingCount}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <>
       <Card 
@@ -41,15 +67,19 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         onClick={handleMediaClick}
       >
         {type === "image" ? (
-          <img 
-            src={src} 
-            alt={title} 
-            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
-            loading="lazy"
-          />
+          Array.isArray(src) ? (
+            renderImageGalleryPreview()
+          ) : (
+            <img 
+              src={src} 
+              alt={title} 
+              className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+              loading="lazy"
+            />
+          )
         ) : type === "video" ? (
           <video controls className="w-full h-auto">
-            <source src={src} type="video/mp4" />
+            <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
         ) : null}
