@@ -4,7 +4,7 @@ import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
+  type: "image" | "video" | "pdf" | "gallery";
   src: string | string[];
   title: string;
 }
@@ -29,7 +29,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   const handleMediaClick = () => {
-    if (type === "image" || type === "video") {
+    if (type === "image" || type === "video" || type === "gallery") {
       setIsViewerOpen(true);
     }
   };
@@ -66,7 +66,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         className="overflow-hidden cursor-pointer group relative"
         onClick={handleMediaClick}
       >
-        {type === "image" ? (
+        {(type === "image" || type === "gallery") ? (
           Array.isArray(src) ? (
             renderImageGalleryPreview()
           ) : (
@@ -85,7 +85,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         ) : null}
       </Card>
 
-      {(type === "image" || type === "video") && (
+      {(type === "image" || type === "video" || type === "gallery") && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
