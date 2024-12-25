@@ -1,21 +1,18 @@
-'use client';
-
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  signOut: () => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
-  signOut: async () => {},
+  loading: true,
 });
 
 export const useAuth = () => {
@@ -26,73 +23,60 @@ export const useAuth = () => {
   return context;
 };
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      console.log('Initial session:', initialSession?.user?.id);
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
       setLoading(false);
     });
 
-    // Set up auth state listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log('Auth state changed:', event, currentSession?.user?.id);
-      
-      if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setUser(null);
-        navigate('/login');
-        toast.info('התנתקת בהצלחה');
-      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        navigate('/');
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        console.info('Supabase auth event:', event);
+        
         if (event === 'SIGNED_IN') {
-          toast.success('התחברת בהצלחה!');
+          console.info('User signed in:', currentSession?.user?.id);
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          toast({
+            title: "התחברת בהצלחה",
+            description: "ברוך הבא!",
+          });
+        }
+
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          toast({
+            title: "התנתקת בהצלחה",
+            description: "להתראות!",
+          });
+        }
+
+        if (event === 'TOKEN_REFRESHED') {
+          console.info('Token refreshed successfully');
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
         }
       }
-    });
+    );
 
-    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
-
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('התנתקת בהצלחה');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('שגיאה בהתנתקות');
-    }
-  };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">טוען...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [toast]);
 
   return (
-    <AuthContext.Provider value={{ session, user, signOut }}>
+    <AuthContext.Provider value={{ session, user, loading }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};

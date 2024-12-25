@@ -7,25 +7,34 @@ import { getTotalLessons } from '@/components/CourseContent/sections';
 export function useCourseProgress() {
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
+    if (authLoading) return;
+    
     if (session?.user?.id) {
       loadProgress();
+    } else {
+      setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, authLoading]);
 
   const loadProgress = async () => {
     try {
+      console.log('Loading course progress for user:', session?.user?.id);
       const { data, error } = await supabase
         .from('course_progress')
         .select('lesson_id')
         .eq('user_id', session?.user?.id)
         .eq('completed', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading progress:', error);
+        throw error;
+      }
 
+      console.log('Course progress loaded:', data);
       setCompletedLessons(new Set(data.map(item => item.lesson_id)));
     } catch (error) {
       console.error('Error loading progress:', error);
@@ -40,7 +49,14 @@ export function useCourseProgress() {
   };
 
   const toggleLesson = async (lessonId: string) => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      toast({
+        title: "נדרשת התחברות",
+        description: "יש להתחבר כדי לשמור התקדמות",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const isCompleted = completedLessons.has(lessonId);
     
