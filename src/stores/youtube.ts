@@ -10,22 +10,17 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
   error: null,
 
   fetchVideos: async () => {
-    console.log('YouTubeStore: Starting to fetch videos...');
+    console.log('Fetching videos from Supabase...');
     set({ isLoading: true, error: null });
-    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('YouTubeStore: Auth state:', { 
-        isAuthenticated: !!user, 
-        userId: user?.id 
-      });
+      console.log('Fetch videos - Auth state:', { isAuthenticated: !!user, userId: user?.id });
 
       if (!user) {
-        console.log('YouTubeStore: No authenticated user found');
+        console.log('No authenticated user, cannot fetch videos');
         throw new Error('Unauthorized');
       }
 
-      console.log('YouTubeStore: Fetching videos for user:', user.id);
       const { data, error } = await supabase
         .from('youtube_videos')
         .select('*')
@@ -33,17 +28,16 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('YouTubeStore: Error fetching videos:', error);
+        console.error('Error fetching videos:', error);
         throw error;
       }
 
-      console.log('YouTubeStore: Successfully fetched videos:', data?.length);
       set({ videos: data || [], isLoading: false, error: null });
+      console.log('Videos updated in store:', data);
     } catch (error) {
-      console.error('YouTubeStore: Error in fetchVideos:', error);
+      console.error('Error in fetchVideos:', error);
       const message = error instanceof Error ? error.message : 'Failed to fetch videos';
       set({ error: getHebrewError(message), isLoading: false });
-      throw error;
     }
   },
 

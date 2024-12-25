@@ -3,8 +3,10 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
+import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -84,57 +86,52 @@ const Library = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((item: LibraryItem) => {
-          console.log("Rendering item:", item);
-          return (
-            <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_gallery') && (
-                <div className="relative aspect-video">
-                  <MediaCard
-                    type={item.type as "image" | "video" | "pdf" | "image_gallery"}
-                    src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
-                    title={item.title}
-                  />
-                </div>
-              )}
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-2">
-                    {getIcon(item.type)}
-                    <h3 className="font-semibold">{item.title}</h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
-                      className="hover:text-yellow-400"
-                    >
-                      <Star className={`w-4 h-4 ${item.is_starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(item)}
-                      className="hover:text-blue-500"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteItem.mutate(item.id)}
-                      className="hover:text-red-500"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600">{item.content}</p>
+        {items.map((item: LibraryItem) => (
+          <Card key={item.id} className="p-4 hover:shadow-lg transition-shadow">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center gap-2">
+                {getIcon(item.type)}
+                <h3 className="font-semibold">{item.title}</h3>
               </div>
-            </Card>
-          );
-        })}
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
+                  className="hover:text-yellow-400"
+                >
+                  <Star className={`w-4 h-4 ${item.is_starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleEdit(item)}
+                  className="hover:text-blue-500"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteItem.mutate(item.id)}
+                  className="hover:text-red-500"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">{item.content}</p>
+            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
+              <div className="mt-2">
+                <MediaCard
+                  type={item.type as "image" | "video" | "pdf"}
+                  src={item.file_details.path}
+                  title={item.title}
+                />
+              </div>
+            )}
+          </Card>
+        ))}
       </div>
 
       <ItemDialog
