@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
-import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } from "@/types/library";
+import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -32,18 +32,17 @@ const Library = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
 
-  const handleAddOrUpdateItem = async (data: LibraryItemInput) => {
+  const handleAddOrUpdateItem = async (data: Partial<LibraryItem> & { files?: File[] }) => {
     try {
       if (editingItem) {
-        const updateData: LibraryItemUpdate = {
+        await updateItem.mutateAsync({
           id: editingItem.id,
-          title: data.title,
-          content: data.content,
-          type: data.type,
+          title: data.title || '',
+          content: data.content || '',
+          type: data.type || 'note',
           files: data.files,
           file_details: data.file_details
-        };
-        await updateItem.mutateAsync(updateData);
+        });
       } else {
         await addItem.mutateAsync(data);
       }
@@ -67,14 +66,13 @@ const Library = () => {
       if (newPaths.length === 0) {
         await deleteItem.mutateAsync(item.id);
       } else {
-        const updateData: LibraryItemUpdate = {
+        await updateItem.mutateAsync({
           id: item.id,
           title: item.title,
           content: item.content,
           type: item.type,
           file_details: { paths: newPaths }
-        };
-        await updateItem.mutateAsync(updateData);
+        });
       }
     }
   };
