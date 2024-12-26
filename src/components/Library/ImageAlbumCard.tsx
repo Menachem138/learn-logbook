@@ -16,8 +16,8 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
   
   console.log("ImageAlbumCard - Received images:", images);
   
-  // Ensure images is always an array
-  const imageUrls = Array.isArray(images) ? images : 
+  // Ensure images is always an array and contains valid URLs
+  const imageUrls = Array.isArray(images) ? images.filter(url => url && typeof url === 'string') : 
     typeof images === 'string' ? [images] : [];
   
   console.log("ImageAlbumCard - Processed imageUrls:", imageUrls);

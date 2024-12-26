@@ -31,8 +31,8 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    console.log("Selected files:", files);
     if (files) {
+      console.log("Selected files:", files);
       setSelectedFiles(files);
     }
   };
@@ -52,17 +52,15 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         const uploadResults = await Promise.all(uploadPromises);
         console.log("Upload results:", uploadResults);
 
-        const cloudinaryUrls = uploadResults.map(result => result.url);
+        const cloudinaryUrls = uploadResults.map(result => result.secure_url);
         console.log("Cloudinary URLs:", cloudinaryUrls);
 
-        // Submit with cloudinary URLs
         await onSubmit({
           ...data,
           cloudinary_urls: cloudinaryUrls,
           type: 'image_album'
         });
       } else if (selectedFiles && selectedFiles.length > 0) {
-        // Handle single file upload for other types
         console.log("Processing single file upload");
         const file = selectedFiles[0];
         const uploadResult = await uploadToCloudinary(file);
@@ -71,15 +69,17 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         await onSubmit({
           ...data,
           file_details: {
-            path: uploadResult.url,
+            path: uploadResult.secure_url, // Changed from url to secure_url
             name: file.name,
             size: file.size,
             type: file.type
           },
-          cloudinary_data: uploadResult
+          cloudinary_data: {
+            ...uploadResult,
+            url: uploadResult.secure_url // Ensure we're using secure_url
+          }
         });
       } else {
-        // Handle text-only submissions
         console.log("Submitting text-only data");
         await onSubmit(data);
       }
