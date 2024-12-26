@@ -13,7 +13,7 @@ interface ImageAlbumProps {
 }
 
 export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
-  console.log("ImageAlbum component rendered", { images, itemId });
+  console.log("ImageAlbum component rendered with:", { images, itemId });
 
   const [viewerOpen, setViewerOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -21,11 +21,11 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
   const [pendingImages, setPendingImages] = useState(images);
 
   useEffect(() => {
-    console.log("ImageAlbum mounted with images:", images);
+    setPendingImages(images);
   }, [images]);
 
   const handleImageClick = (index: number) => {
-    console.log("Image clicked at index:", index);
+    console.log("Opening gallery at index:", index);
     setCurrentIndex(index);
     setViewerOpen(true);
   };
@@ -39,7 +39,6 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
   };
 
   const handleDeleteImage = async (publicId: string) => {
-    console.log("Attempting to delete image with publicId:", publicId);
     try {
       // Delete from Cloudinary
       const response = await fetch('/api/delete-cloudinary-asset', {
@@ -56,7 +55,6 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
 
       // Update Supabase record
       const updatedImages = pendingImages.filter(img => img.publicId !== publicId);
-      console.log("Updating Supabase with new images:", updatedImages);
       
       const { error } = await supabase
         .from('library_items')
@@ -79,8 +77,6 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       toast.error('אירעה שגיאה במחיקת התמונה');
     }
   };
-
-  console.log("Current render state:", { viewerOpen, editMode, currentIndex, pendingImagesLength: pendingImages.length });
 
   return (
     <div className="space-y-4">
@@ -110,10 +106,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       <div className="flex gap-2">
         <Button 
           variant="outline" 
-          onClick={() => {
-            console.log("Edit button clicked");
-            setEditMode(true);
-          }}
+          onClick={() => setEditMode(true)}
           className="flex items-center gap-2"
         >
           <Pencil className="h-4 w-4" />
