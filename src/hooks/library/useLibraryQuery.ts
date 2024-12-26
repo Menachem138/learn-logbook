@@ -56,44 +56,47 @@ export const useLibraryQuery = (filter: string) => {
         return [];
       }
 
-      // Transform the data to match LibraryItem type
       const transformedData = (data || []).map((item: LibraryItemRow): LibraryItem => {
-        // Safely transform cloudinary_data
         let cloudinaryData: CloudinaryData | CloudinaryData[] | null = null;
+        
         if (item.cloudinary_data) {
           try {
             const cloudinaryJson = item.cloudinary_data as CloudinaryDataJson | CloudinaryDataJson[];
-            cloudinaryData = Array.isArray(cloudinaryJson) 
-              ? cloudinaryJson.map(d => ({
-                  publicId: d.publicId,
-                  url: d.url,
-                  resourceType: d.resourceType,
-                  format: d.format,
-                  size: d.size,
-                }))
-              : {
-                  publicId: (cloudinaryJson as CloudinaryDataJson).publicId,
-                  url: (cloudinaryJson as CloudinaryDataJson).url,
-                  resourceType: (cloudinaryJson as CloudinaryDataJson).resourceType,
-                  format: (cloudinaryJson as CloudinaryDataJson).format,
-                  size: (cloudinaryJson as CloudinaryDataJson).size,
-                };
+            
+            if (Array.isArray(cloudinaryJson)) {
+              cloudinaryData = cloudinaryJson.map(d => ({
+                publicId: d.publicId || '',
+                url: d.url || '',
+                resourceType: d.resourceType || '',
+                format: d.format || '',
+                size: d.size || 0,
+              }));
+            } else if (typeof cloudinaryJson === 'object' && cloudinaryJson !== null) {
+              cloudinaryData = {
+                publicId: cloudinaryJson.publicId || '',
+                url: cloudinaryJson.url || '',
+                resourceType: cloudinaryJson.resourceType || '',
+                format: cloudinaryJson.format || '',
+                size: cloudinaryJson.size || 0,
+              };
+            }
           } catch (e) {
             console.error('Error parsing cloudinary_data:', e);
           }
         }
 
-        // Safely transform file_details
         let fileDetails: FileDetails | undefined;
         if (item.file_details) {
           try {
             const fileJson = item.file_details as FileDetailsJson;
-            fileDetails = {
-              path: fileJson.path,
-              name: fileJson.name,
-              size: fileJson.size,
-              type: fileJson.type,
-            };
+            if (typeof fileJson === 'object' && fileJson !== null) {
+              fileDetails = {
+                path: fileJson.path || '',
+                name: fileJson.name || '',
+                size: fileJson.size || 0,
+                type: fileJson.type || '',
+              };
+            }
           } catch (e) {
             console.error('Error parsing file_details:', e);
           }
@@ -106,7 +109,7 @@ export const useLibraryQuery = (filter: string) => {
           type: item.type as LibraryItemType,
           file_details: fileDetails,
           cloudinary_data: cloudinaryData,
-          is_starred: item.is_starred,
+          is_starred: item.is_starred || false,
           created_at: item.created_at,
           user_id: item.user_id
         };
