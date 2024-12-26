@@ -46,7 +46,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   const handleMediaClick = () => {
-    if (type === "image" || type === "video" || type === "image_gallery") {
+    if (type === "image" || type === "video") {
       setIsViewerOpen(true);
     }
   };
@@ -84,12 +84,12 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         ) : null}
       </Card>
 
-      {(type === "image" || type === "video" || type === "image_gallery") && (
+      {(type === "image" || type === "video") && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
           type={type}
-          src={src}
+          src={src as string}
           title={title}
         />
       )}
