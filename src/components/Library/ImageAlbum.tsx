@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,6 +102,9 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       {/* Image Viewer */}
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
         <DialogContent className="max-w-4xl w-full p-0">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Image Viewer</DialogTitle>
+          </DialogHeader>
           <div className="relative">
             <Button
               variant="ghost"
@@ -144,6 +147,9 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       {/* Edit Mode */}
       <Dialog open={editMode} onOpenChange={setEditMode}>
         <DialogContent>
+          <DialogHeader>
+            <DialogTitle>עריכת אלבום</DialogTitle>
+          </DialogHeader>
           <div className="grid grid-cols-3 gap-4 p-4">
             {images.map((image, index) => (
               <div key={index} className="relative group">
