@@ -18,7 +18,6 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4" />;
     case 'image':
     case 'image_album':
-    case 'image_gallery':
       return <Image className="w-4 h-4" />;
     case 'video':
       return <Video className="w-4 h-4" />;
@@ -135,11 +134,11 @@ const Library = () => {
             
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
             
-            {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'audio' || item.type === 'image_gallery') && (
+            {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'audio' || item.type === 'image_album') && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type as "image" | "video" | "pdf" | "audio" | "image_gallery"}
-                  src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path || ''}
+                  type={item.type as "image" | "video" | "pdf" | "audio" | "image_album"}
+                  src={item.type === 'image_album' && item.file_details.paths ? item.file_details.paths : item.file_details.path || ''}
                   title={item.title}
                 />
               </div>
