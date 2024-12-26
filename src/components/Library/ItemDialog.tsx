@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { Upload, Album } from "lucide-react";
+import { toast } from "sonner";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -26,14 +27,27 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
 
-  const onSubmitForm = (data: any) => {
-    const formData = {
-      ...data,
-      files: selectedFiles,
-    };
-    onSubmit(formData);
-    setSelectedFiles(null);
-    reset();
+  const onSubmitForm = async (data: any) => {
+    try {
+      if ((selectedType === 'image_album' && (!selectedFiles || selectedFiles.length === 0))) {
+        toast.error("נא לבחור לפחות תמונה אחת לאלבום");
+        return;
+      }
+
+      const formData = {
+        ...data,
+        files: selectedFiles,
+      };
+      
+      await onSubmit(formData);
+      setSelectedFiles(null);
+      reset();
+      onClose();
+      toast.success(initialData ? "הפריט עודכן בהצלחה" : "הפריט נוסף בהצלחה");
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error("אירעה שגיאה בשמירת הפריט");
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

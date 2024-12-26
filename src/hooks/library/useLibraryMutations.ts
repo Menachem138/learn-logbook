@@ -8,13 +8,14 @@ export const useLibraryMutations = () => {
   const queryClient = useQueryClient();
   const { session } = useAuth();
 
-  const uploadAlbum = async (files: File[], title: string, description: string) => {
+  const uploadAlbum = async (files: FileList, title: string, content: string) => {
     if (!session?.user?.id) {
       throw new Error('User not authenticated');
     }
 
     const uploadedUrls = [];
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       const result = await uploadToCloudinary(file);
       if (result) {
         uploadedUrls.push({
@@ -29,7 +30,7 @@ export const useLibraryMutations = () => {
       .insert({
         type: 'image_album' as LibraryItemType,
         title,
-        content: description,
+        content,
         user_id: session.user.id,
         cloudinary_urls: uploadedUrls
       })
@@ -41,40 +42,45 @@ export const useLibraryMutations = () => {
   };
 
   const addItem = useMutation({
-    mutationFn: async ({ 
-      type, 
-      content, 
-      files,
-      title = 'Untitled'
-    }: { 
+    mutationFn: async (data: { 
       type: LibraryItemType; 
       content: string; 
-      files?: File[];
-      title?: string;
+      title: string;
+      files?: FileList;
     }) => {
       if (!session?.user?.id) {
         throw new Error('User not authenticated');
       }
 
-      if (type === 'image_album' && files) {
-        return uploadAlbum(files, title, content);
+      if (data.type === 'image_album' && data.files) {
+        return uploadAlbum(data.files, data.title, data.content);
       }
       
-      const { data, error } = await supabase
+      let cloudinaryData = null;
+      if (data.files && data.files.length > 0) {
+        const result = await uploadToCloudinary(data.files[0]);
+        if (result) {
+          cloudinaryData = {
+            publicId: result.publicId,
+            url: result.url
+          };
+        }
+      }
+
+      const { data: newItem, error } = await supabase
         .from('library_items')
         .insert({
-          type,
-          content,
-          title,
+          type: data.type,
+          content: data.content,
+          title: data.title,
           user_id: session.user.id,
-          cloudinary_data: null,
-          file_details: null,
+          cloudinary_data: cloudinaryData,
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return newItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library'] });
