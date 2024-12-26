@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload } from "lucide-react";
+import { Upload, Album } from "lucide-react";
 
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { file?: File }) => void;
+  onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
   initialData?: LibraryItem | null;
 }
 
@@ -24,22 +24,22 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const selectedType = watch("type");
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
 
   const onSubmitForm = (data: any) => {
     const formData = {
       ...data,
-      file: selectedFile,
+      files: selectedFiles,
     };
     onSubmit(formData);
-    setSelectedFile(null);
+    setSelectedFiles(null);
     reset();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    const files = event.target.files;
+    if (files) {
+      setSelectedFiles(files);
     }
   };
 
@@ -68,6 +68,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
+              <option value="image_album">אלבום תמונות</option>
             </select>
           </div>
           <div>
@@ -95,9 +96,31 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                   onChange={handleFileChange}
                   className="flex-1"
                 />
-                {selectedFile && (
+                {selectedFiles && selectedFiles.length > 0 && (
                   <span className="text-sm text-gray-500">
-                    {selectedFile.name}
+                    {selectedFiles[0].name}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {selectedType === 'image_album' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                העלה תמונות לאלבום
+              </label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  className="flex-1"
+                />
+                {selectedFiles && (
+                  <span className="text-sm text-gray-500">
+                    {selectedFiles.length} תמונות נבחרו
                   </span>
                 )}
               </div>

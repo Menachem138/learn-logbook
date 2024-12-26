@@ -3,7 +3,7 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle, Album } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
@@ -24,6 +24,8 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
+    case 'image_album':
+      return <Album className="w-4 h-4 text-blue-500" />;
     default:
       return <FileText className="w-4 h-4" />;
   }
@@ -121,14 +123,27 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {(item.file_details?.path || item.cloudinary_data?.url) && 
-             (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
+            {(item.file_details?.path || item.cloudinary_data?.url || (item.type === 'image_album' && item.cloudinary_urls)) && 
+             (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_album') && (
               <div className="mt-2">
-                <MediaCard
-                  type={item.type as "image" | "video" | "pdf"}
-                  src={item.cloudinary_data?.url || item.file_details?.path || ''}
-                  title={item.title}
-                />
+                {item.type === 'image_album' && item.cloudinary_urls ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {item.cloudinary_urls.map((url: any, index: number) => (
+                      <MediaCard
+                        key={index}
+                        type="image"
+                        src={url.url}
+                        title={`${item.title} - תמונה ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <MediaCard
+                    type={item.type as "image" | "video" | "pdf"}
+                    src={item.cloudinary_data?.url || item.file_details?.path || ''}
+                    title={item.title}
+                  />
+                )}
               </div>
             )}
           </Card>
