@@ -5,24 +5,18 @@ import { LibraryItemType } from '@/types/library';
 import { cloudinaryResponseToJson, uploadToCloudinary, deleteFromCloudinary } from '@/utils/cloudinaryUtils';
 import { CloudinaryResponse } from '@/types/cloudinary';
 
-interface UpdateItemParams {
-  id: string;
-  title?: string;
-  content?: string;
-  type?: LibraryItemType;
-  file?: File;
-  file_details?: {
-    path?: string;
-    images?: { path: string; title: string }[];
-  };
-}
-
 export const useLibraryUpdateMutations = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const updateItem = useMutation({
-    mutationFn: async ({ id, title, content, type, file, file_details }: UpdateItemParams) => {
+    mutationFn: async ({ id, title, content, type, file }: {
+      id: string;
+      title: string;
+      content: string;
+      type: LibraryItemType;
+      file?: File;
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -45,18 +39,14 @@ export const useLibraryUpdateMutations = () => {
         cloudinaryResponse = await uploadToCloudinary(file);
       }
 
-      const updateData: any = {};
-      if (title) updateData.title = title;
-      if (content) updateData.content = content;
-      if (type) updateData.type = type;
-      if (file_details) updateData.file_details = file_details;
-      if (cloudinaryResponse) {
-        updateData.cloudinary_data = cloudinaryResponseToJson(cloudinaryResponse);
-      }
-
       const { error } = await supabase
         .from('library_items')
-        .update(updateData)
+        .update({
+          title,
+          content,
+          type,
+          cloudinary_data: cloudinaryResponseToJson(cloudinaryResponse),
+        })
         .eq('id', id);
 
       if (error) throw error;

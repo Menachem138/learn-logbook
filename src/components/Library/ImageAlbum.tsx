@@ -1,145 +1,176 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, X, Trash2, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageAlbumProps {
-  images: { path: string; title: string }[];
-  onDeleteImage?: (index: number) => void;
+  images: { url: string; publicId: string }[];
+  itemId: string;
+  onUpdate: () => void;
 }
 
-export function ImageAlbum({ images, onDeleteImage }: ImageAlbumProps) {
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const { toast } = useToast();
+export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const handlePrevImage = () => {
-    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  const handleImageClick = (index: number) => {
+    setCurrentIndex(index);
+    setViewerOpen(true);
   };
 
-  const handleNextImage = () => {
-    setCurrentImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  const nextImage = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
   };
 
-  const handleDeleteImage = (index: number) => {
-    if (onDeleteImage) {
-      onDeleteImage(index);
-      toast({
-        title: "התמונה נמחקה בהצלחה",
+  const prevImage = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleDeleteImage = async (publicId: string) => {
+    try {
+      // Delete from Cloudinary
+      const response = await fetch('/api/delete-cloudinary-asset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ publicId }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete image from Cloudinary');
+      }
+
+      // Update Supabase record
+      const updatedImages = images.filter(img => img.publicId !== publicId);
+      const { error } = await supabase
+        .from('library_items')
+        .update({
+          cloudinary_urls: updatedImages
+        })
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      toast.success('התמונה נמחקה בהצלחה');
+      onUpdate();
+      
+      if (updatedImages.length === 0) {
+        setEditMode(false);
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('אירעה שגיאה במחיקת התמונה');
     }
   };
 
-  const displayImages = images.slice(0, 4);
-  const remainingCount = Math.max(0, images.length - 3);
-
   return (
-    <>
-      <div className="relative">
-        <div className="grid grid-cols-2 gap-2">
-          {displayImages.map((image, index) => (
-            <div
-              key={index}
-              className={`relative ${index === 3 && images.length > 4 ? "cursor-pointer" : ""}`}
-              onClick={() => {
-                setCurrentImageIndex(index);
-                setIsViewerOpen(true);
-              }}
-            >
-              <img
-                src={image.path}
-                alt={image.title}
-                className="w-full h-32 object-cover rounded-lg"
-              />
-              {index === 3 && images.length > 4 && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
-                  <span className="text-white text-xl font-bold">+{remainingCount}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="absolute top-2 right-2 z-10"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditMode(true);
-          }}
-        >
-          <Pencil className="h-4 w-4 mr-2" />
+    <div className="space-y-4">
+      {/* Preview Grid */}
+      <div className="grid grid-cols-2 gap-2">
+        {images.slice(0, 4).map((image, index) => (
+          <div
+            key={index}
+            className="relative cursor-pointer overflow-hidden rounded-md aspect-square"
+            onClick={() => handleImageClick(index)}
+          >
+            <img
+              src={image.url}
+              alt=""
+              className="w-full h-full object-cover transition-transform hover:scale-105"
+            />
+            {index === 3 && images.length > 4 && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <span className="text-white text-xl font-bold">+{images.length - 4}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={() => setEditMode(true)}>
           ערוך אלבום
         </Button>
       </div>
 
-      {/* Gallery Viewer */}
-      <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
+      {/* Image Viewer */}
+      <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
         <DialogContent className="max-w-4xl w-full p-0">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Image Viewer</DialogTitle>
+          </DialogHeader>
           <div className="relative">
             <Button
               variant="ghost"
               size="icon"
               className="absolute right-2 top-2 z-10 bg-black/20 hover:bg-black/40"
-              onClick={() => setIsViewerOpen(false)}
+              onClick={() => setViewerOpen(false)}
             >
               <X className="h-4 w-4 text-white" />
             </Button>
-            <img
-              src={images[currentImageIndex]?.path}
-              alt={images[currentImageIndex]?.title}
-              className="w-full h-auto max-h-[80vh] object-contain"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-              onClick={handlePrevImage}
-            >
-              <ArrowLeft className="h-6 w-6 text-white" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-              onClick={handleNextImage}
-            >
-              <ArrowRight className="h-6 w-6 text-white" />
-            </Button>
+            
+            <div className="relative">
+              <img
+                src={images[currentIndex].url}
+                alt=""
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+                onClick={prevImage}
+              >
+                <ChevronLeft className="h-6 w-6 text-white" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+                onClick={nextImage}
+              >
+                <ChevronRight className="h-6 w-6 text-white" />
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Mode Dialog */}
-      <Dialog open={isEditMode} onOpenChange={setIsEditMode}>
-        <DialogContent className="max-w-3xl">
+      {/* Edit Mode */}
+      <Dialog open={editMode} onOpenChange={setEditMode}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>ערוך אלבום תמונות</DialogTitle>
+            <DialogTitle>עריכת אלבום</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-3 gap-4 mt-4">
+          <div className="grid grid-cols-3 gap-4 p-4">
             {images.map((image, index) => (
-              <Card key={index} className="relative group">
+              <div key={index} className="relative group">
                 <img
-                  src={image.path}
-                  alt={image.title}
-                  className="w-full h-32 object-cover rounded-t-lg"
+                  src={image.url}
+                  alt=""
+                  className="w-full aspect-square object-cover rounded-md"
                 />
                 <Button
                   variant="destructive"
                   size="icon"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handleDeleteImage(index)}
+                  onClick={() => handleDeleteImage(image.publicId)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </Card>
+              </div>
             ))}
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

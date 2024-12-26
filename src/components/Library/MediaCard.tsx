@@ -6,13 +6,14 @@ import { ImageAlbum } from "./ImageAlbum";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_album";
-  src: string;
+  src?: string;
   title: string;
-  onDeleteImage?: (index: number) => void;
-  images?: { path: string; title: string }[];
+  itemId?: string;
+  cloudinaryUrls?: { url: string; publicId: string }[];
+  onUpdate?: () => void;
 }
 
-export function MediaCard({ type, src, title, images, onDeleteImage }: MediaCardProps) {
+export function MediaCard({ type, src, title, itemId, cloudinaryUrls = [], onUpdate }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   if (type === "pdf") {
@@ -31,16 +32,23 @@ export function MediaCard({ type, src, title, images, onDeleteImage }: MediaCard
     );
   }
 
+  if (type === "image_album" && cloudinaryUrls.length > 0) {
+    return (
+      <Card className="p-4">
+        <ImageAlbum 
+          images={cloudinaryUrls}
+          itemId={itemId || ''}
+          onUpdate={onUpdate || (() => {})}
+        />
+      </Card>
+    );
+  }
+
   const handleMediaClick = () => {
-    if (type === "video") {
+    if (type === "image" || type === "video") {
       setIsViewerOpen(true);
     }
   };
-
-  if (type === "image_album" && images && images.length > 0) {
-    console.log("Rendering image album with images:", images); // Debug log
-    return <ImageAlbum images={images} onDeleteImage={onDeleteImage} />;
-  }
 
   return (
     <>
@@ -63,12 +71,12 @@ export function MediaCard({ type, src, title, images, onDeleteImage }: MediaCard
         ) : null}
       </Card>
 
-      {type === "video" && (
+      {(type === "image" || type === "video") && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
           type={type}
-          src={src}
+          src={src || ''}
           title={title}
         />
       )}

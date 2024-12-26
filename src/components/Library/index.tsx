@@ -3,7 +3,7 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle, Album } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
@@ -25,7 +25,7 @@ const getIcon = (type: LibraryItemType) => {
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
     case 'image_album':
-      return <Image className="w-4 h-4" />;
+      return <Album className="w-4 h-4 text-blue-500" />;
     default:
       return <FileText className="w-4 h-4" />;
   }
@@ -53,19 +53,6 @@ const Library = () => {
   const handleEdit = (item: LibraryItem) => {
     setEditingItem(item);
     setIsDialogOpen(true);
-  };
-
-  const handleDeleteImage = async (itemId: string, imageIndex: number) => {
-    const item = items.find(i => i.id === itemId);
-    if (!item || !item.file_details?.images) return;
-
-    const updatedImages = [...item.file_details.images];
-    updatedImages.splice(imageIndex, 1);
-
-    await updateItem.mutateAsync({
-      id: itemId,
-      file_details: { ...item.file_details, images: updatedImages }
-    });
   };
 
   if (isLoading) {
@@ -136,19 +123,27 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {item.file_details && (
+            {(item.file_details?.path || item.cloudinary_data?.url || (item.type === 'image_album' && item.cloudinary_urls)) && 
+             (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_album') && (
               <div className="mt-2">
-                <MediaCard
-                  type={item.type as "image" | "video" | "pdf" | "image_album"}
-                  src={item.file_details.path}
-                  title={item.title}
-                  images={item.file_details.images}
-                  onDeleteImage={
-                    item.type === 'image_album' 
-                      ? (index) => handleDeleteImage(item.id, index)
-                      : undefined
-                  }
-                />
+                {item.type === 'image_album' && item.cloudinary_urls ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {item.cloudinary_urls.map((url: any, index: number) => (
+                      <MediaCard
+                        key={index}
+                        type="image"
+                        src={url.url}
+                        title={`${item.title} - תמונה ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <MediaCard
+                    type={item.type as "image" | "video" | "pdf"}
+                    src={item.cloudinary_data?.url || item.file_details?.path || ''}
+                    title={item.title}
+                  />
+                )}
               </div>
             )}
           </Card>
@@ -166,6 +161,6 @@ const Library = () => {
       />
     </div>
   );
-}
+};
 
 export default Library;
