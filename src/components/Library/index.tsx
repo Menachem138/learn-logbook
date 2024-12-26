@@ -3,12 +3,11 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
+import { ImageAlbumCard } from "./ImageAlbumCard";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -121,6 +120,13 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
+            {item.type === 'image_album' && item.cloudinary_urls && (
+              <ImageAlbumCard
+                images={item.cloudinary_urls}
+                title={item.title}
+                onEdit={() => handleEdit(item)}
+              />
+            )}
             {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard
