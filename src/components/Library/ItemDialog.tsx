@@ -5,13 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload, Album } from "lucide-react";
-import { toast } from "sonner";
+import { Upload } from "lucide-react";
 
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
+  onSubmit: (data: Partial<LibraryItem> & { file?: File }) => void;
   initialData?: LibraryItem | null;
 }
 
@@ -25,35 +24,22 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const selectedType = watch("type");
-  const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
-  const onSubmitForm = async (data: any) => {
-    try {
-      if ((selectedType === 'image_album' && (!selectedFiles || selectedFiles.length === 0))) {
-        toast.error("נא לבחור לפחות תמונה אחת לאלבום");
-        return;
-      }
-
-      const formData = {
-        ...data,
-        files: selectedFiles,
-      };
-      
-      await onSubmit(formData);
-      setSelectedFiles(null);
-      reset();
-      onClose();
-      toast.success(initialData ? "הפריט עודכן בהצלחה" : "הפריט נוסף בהצלחה");
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error("אירעה שגיאה בשמירת הפריט");
-    }
+  const onSubmitForm = (data: any) => {
+    const formData = {
+      ...data,
+      file: selectedFile,
+    };
+    onSubmit(formData);
+    setSelectedFile(null);
+    reset();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      setSelectedFiles(files);
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
     }
   };
 
@@ -82,7 +68,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
-              <option value="image_album">אלבום תמונות</option>
             </select>
           </div>
           <div>
@@ -110,31 +95,9 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                   onChange={handleFileChange}
                   className="flex-1"
                 />
-                {selectedFiles && selectedFiles.length > 0 && (
+                {selectedFile && (
                   <span className="text-sm text-gray-500">
-                    {selectedFiles[0].name}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {selectedType === 'image_album' && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                העלה תמונות לאלבום
-              </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileChange}
-                  className="flex-1"
-                />
-                {selectedFiles && (
-                  <span className="text-sm text-gray-500">
-                    {selectedFiles.length} תמונות נבחרו
+                    {selectedFile.name}
                   </span>
                 )}
               </div>

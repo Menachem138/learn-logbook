@@ -1,75 +1,44 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { ContentItem, transformToContentItem } from '@/types/content';
-
-interface CloudinaryDataJson {
-  publicId?: string;
-  url?: string;
-  resourceType?: string;
-  format?: string;
-  size?: number;
-}
-
-interface FileDetailsJson {
-  path?: string;
-  name?: string;
-  size?: number;
-  type?: string;
-}
+import { LibraryItem } from '@/types/library';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export const useLibraryQuery = (filter: string) => {
-  const { session } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   return useQuery({
-    queryKey: ['library', filter],
+    queryKey: ['library-items', filter],
     queryFn: async () => {
-      if (!session?.user?.id) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
         return [];
       }
 
-      const { data: items, error } = await supabase
+      let query = supabase
         .from('library_items')
         .select('*')
-        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
+
+      if (filter) {
+        query = query.or(`title.ilike.%${filter}%,content.ilike.%${filter}%`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching library items:', error);
+        toast({
+          title: "שגיאה בטעינת פריטים",
+          description: error.message,
+          variant: "destructive",
+        });
         return [];
       }
 
-      return items
-        .map(item => {
-          let cloudinaryData: CloudinaryDataJson | null = null;
-          let fileDetails: FileDetailsJson | null = null;
-
-          try {
-            if (item.cloudinary_data) {
-              cloudinaryData = typeof item.cloudinary_data === 'string' 
-                ? JSON.parse(item.cloudinary_data)
-                : item.cloudinary_data;
-            }
-
-            if (item.file_details) {
-              fileDetails = typeof item.file_details === 'string'
-                ? JSON.parse(item.file_details)
-                : item.file_details;
-            }
-          } catch (e) {
-            console.error('Error parsing JSON data:', e);
-          }
-
-          const transformedItem = transformToContentItem({
-            ...item,
-            cloudinary_data: cloudinaryData,
-            file_details: fileDetails,
-          });
-
-          return transformedItem;
-        })
-        .filter((item): item is ContentItem => item !== null);
+      return data as LibraryItem[];
     },
-    enabled: !!session?.user?.id,
   });
 };
