@@ -2,14 +2,17 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
+import { ImageAlbum } from "./ImageAlbum";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf";
   src: string;
   title: string;
+  onDeleteImage?: (index: number) => void;
+  images?: { path: string; title: string }[];
 }
 
-export function MediaCard({ type, src, title }: MediaCardProps) {
+export function MediaCard({ type, src, title, images, onDeleteImage }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   if (type === "pdf") {
@@ -29,10 +32,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   const handleMediaClick = () => {
-    if (type === "image" || type === "video") {
+    if (type === "video") {
       setIsViewerOpen(true);
     }
   };
+
+  if (type === "image" && images && images.length > 0) {
+    return <ImageAlbum images={images} onDeleteImage={onDeleteImage} />;
+  }
 
   return (
     <>
@@ -55,7 +62,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         ) : null}
       </Card>
 
-      {(type === "image" || type === "video") && (
+      {type === "video" && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
