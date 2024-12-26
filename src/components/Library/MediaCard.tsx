@@ -57,27 +57,25 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         className="overflow-hidden cursor-pointer group relative"
         onClick={handleMediaClick}
       >
-        {type === "image" || type === "image_gallery" ? (
-          Array.isArray(src) ? (
-            <div className="grid grid-cols-2 gap-2">
-              {src.map((url, idx) => (
-                <img 
-                  key={idx}
-                  src={url} 
-                  alt={`${title} - ${idx + 1}`} 
-                  className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
-                  loading="lazy"
-                />
-              ))}
-            </div>
-          ) : (
-            <img 
-              src={src as string} 
-              alt={title} 
-              className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
-              loading="lazy"
-            />
-          )
+        {type === "image_gallery" ? (
+          <div className="grid grid-cols-2 gap-2">
+            {(src as string[]).map((url, idx) => (
+              <img 
+                key={idx}
+                src={url} 
+                alt={`${title} - ${idx + 1}`} 
+                className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+                loading="lazy"
+              />
+            ))}
+          </div>
+        ) : type === "image" ? (
+          <img 
+            src={src as string} 
+            alt={title} 
+            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+            loading="lazy"
+          />
         ) : type === "video" ? (
           <video controls className="w-full h-auto">
             <source src={src as string} type="video/mp4" />
