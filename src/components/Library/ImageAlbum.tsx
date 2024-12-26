@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,12 +13,19 @@ interface ImageAlbumProps {
 }
 
 export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
+  console.log("ImageAlbum component rendered", { images, itemId });
+
   const [viewerOpen, setViewerOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [pendingImages, setPendingImages] = useState(images);
 
+  useEffect(() => {
+    console.log("ImageAlbum mounted with images:", images);
+  }, [images]);
+
   const handleImageClick = (index: number) => {
+    console.log("Image clicked at index:", index);
     setCurrentIndex(index);
     setViewerOpen(true);
   };
@@ -32,6 +39,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
   };
 
   const handleDeleteImage = async (publicId: string) => {
+    console.log("Attempting to delete image with publicId:", publicId);
     try {
       // Delete from Cloudinary
       const response = await fetch('/api/delete-cloudinary-asset', {
@@ -48,6 +56,8 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
 
       // Update Supabase record
       const updatedImages = pendingImages.filter(img => img.publicId !== publicId);
+      console.log("Updating Supabase with new images:", updatedImages);
+      
       const { error } = await supabase
         .from('library_items')
         .update({
@@ -69,6 +79,8 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       toast.error('אירעה שגיאה במחיקת התמונה');
     }
   };
+
+  console.log("Current render state:", { viewerOpen, editMode, currentIndex, pendingImagesLength: pendingImages.length });
 
   return (
     <div className="space-y-4">
@@ -98,7 +110,10 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       <div className="flex gap-2">
         <Button 
           variant="outline" 
-          onClick={() => setEditMode(true)}
+          onClick={() => {
+            console.log("Edit button clicked");
+            setEditMode(true);
+          }}
           className="flex items-center gap-2"
         >
           <Pencil className="h-4 w-4" />
