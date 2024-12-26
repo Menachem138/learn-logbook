@@ -20,13 +20,21 @@ export const useLibraryMutations = () => {
       }
       
       let cloudinaryData = null;
+      let cloudinaryUrls = null;
+
       if (data.files && data.files.length > 0) {
-        const result = await uploadToCloudinary(data.files[0]);
-        if (result) {
-          cloudinaryData = {
-            publicId: result.publicId,
-            url: result.url
-          };
+        if (data.type === 'image_album') {
+          const uploadPromises = Array.from(data.files).map(file => uploadToCloudinary(file));
+          const results = await Promise.all(uploadPromises);
+          cloudinaryUrls = results.map(result => result.url);
+        } else {
+          const result = await uploadToCloudinary(data.files[0]);
+          if (result) {
+            cloudinaryData = {
+              publicId: result.publicId,
+              url: result.url
+            };
+          }
         }
       }
 
@@ -38,6 +46,7 @@ export const useLibraryMutations = () => {
           title: data.title,
           user_id: session.user.id,
           cloudinary_data: cloudinaryData,
+          cloudinary_urls: cloudinaryUrls,
         })
         .select()
         .single();

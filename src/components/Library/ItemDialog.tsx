@@ -73,6 +73,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
+              <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
@@ -86,27 +87,30 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
+          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf' || selectedType === 'image_album') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'image' ? 'העלה תמונה' : selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
+                {selectedType === 'image_album' ? 'העלה תמונות' : 
+                 selectedType === 'image' ? 'העלה תמונה' : 
+                 selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
               </label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' 
+                    selectedType === 'image' || selectedType === 'image_album'
                       ? "image/*" 
                       : selectedType === 'video' 
                       ? "video/*" 
                       : "application/pdf"
                   }
+                  multiple={selectedType === 'image_album'}
                   onChange={handleFileChange}
                   className="flex-1"
                 />
                 {selectedFiles && selectedFiles.length > 0 && (
                   <span className="text-sm text-gray-500">
-                    {selectedFiles[0].name}
+                    {selectedFiles.length} {selectedType === 'image_album' ? 'תמונות נבחרו' : 'קובץ נבחר'}
                   </span>
                 )}
               </div>
