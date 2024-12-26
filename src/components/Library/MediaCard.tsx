@@ -8,22 +8,22 @@ import { MediaCardProps } from "./types";
 export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDetails }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   
-  // מקבל את מקור המדיה מהנתונים שהתקבלו
   const getMediaSource = () => {
-    console.log('MediaCard props:', { type, cloudinaryData, cloudinaryUrls, fileDetails });
+    // First try to get URL from Cloudinary data
+    if (cloudinaryData?.secure_url) {
+      return cloudinaryData.secure_url;
+    }
     
+    // Then try to get URL from Cloudinary URLs array
     if (type === 'image_album' && cloudinaryUrls && cloudinaryUrls.length > 0) {
       return cloudinaryUrls;
     }
     
-    if (cloudinaryData?.secure_url) {
-      return cloudinaryData.secure_url;
-    }
-
+    // Finally try to get URL from file details
     if (fileDetails?.path) {
       return fileDetails.path;
     }
-
+    
     if (fileDetails?.paths && fileDetails.paths.length > 0) {
       return fileDetails.paths;
     }
@@ -32,10 +32,8 @@ export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDet
   };
 
   const mediaSource = getMediaSource();
-  console.log('Media source:', mediaSource);
 
   if (!mediaSource) {
-    console.log('No media source found');
     return null;
   }
 

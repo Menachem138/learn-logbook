@@ -16,7 +16,11 @@ export interface LibraryItem {
   type: LibraryItemType;
   file_details?: FileDetails;
   cloudinary_urls?: string[];
-  cloudinary_data?: any;
+  cloudinary_data?: {
+    secure_url: string;
+    public_id: string;
+    [key: string]: any;
+  };
   is_starred?: boolean;
   created_at?: string;
 }
@@ -38,7 +42,11 @@ export interface ImageAlbumProps {
 export interface MediaCardProps {
   type: "image" | "video" | "pdf" | "audio" | "image_album";
   title: string;
-  cloudinaryData?: any;
-  cloudinaryUrls?: string[];
-  fileDetails?: FileDetails;
+  cloudinaryData?: {
+    secure_url: string;
+    public_id: string;
+    [key: string]: any;
+  } | null;
+  cloudinaryUrls?: string[] | null;
+  fileDetails?: FileDetails | null;
 }
