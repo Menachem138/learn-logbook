@@ -23,7 +23,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!session) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
@@ -34,7 +34,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
-          <Router>
+          <Router basename="/">
             <div className="min-h-screen bg-background text-foreground">
               <Routes>
                 <Route path="/login" element={<Login />} />
