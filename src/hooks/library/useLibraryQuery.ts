@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { LibraryItem } from '@/types/library';
+import { LibraryItem, LibraryItemType } from '@/types/library';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
@@ -42,11 +42,11 @@ export const useLibraryQuery = (filter: string) => {
       }
 
       // Transform the data to match LibraryItem type
-      const transformedData: LibraryItem[] = (data || []).map((item: LibraryItemRow) => ({
+      const transformedData = (data || []).map((item: LibraryItemRow) => ({
         id: item.id,
         title: item.title,
         content: item.content,
-        type: item.type,
+        type: item.type as LibraryItemType, // Explicitly cast the type
         file_details: item.file_details as LibraryItem['file_details'],
         cloudinary_data: item.cloudinary_data as LibraryItem['cloudinary_data'],
         is_starred: item.is_starred,
