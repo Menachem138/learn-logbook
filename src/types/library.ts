@@ -1,4 +1,4 @@
-export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question' | 'youtube' | 'image_album';
+export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question' | 'youtube';
 
 export interface LibraryItem {
   id: string;
@@ -15,7 +15,6 @@ export interface LibraryItem {
     publicId?: string;
     url?: string;
   };
-  cloudinary_urls?: { url: string; publicId: string }[];
   is_starred?: boolean;
   created_at?: string;
   user_id: string;

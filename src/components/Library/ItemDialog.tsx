@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload, Album } from "lucide-react";
+import { Upload } from "lucide-react";
 import { toast } from "sonner";
 
 interface ItemDialogProps {
@@ -29,11 +29,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const onSubmitForm = async (data: any) => {
     try {
-      if ((selectedType === 'image_album' && (!selectedFiles || selectedFiles.length === 0))) {
-        toast.error("נא לבחור לפחות תמונה אחת לאלבום");
-        return;
-      }
-
       const formData = {
         ...data,
         files: selectedFiles,
@@ -82,7 +77,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
-              <option value="image_album">אלבום תמונות</option>
             </select>
           </div>
           <div>
@@ -113,28 +107,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 {selectedFiles && selectedFiles.length > 0 && (
                   <span className="text-sm text-gray-500">
                     {selectedFiles[0].name}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {selectedType === 'image_album' && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                העלה תמונות לאלבום
-              </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileChange}
-                  className="flex-1"
-                />
-                {selectedFiles && (
-                  <span className="text-sm text-gray-500">
-                    {selectedFiles.length} תמונות נבחרו
                   </span>
                 )}
               </div>
