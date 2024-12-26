@@ -23,7 +23,7 @@ export function MediaCard({
 }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
-  if (type === "image_album") {
+  if (type === "image_album" && cloudinaryUrls.length > 0) {
     return (
       <ImageAlbumCard
         images={cloudinaryUrls}

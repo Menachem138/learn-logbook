@@ -73,6 +73,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
+              <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
@@ -107,6 +108,28 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 {selectedFiles && selectedFiles.length > 0 && (
                   <span className="text-sm text-gray-500">
                     {selectedFiles[0].name}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {selectedType === 'image_album' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                העלה תמונות לאלבום
+              </label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  className="flex-1"
+                />
+                {selectedFiles && selectedFiles.length > 0 && (
+                  <span className="text-sm text-gray-500">
+                    {selectedFiles.length} תמונות נבחרו
                   </span>
                 )}
               </div>

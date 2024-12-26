@@ -1,4 +1,4 @@
-export type LibraryItemType = 'link' | 'note' | 'image' | 'video' | 'pdf' | 'image_album' | 'question' | 'youtube';
+export type LibraryItemType = 'link' | 'note' | 'image' | 'video' | 'pdf' | 'whatsapp' | 'question' | 'image_album';
 
 export interface LibraryItem {
   id: string;
@@ -20,4 +20,5 @@ export interface LibraryItem {
     format?: string;
     size?: number;
   };
+  is_starred?: boolean;
 }
