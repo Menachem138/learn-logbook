@@ -8,39 +8,6 @@ export const useLibraryMutations = () => {
   const queryClient = useQueryClient();
   const { session } = useAuth();
 
-  const uploadAlbum = async (files: FileList, title: string, content: string) => {
-    if (!session?.user?.id) {
-      throw new Error('User not authenticated');
-    }
-
-    const uploadedUrls = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const result = await uploadToCloudinary(file);
-      if (result) {
-        uploadedUrls.push({
-          url: result.url,
-          publicId: result.publicId
-        });
-      }
-    }
-
-    const { data, error } = await supabase
-      .from('library_items')
-      .insert({
-        type: 'image_album' as LibraryItemType,
-        title,
-        content,
-        user_id: session.user.id,
-        cloudinary_urls: uploadedUrls
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  };
-
   const addItem = useMutation({
     mutationFn: async (data: { 
       type: LibraryItemType; 
@@ -50,10 +17,6 @@ export const useLibraryMutations = () => {
     }) => {
       if (!session?.user?.id) {
         throw new Error('User not authenticated');
-      }
-
-      if (data.type === 'image_album' && data.files) {
-        return uploadAlbum(data.files, data.title, data.content);
       }
       
       let cloudinaryData = null;
