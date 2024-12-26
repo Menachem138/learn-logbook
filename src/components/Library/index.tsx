@@ -15,7 +15,6 @@ const getIcon = (type: LibraryItemType) => {
     case 'note':
       return <FileText className="w-4 h-4" />;
     case 'image':
-    case 'image_album':
       return <Image className="w-4 h-4" />;
     case 'video':
       return <Video className="w-4 h-4" />;
@@ -122,19 +121,13 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {(item.file_details?.path || item.cloudinary_data?.url || item.cloudinary_urls) && 
-             (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_album') && (
+            {(item.file_details?.path || item.cloudinary_data?.url) && 
+             (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type}
+                  type={item.type as "image" | "video" | "pdf"}
                   src={item.cloudinary_data?.url || item.file_details?.path || ''}
                   title={item.title}
-                  itemId={item.id}
-                  cloudinaryUrls={item.cloudinary_urls}
-                  onUpdate={() => {
-                    // Refresh the library items
-                    window.location.reload();
-                  }}
                 />
               </div>
             )}
