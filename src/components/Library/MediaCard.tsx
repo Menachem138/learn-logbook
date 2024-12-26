@@ -53,7 +53,16 @@ export function MediaCard({ item, onEdit, onDelete, onToggleStar }: MediaCardPro
   };
 
   const renderPreview = () => {
-    if (!item.file_details?.path) return null;
+    if (!item.file_details?.path) {
+      console.log('No file details or path available for item:', item);
+      return null;
+    }
+
+    console.log('Rendering preview for item:', {
+      type: item.type,
+      fileDetails: item.file_details,
+      cloudinaryData: item.cloudinary_data
+    });
 
     const paths = Array.isArray(item.file_details.path) 
       ? item.file_details.path 
@@ -68,6 +77,10 @@ export function MediaCard({ item, onEdit, onDelete, onToggleStar }: MediaCardPro
                 src={path}
                 alt={`${item.title} - ${index + 1}`}
                 className="w-full h-full object-cover rounded-md"
+                onError={(e) => {
+                  console.error('Error loading image:', path);
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
               />
               {index === 3 && paths.length > 4 && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white rounded-md">
@@ -88,12 +101,17 @@ export function MediaCard({ item, onEdit, onDelete, onToggleStar }: MediaCardPro
               src={paths[0]} 
               controls 
               className="w-full h-full object-cover rounded-md"
+              onError={(e) => console.error('Error loading video:', paths[0])}
             />
           ) : (
             <img
               src={paths[0]}
               alt={item.title}
               className="w-full h-full object-cover rounded-md"
+              onError={(e) => {
+                console.error('Error loading image:', paths[0]);
+                e.currentTarget.src = '/placeholder.svg';
+              }}
             />
           )}
         </div>

@@ -21,16 +21,22 @@ export const useLibraryBaseMutations = () => {
         throw new Error('User not authenticated');
       }
 
+      console.log('Starting file upload process:', { type, filesCount: files?.length });
       let cloudinaryResponses: CloudinaryResponse[] = [];
 
       if (files && files.length > 0) {
-        console.log('Uploading files to Cloudinary:', files);
+        console.log('Files to upload:', Array.from(files).map(f => ({ name: f.name, type: f.type, size: f.size })));
         
         try {
-          // Upload all files to Cloudinary
-          const uploadPromises = Array.from(files).map(file => uploadToCloudinary(file));
+          const uploadPromises = Array.from(files).map(async file => {
+            console.log('Uploading file to Cloudinary:', file.name);
+            const response = await uploadToCloudinary(file);
+            console.log('Cloudinary response for file:', file.name, response);
+            return response;
+          });
+          
           cloudinaryResponses = await Promise.all(uploadPromises);
-          console.log('Cloudinary upload responses:', cloudinaryResponses);
+          console.log('All Cloudinary upload responses:', cloudinaryResponses);
         } catch (error) {
           console.error('Error uploading to Cloudinary:', error);
           throw new Error('Failed to upload files to Cloudinary');
@@ -45,6 +51,13 @@ export const useLibraryBaseMutations = () => {
         name: files?.[0].name,
         size: files?.[0].size,
       } : null;
+
+      console.log('Preparing to insert into Supabase:', {
+        title,
+        type,
+        fileDetails,
+        cloudinaryData: cloudinaryResponses.map(cloudinaryResponseToJson)
+      });
 
       const { error } = await supabase
         .from('library_items')
@@ -63,6 +76,8 @@ export const useLibraryBaseMutations = () => {
         console.error('Supabase insert error:', error);
         throw error;
       }
+
+      console.log('Successfully inserted item into library');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library-items'] });
