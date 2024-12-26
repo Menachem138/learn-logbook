@@ -2,18 +2,9 @@ import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface MediaViewerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  type: "image" | "video";
-  src: string;
-  title: string;
-}
+import { MediaViewerProps } from "./types";
 
 export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerProps) {
-  console.log("MediaViewer rendered with:", { type, src, title });
-  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full p-0">

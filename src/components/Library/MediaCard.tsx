@@ -2,26 +2,12 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText, Music } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
-
-interface MediaCardProps {
-  type: "image" | "video" | "pdf" | "audio" | "image_album";
-  title: string;
-  cloudinaryData?: any;
-  cloudinaryUrls?: string[];
-  fileDetails?: {
-    path?: string;
-    paths?: string[];
-    name?: string;
-    type?: string;
-  };
-}
+import { ImageAlbum } from "./ImageAlbum";
+import { MediaCardProps } from "./types";
 
 export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDetails }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  
-  console.log("MediaCard rendered with:", { type, title, cloudinaryData, cloudinaryUrls, fileDetails });
 
-  // Get the actual media source
   const getMediaSource = () => {
     if (type === 'image_album' && cloudinaryUrls && cloudinaryUrls.length > 0) {
       return cloudinaryUrls;
@@ -43,11 +29,13 @@ export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDet
   };
 
   const mediaSource = getMediaSource();
-  console.log("Media source determined:", mediaSource);
 
   if (!mediaSource) {
-    console.log("No media source found for:", title);
     return null;
+  }
+
+  if (type === "image_album") {
+    return <ImageAlbum images={mediaSource as string[]} title={title} />;
   }
 
   if (type === "pdf") {
