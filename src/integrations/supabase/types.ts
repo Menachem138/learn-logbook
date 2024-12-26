@@ -490,6 +490,7 @@ export type Database = {
         | "youtube"
         | "image_album"
         | "image_gallery"
+        | "gallery"
     }
     CompositeTypes: {
       [_ in never]: never
