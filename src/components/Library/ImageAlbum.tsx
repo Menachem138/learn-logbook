@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,6 +16,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [pendingImages, setPendingImages] = useState(images);
 
   const handleImageClick = (index: number) => {
     setCurrentIndex(index);
@@ -46,7 +47,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       }
 
       // Update Supabase record
-      const updatedImages = images.filter(img => img.publicId !== publicId);
+      const updatedImages = pendingImages.filter(img => img.publicId !== publicId);
       const { error } = await supabase
         .from('library_items')
         .update({
@@ -56,6 +57,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
 
       if (error) throw error;
 
+      setPendingImages(updatedImages);
       toast.success('התמונה נמחקה בהצלחה');
       onUpdate();
       
@@ -94,7 +96,12 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
 
       {/* Actions */}
       <div className="flex gap-2">
-        <Button variant="outline" onClick={() => setEditMode(true)}>
+        <Button 
+          variant="outline" 
+          onClick={() => setEditMode(true)}
+          className="flex items-center gap-2"
+        >
+          <Pencil className="h-4 w-4" />
           ערוך אלבום
         </Button>
       </div>
@@ -151,7 +158,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
             <DialogTitle>עריכת אלבום</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-3 gap-4 p-4">
-            {images.map((image, index) => (
+            {pendingImages.map((image, index) => (
               <div key={index} className="relative group">
                 <img
                   src={image.url}
