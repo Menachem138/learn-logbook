@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { FileText, Music } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
+  type: "image" | "video" | "pdf" | "audio";
   src: string;
   title: string;
 }
@@ -24,6 +24,21 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         >
           {title}
         </a>
+      </Card>
+    );
+  }
+
+  if (type === "audio") {
+    return (
+      <Card className="p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Music className="w-6 h-6 text-purple-500" />
+          <span className="font-medium">{title}</span>
+        </div>
+        <audio controls className="w-full">
+          <source src={src} type="audio/mpeg" />
+          הדפדפן שלך לא תומך בתגית אודיו.
+        </audio>
       </Card>
     );
   }
