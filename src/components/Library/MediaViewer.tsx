@@ -12,6 +12,8 @@ interface MediaViewerProps {
 }
 
 export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerProps) {
+  console.log("MediaViewer rendered with:", { type, src, title });
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full p-0">
@@ -29,6 +31,10 @@ export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerPr
               src={src}
               alt={title}
               className="w-full h-auto max-h-[80vh] object-contain"
+              onError={(e) => {
+                console.error("Error loading image in viewer:", src);
+                e.currentTarget.src = "/placeholder.svg";
+              }}
             />
           ) : (
             <video

@@ -2,77 +2,75 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText, Music } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
-import { ImageAlbumCard } from "./ImageAlbumCard";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "audio" | "image_album";
-  src?: string | string[];
   title: string;
   cloudinaryData?: any;
   cloudinaryUrls?: string[];
   fileDetails?: {
     path?: string;
     paths?: string[];
+    name?: string;
+    type?: string;
   };
 }
 
-export function MediaCard({ type, src, title, cloudinaryData, cloudinaryUrls, fileDetails }: MediaCardProps) {
+export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDetails }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   
-  console.log("MediaCard rendered with:", { type, src, title, cloudinaryData, cloudinaryUrls, fileDetails });
+  console.log("MediaCard rendered with:", { type, title, cloudinaryData, cloudinaryUrls, fileDetails });
 
-  // Determine the actual source to use
+  // Get the actual media source
   const getMediaSource = () => {
-    if (type === 'image_album') {
-      if (cloudinaryUrls && cloudinaryUrls.length > 0) {
-        return cloudinaryUrls;
-      }
-      if (fileDetails?.paths && fileDetails.paths.length > 0) {
-        return fileDetails.paths;
-      }
-      return Array.isArray(src) ? src : [src].filter(Boolean);
+    if (type === 'image_album' && cloudinaryUrls && cloudinaryUrls.length > 0) {
+      return cloudinaryUrls;
     }
-
-    // For single media items
+    
     if (cloudinaryData?.secure_url) {
       return cloudinaryData.secure_url;
     }
+
     if (fileDetails?.path) {
       return fileDetails.path;
     }
-    return src || '';
+
+    if (fileDetails?.paths && fileDetails.paths.length > 0) {
+      return fileDetails.paths;
+    }
+
+    return null;
   };
 
   const mediaSource = getMediaSource();
+  console.log("Media source determined:", mediaSource);
 
-  // Handle image albums separately using ImageAlbumCard
-  if (type === "image_album") {
-    const images = Array.isArray(mediaSource) ? mediaSource : [mediaSource].filter(Boolean);
-    if (images.length === 0) {
-      return null;
-    }
-    return <ImageAlbumCard images={images} title={title} />;
+  if (!mediaSource) {
+    console.log("No media source found for:", title);
+    return null;
   }
 
   if (type === "pdf") {
     return (
-      <Card className="p-4 flex items-center gap-2">
-        <FileText className="w-6 h-6 text-red-500" />
-        <a 
-          href={mediaSource as string} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-        >
-          {title}
-        </a>
+      <Card className="p-4 hover:shadow-lg transition-shadow">
+        <div className="flex items-center gap-2">
+          <FileText className="w-6 h-6 text-red-500" />
+          <a 
+            href={mediaSource as string}
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            {title}
+          </a>
+        </div>
       </Card>
     );
   }
 
   if (type === "audio") {
     return (
-      <Card className="p-4">
+      <Card className="p-4 hover:shadow-lg transition-shadow">
         <div className="flex items-center gap-2 mb-2">
           <Music className="w-6 h-6 text-purple-500" />
           <span className="font-medium">{title}</span>
@@ -91,26 +89,29 @@ export function MediaCard({ type, src, title, cloudinaryData, cloudinaryUrls, fi
     }
   };
 
-  if (!mediaSource) {
-    return null;
-  }
-
   return (
     <>
       <Card 
-        className="overflow-hidden cursor-pointer group relative"
+        className="overflow-hidden cursor-pointer hover:shadow-lg transition-all"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
-            src={mediaSource as string} 
-            alt={title} 
-            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+            src={mediaSource as string}
+            alt={title}
+            className="w-full h-48 object-cover"
             loading="lazy"
+            onError={(e) => {
+              console.error("Error loading image:", mediaSource);
+              e.currentTarget.src = "/placeholder.svg";
+            }}
           />
         ) : type === "video" ? (
-          <video controls className="w-full h-auto">
-            <source src={mediaSource as string} type="video/mp4" />
+          <video 
+            src={mediaSource as string}
+            className="w-full h-48 object-cover"
+            controls
+          >
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
         ) : null}
