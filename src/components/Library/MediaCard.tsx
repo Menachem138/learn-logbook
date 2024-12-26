@@ -100,6 +100,15 @@ export function MediaCard({ item, onEdit, onDelete, onToggleStar }: MediaCardPro
       );
     }
 
+    if (item.type === 'pdf') {
+      return (
+        <div className="mt-4 p-4 bg-gray-100 rounded-md flex items-center gap-2">
+          <FileText className="w-6 h-6 text-red-500" />
+          <span className="text-sm">{item.file_details.name}</span>
+        </div>
+      );
+    }
+
     return null;
   };
 

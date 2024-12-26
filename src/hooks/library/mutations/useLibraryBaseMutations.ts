@@ -26,10 +26,15 @@ export const useLibraryBaseMutations = () => {
       if (files && files.length > 0) {
         console.log('Uploading files to Cloudinary:', files);
         
-        // Upload all files to Cloudinary
-        const uploadPromises = Array.from(files).map(file => uploadToCloudinary(file));
-        cloudinaryResponses = await Promise.all(uploadPromises);
-        console.log('Cloudinary upload responses:', cloudinaryResponses);
+        try {
+          // Upload all files to Cloudinary
+          const uploadPromises = Array.from(files).map(file => uploadToCloudinary(file));
+          cloudinaryResponses = await Promise.all(uploadPromises);
+          console.log('Cloudinary upload responses:', cloudinaryResponses);
+        } catch (error) {
+          console.error('Error uploading to Cloudinary:', error);
+          throw new Error('Failed to upload files to Cloudinary');
+        }
       }
 
       const fileDetails = cloudinaryResponses.length > 0 ? {
@@ -54,7 +59,10 @@ export const useLibraryBaseMutations = () => {
           file_details: fileDetails,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library-items'] });
