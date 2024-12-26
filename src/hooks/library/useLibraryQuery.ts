@@ -35,7 +35,7 @@ export const useLibraryQuery = (filter: string) => {
           description: error.message,
           variant: "destructive",
         });
-        return [];
+        throw error; // This ensures the error is properly propagated to useQuery
       }
 
       return data as LibraryItem[];
