@@ -14,12 +14,13 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Add debug logging
   console.log("ImageAlbumCard - Received images:", images);
   
   // Ensure images is always an array
   const imageUrls = Array.isArray(images) ? images : 
     typeof images === 'string' ? [images] : [];
+  
+  console.log("ImageAlbumCard - Processed imageUrls:", imageUrls);
   
   const displayedImages = imageUrls.slice(0, 4);
   const extraCount = Math.max(0, imageUrls.length - 4);

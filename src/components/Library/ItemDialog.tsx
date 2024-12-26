@@ -40,6 +40,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const onSubmitForm = async (data: any) => {
     try {
       setIsUploading(true);
+      console.log("Starting form submission with data:", data);
       
       if (selectedType === 'image_album' && selectedFiles) {
         console.log("Processing image album with files:", selectedFiles);
@@ -60,20 +61,36 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
           cloudinary_urls: cloudinaryUrls,
           type: 'image_album'
         });
-      } else {
-        // Handle other types
+      } else if (selectedFiles && selectedFiles.length > 0) {
+        // Handle single file upload for other types
+        console.log("Processing single file upload");
+        const file = selectedFiles[0];
+        const uploadResult = await uploadToCloudinary(file);
+        console.log("Single file upload result:", uploadResult);
+
         await onSubmit({
           ...data,
-          files: selectedFiles
+          file_details: {
+            path: uploadResult.url,
+            name: file.name,
+            size: file.size,
+            type: file.type
+          },
+          cloudinary_data: uploadResult
         });
+      } else {
+        // Handle text-only submissions
+        console.log("Submitting text-only data");
+        await onSubmit(data);
       }
 
       setSelectedFiles(null);
       reset();
       onClose();
+      toast.success("פריט נשמר בהצלחה");
     } catch (error) {
       console.error('Error uploading files:', error);
-      toast.error("Failed to upload files");
+      toast.error("שגיאה בשמירת הפריט");
     } finally {
       setIsUploading(false);
     }
@@ -102,7 +119,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="image">תמונה</option>
               <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
-              <option value="whatsapp">וואטסאפ</option>
+              <option value="audio">אודיו</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
             </select>
@@ -114,23 +131,35 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {selectedType === 'image_album' && (
+          {(selectedType === 'image_album' || selectedType === 'image' || 
+            selectedType === 'video' || selectedType === 'audio' || 
+            selectedType === 'pdf') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                העלה תמונות לאלבום
+                {selectedType === 'image_album' ? 'העלה תמונות' : 'העלה קובץ'}
               </label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
-                  accept="image/*"
-                  multiple
+                  accept={
+                    selectedType === 'image' || selectedType === 'image_album' 
+                      ? "image/*"
+                      : selectedType === 'video'
+                      ? "video/*"
+                      : selectedType === 'audio'
+                      ? "audio/*"
+                      : selectedType === 'pdf'
+                      ? ".pdf"
+                      : undefined
+                  }
+                  multiple={selectedType === 'image_album'}
                   onChange={handleFileChange}
                   className="flex-1"
                   disabled={isUploading}
                 />
                 {selectedFiles && selectedFiles.length > 0 && (
                   <span className="text-sm text-gray-500">
-                    {selectedFiles.length} תמונות נבחרו
+                    {selectedFiles.length} {selectedType === 'image_album' ? 'תמונות' : 'קובץ'} נבחרו
                   </span>
                 )}
               </div>
