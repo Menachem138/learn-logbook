@@ -60,7 +60,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         {type === "image" || type === "image_gallery" ? (
           Array.isArray(src) ? (
             <div className="grid grid-cols-2 gap-2">
-              {(src as string[]).map((url, idx) => (
+              {src.map((url, idx) => (
                 <img 
                   key={idx}
                   src={url} 
