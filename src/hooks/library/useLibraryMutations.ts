@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { uploadToCloudinary } from '@/utils/cloudinaryStorage';
 import { LibraryItem, LibraryItemType } from '@/types/library';
+import { toast } from 'sonner';
 
 export const useLibraryMutations = () => {
   const queryClient = useQueryClient();
@@ -13,17 +14,32 @@ export const useLibraryMutations = () => {
       throw new Error('User not authenticated');
     }
 
+    console.log('Starting album upload with', files.length, 'files');
+    
     const uploadedUrls = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const result = await uploadToCloudinary(file);
-      if (result) {
-        uploadedUrls.push({
-          url: result.url,
-          publicId: result.publicId
-        });
+      try {
+        console.log('Uploading file:', file.name);
+        const result = await uploadToCloudinary(file);
+        if (result) {
+          console.log('File uploaded successfully:', result);
+          uploadedUrls.push({
+            url: result.url,
+            publicId: result.publicId
+          });
+        }
+      } catch (error) {
+        console.error('Error uploading file:', file.name, error);
+        toast.error(`Failed to upload ${file.name}`);
       }
     }
+
+    if (uploadedUrls.length === 0) {
+      throw new Error('No files were successfully uploaded');
+    }
+
+    console.log('All files uploaded, saving to database');
 
     const { data, error } = await supabase
       .from('library_items')
@@ -37,7 +53,12 @@ export const useLibraryMutations = () => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Database error:', error);
+      throw error;
+    }
+    
+    console.log('Album saved successfully:', data);
     return data;
   };
 
@@ -52,20 +73,31 @@ export const useLibraryMutations = () => {
         throw new Error('User not authenticated');
       }
 
+      console.log('Adding item:', data.type);
+
       if (data.type === 'image_album' && data.files) {
         return uploadAlbum(data.files, data.title, data.content);
       }
       
       let cloudinaryData = null;
       if (data.files && data.files.length > 0) {
-        const result = await uploadToCloudinary(data.files[0]);
-        if (result) {
-          cloudinaryData = {
-            publicId: result.publicId,
-            url: result.url
-          };
+        try {
+          console.log('Uploading single file');
+          const result = await uploadToCloudinary(data.files[0]);
+          if (result) {
+            cloudinaryData = {
+              publicId: result.publicId,
+              url: result.url
+            };
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          toast.error('Failed to upload file');
+          throw error;
         }
       }
+
+      console.log('Saving to database');
 
       const { data: newItem, error } = await supabase
         .from('library_items')
@@ -79,12 +111,22 @@ export const useLibraryMutations = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Item saved successfully:', newItem);
       return newItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library'] });
+      toast.success('Item added successfully');
     },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+      toast.error('Failed to add item');
+    }
   });
 
   const deleteItem = useMutation({
@@ -97,7 +139,12 @@ export const useLibraryMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library'] });
+      toast.success('Item deleted successfully');
     },
+    onError: (error) => {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete item');
+    }
   });
 
   const toggleStar = useMutation({
@@ -111,6 +158,10 @@ export const useLibraryMutations = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library'] });
     },
+    onError: (error) => {
+      console.error('Star toggle error:', error);
+      toast.error('Failed to update item');
+    }
   });
 
   const updateItem = useMutation({
@@ -123,7 +174,12 @@ export const useLibraryMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library'] });
+      toast.success('Item updated successfully');
     },
+    onError: (error) => {
+      console.error('Update error:', error);
+      toast.error('Failed to update item');
+    }
   });
 
   return {
