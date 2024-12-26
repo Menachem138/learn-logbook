@@ -8,6 +8,7 @@ import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 import { ImageAlbumCard } from "./ImageAlbumCard";
+import { toast } from "sonner";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
