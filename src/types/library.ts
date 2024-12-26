@@ -8,7 +8,8 @@ export type LibraryItemType =
   | 'question' 
   | 'youtube' 
   | 'image_album' 
-  | 'image_gallery';
+  | 'image_gallery'
+  | 'audio';  // Added audio type
 
 export interface FileDetails {
   path?: string;
@@ -19,6 +20,14 @@ export interface FileDetails {
   type?: string;
 }
 
+export type CloudinaryData = {
+  secure_url: string;
+  public_id: string;
+  [key: string]: any;
+} | null;
+
+export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+
 export interface LibraryItem {
   id: string;
   title: string;
@@ -26,11 +35,7 @@ export interface LibraryItem {
   type: LibraryItemType;
   file_details?: FileDetails;
   cloudinary_urls?: string[];
-  cloudinary_data?: {
-    secure_url: string;
-    public_id: string;
-    [key: string]: any;
-  };
+  cloudinary_data?: CloudinaryData;
   is_starred?: boolean;
   created_at?: string;
 }
@@ -52,11 +57,7 @@ export interface ImageAlbumProps {
 export interface MediaCardProps {
   type: LibraryItemType;
   title: string;
-  cloudinaryData?: {
-    secure_url: string;
-    public_id: string;
-    [key: string]: any;
-  } | null;
+  cloudinaryData?: CloudinaryData;
   cloudinaryUrls?: string[] | null;
   fileDetails?: FileDetails | null;
 }

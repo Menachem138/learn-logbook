@@ -35,10 +35,11 @@ export const useLibraryQuery = (filter: string) => {
           description: error.message,
           variant: "destructive",
         });
-        throw error; // This ensures the error is properly propagated to useQuery
+        throw error;
       }
 
-      return data as LibraryItem[];
+      // Type assertion to handle the JSON conversion
+      return (data as unknown as LibraryItem[]) || [];
     },
   });
 };
