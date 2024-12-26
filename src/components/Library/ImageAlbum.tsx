@@ -84,7 +84,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
 
   return (
     <div className="space-y-4">
-      {/* Preview Grid */}
+      {/* Preview Grid - Only show up to 4 images */}
       <div className="grid grid-cols-2 gap-2">
         {images.slice(0, 4).map((image, index) => (
           <div
