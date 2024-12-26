@@ -1,5 +1,6 @@
 import { CloudinaryResponse } from '@/types/cloudinary';
 import { CLOUDINARY_CLOUD_NAME } from '../integrations/cloudinary/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export const uploadToCloudinary = async (file: File): Promise<CloudinaryResponse> => {
   console.log('Starting Cloudinary upload for file:', file.name);
