@@ -2,37 +2,15 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
-import { ImageAlbumCard } from "./ImageAlbumCard";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf" | "image_album";
+  type: "image" | "video" | "pdf";
   src?: string;
   title: string;
-  itemId: string;
-  cloudinaryUrls?: Array<{ url: string; publicId: string }>;
-  onUpdate?: () => void;
 }
 
-export function MediaCard({ 
-  type, 
-  src, 
-  title, 
-  itemId,
-  cloudinaryUrls = [],
-  onUpdate = () => {} 
-}: MediaCardProps) {
+export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-
-  if (type === "image_album") {
-    return (
-      <ImageAlbumCard
-        images={cloudinaryUrls}
-        title={title}
-        itemId={itemId}
-        onUpdate={onUpdate}
-      />
-    );
-  }
 
   if (type === "pdf") {
     return (

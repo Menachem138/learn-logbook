@@ -1,23 +1,21 @@
-export type LibraryItemType = 'link' | 'note' | 'image' | 'video' | 'pdf' | 'image_album' | 'question' | 'youtube';
+export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question' | 'youtube';
 
 export interface LibraryItem {
   id: string;
   title: string;
   content: string;
   type: LibraryItemType;
-  created_at: string;
-  cloudinary_urls?: Array<{ url: string; publicId: string }>;
   file_details?: {
     path?: string;
-    type?: string;
     name?: string;
     size?: number;
+    type?: string;
   };
   cloudinary_data?: {
     publicId?: string;
     url?: string;
-    resourceType?: string;
-    format?: string;
-    size?: number;
   };
+  is_starred?: boolean;
+  created_at?: string;
+  user_id: string;
 }
