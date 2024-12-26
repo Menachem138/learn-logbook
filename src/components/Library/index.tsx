@@ -35,21 +35,22 @@ const Library = () => {
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
+      console.log("Handling item submission:", data);
+      
       if (editingItem) {
+        console.log("Updating existing item:", editingItem.id, data);
         await updateItem.mutateAsync({ id: editingItem.id, ...data });
       } else {
+        console.log("Adding new item:", data);
         await addItem.mutateAsync(data);
       }
+      
       setIsDialogOpen(false);
       setEditingItem(null);
     } catch (error) {
       console.error('Error adding/updating item:', error);
+      toast.error("Failed to save item");
     }
-  };
-
-  const handleEdit = (item: LibraryItem) => {
-    setEditingItem(item);
-    setIsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -104,7 +105,10 @@ const Library = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleEdit(item)}
+                  onClick={() => {
+                    setEditingItem(item);
+                    setIsDialogOpen(true);
+                  }}
                   className="hover:text-blue-500"
                 >
                   <Edit2 className="w-4 h-4" />
@@ -124,7 +128,10 @@ const Library = () => {
               <ImageAlbumCard
                 images={item.cloudinary_urls}
                 title={item.title}
-                onEdit={() => handleEdit(item)}
+                onEdit={() => {
+                  setEditingItem(item);
+                  setIsDialogOpen(true);
+                }}
               />
             )}
             {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (

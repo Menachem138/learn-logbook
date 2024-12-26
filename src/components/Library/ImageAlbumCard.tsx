@@ -15,6 +15,8 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
+  console.log("Rendering ImageAlbumCard with images:", images);
+  
   const displayedImages = images.slice(0, 4);
   const extraCount = Math.max(0, images.length - 4);
 

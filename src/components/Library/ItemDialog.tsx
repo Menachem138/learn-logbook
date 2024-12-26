@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { Upload } from "lucide-react";
+import { toast } from "sonner";
+import { uploadToCloudinary } from "@/utils/cloudinaryUtils";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -15,7 +17,7 @@ interface ItemDialogProps {
 }
 
 export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
-  const { register, handleSubmit, reset, watch } = useForm({
+  const { register, handleSubmit, watch, reset } = useForm({
     defaultValues: initialData || {
       title: "",
       content: "",
@@ -24,22 +26,56 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const selectedType = watch("type");
-  const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
-
-  const onSubmitForm = (data: any) => {
-    const formData = {
-      ...data,
-      files: selectedFiles,
-    };
-    onSubmit(formData);
-    setSelectedFiles(null);
-    reset();
-  };
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
+    console.log("Selected files:", files);
     if (files) {
       setSelectedFiles(files);
+    }
+  };
+
+  const onSubmitForm = async (data: any) => {
+    try {
+      setIsUploading(true);
+      
+      if (selectedType === 'image_album' && selectedFiles) {
+        console.log("Processing image album with files:", selectedFiles);
+        
+        const uploadPromises = Array.from(selectedFiles).map(file => 
+          uploadToCloudinary(file)
+        );
+
+        const uploadResults = await Promise.all(uploadPromises);
+        console.log("Upload results:", uploadResults);
+
+        const cloudinaryUrls = uploadResults.map(result => result.url);
+        console.log("Cloudinary URLs:", cloudinaryUrls);
+
+        // Submit with cloudinary URLs
+        await onSubmit({
+          ...data,
+          cloudinary_urls: cloudinaryUrls,
+          type: 'image_album'
+        });
+      } else {
+        // Handle other types
+        await onSubmit({
+          ...data,
+          files: selectedFiles
+        });
+      }
+
+      setSelectedFiles(null);
+      reset();
+      onClose();
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast.error("Failed to upload files");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -78,33 +114,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'image' ? 'העלה תמונה' : selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
-              </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  accept={
-                    selectedType === 'image' 
-                      ? "image/*" 
-                      : selectedType === 'video' 
-                      ? "video/*" 
-                      : "application/pdf"
-                  }
-                  onChange={handleFileChange}
-                  className="flex-1"
-                />
-                {selectedFiles && selectedFiles.length > 0 && (
-                  <span className="text-sm text-gray-500">
-                    {selectedFiles[0].name}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
           {selectedType === 'image_album' && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -117,6 +126,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                   multiple
                   onChange={handleFileChange}
                   className="flex-1"
+                  disabled={isUploading}
                 />
                 {selectedFiles && selectedFiles.length > 0 && (
                   <span className="text-sm text-gray-500">
@@ -128,11 +138,18 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
           )}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isUploading}>
               ביטול
             </Button>
-            <Button type="submit">
-              {initialData ? "עדכן" : "הוסף"}
+            <Button type="submit" disabled={isUploading}>
+              {isUploading ? (
+                <span className="flex items-center gap-2">
+                  <Upload className="animate-spin" />
+                  מעלה...
+                </span>
+              ) : (
+                initialData ? "עדכן" : "הוסף"
+              )}
             </Button>
           </div>
         </form>
