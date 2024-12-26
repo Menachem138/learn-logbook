@@ -1,4 +1,4 @@
-export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question' | 'youtube';
+export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'pdf' | 'question' | 'image_album';
 
 export interface LibraryItem {
   id: string;
@@ -10,6 +10,7 @@ export interface LibraryItem {
     name?: string;
     size?: number;
     type?: string;
+    paths?: string[]; // Add support for multiple image paths
   };
   is_starred?: boolean;
   created_at?: string;

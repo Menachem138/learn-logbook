@@ -2,15 +2,17 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
+import { ImageAlbum } from "./ImageAlbum";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
-  src: string;
+  type: "image" | "video" | "pdf" | "image_album";
+  src: string | string[];
   title: string;
 }
 
 export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
 
   // Add logging to help debug the src URL
   console.log('MediaCard rendered with:', { type, src, title });
@@ -18,7 +20,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   if (type === "pdf") {
     // For PDFs, use the URL directly if it's from Supabase storage or Cloudinary
     const pdfUrl = src.includes('supabase.co') || src.includes('cloudinary.com') 
-      ? src 
+      ? src as string
       : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${src}`;
     
     console.log('PDF URL:', pdfUrl);
@@ -32,7 +34,6 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
           onClick={(e) => {
-            // Add click handler logging
             console.log('PDF link clicked:', pdfUrl);
           }}
         >
@@ -40,6 +41,10 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         </a>
       </Card>
     );
+  }
+
+  if (type === "image_album" && Array.isArray(src)) {
+    return <ImageAlbum images={src} title={title} />;
   }
 
   const handleMediaClick = () => {
@@ -56,14 +61,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
       >
         {type === "image" ? (
           <img 
-            src={src} 
+            src={src as string} 
             alt={title} 
             className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
           />
         ) : type === "video" ? (
           <video controls className="w-full h-auto">
-            <source src={src} type="video/mp4" />
+            <source src={src as string} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
         ) : null}
@@ -74,7 +79,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
           type={type}
-          src={src}
+          src={src as string}
           title={title}
         />
       )}
