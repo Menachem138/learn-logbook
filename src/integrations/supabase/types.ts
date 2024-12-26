@@ -141,6 +141,7 @@ export type Database = {
       library_items: {
         Row: {
           cloudinary_data: Json | null
+          cloudinary_urls: Json | null
           content: string
           created_at: string
           file_details: Json | null
@@ -152,6 +153,7 @@ export type Database = {
         }
         Insert: {
           cloudinary_data?: Json | null
+          cloudinary_urls?: Json | null
           content: string
           created_at?: string
           file_details?: Json | null
@@ -163,6 +165,7 @@ export type Database = {
         }
         Update: {
           cloudinary_data?: Json | null
+          cloudinary_urls?: Json | null
           content?: string
           created_at?: string
           file_details?: Json | null

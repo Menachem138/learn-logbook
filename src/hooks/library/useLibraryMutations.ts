@@ -1,81 +1,83 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { deleteFromCloudinary } from '@/utils/cloudinaryUtils';
-import { CloudinaryResponse } from '@/types/cloudinary';
-import { isCloudinaryResponse } from '@/utils/cloudinaryTypeGuards';
-import { useLibraryBaseMutations } from './mutations/useLibraryBaseMutations';
-import { useLibraryUpdateMutations } from './mutations/useLibraryUpdateMutations';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { uploadToCloudinary } from '@/utils/cloudinaryStorage';
 
 export const useLibraryMutations = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { addItem } = useLibraryBaseMutations();
-  const { updateItem } = useLibraryUpdateMutations();
+  const { session } = useAuth();
 
-  const deleteItem = useMutation({
-    mutationFn: async (id: string) => {
-      const { data: item } = await supabase
+  const uploadAlbum = async (files: File[], title: string, description: string) => {
+    if (!session?.user?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    const uploadedUrls = [];
+    for (const file of files) {
+      const result = await uploadToCloudinary(file);
+      if (result) {
+        uploadedUrls.push({
+          url: result.url,
+          publicId: result.public_id
+        });
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('library_items')
+      .insert({
+        type: 'image_album',
+        title,
+        content: description,
+        user_id: session.user.id,
+        cloudinary_urls: uploadedUrls
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  };
+
+  const mutation = useMutation({
+    mutationFn: async ({ 
+      type, 
+      content, 
+      files,
+      title = 'Untitled'
+    }: { 
+      type: string; 
+      content: string; 
+      files?: File[];
+      title?: string;
+    }) => {
+      if (type === 'image_album' && files) {
+        return uploadAlbum(files, title, content);
+      }
+      
+      const { data, error } = await supabase
         .from('library_items')
-        .select('cloudinary_data')
-        .eq('id', id)
+        .insert({
+          type,
+          content,
+          user_id: session.user.id,
+          cloudinary_data: null,
+          file_details: null,
+        })
+        .select()
         .single();
 
-      const cloudinaryData = item?.cloudinary_data;
-      
-      if (cloudinaryData && isCloudinaryResponse(cloudinaryData)) {
-        await deleteFromCloudinary(cloudinaryData.publicId);
-      }
-
-      const { error } = await supabase
-        .from('library_items')
-        .delete()
-        .eq('id', id);
-
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['library-items'] });
-      toast({
-        title: "הפריט נמחק בהצלחה",
-      });
-    },
-    onError: (error) => {
-      console.error('Error deleting item:', error);
-      toast({
-        title: "שגיאה במחיקת הפריט",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const toggleStar = useMutation({
-    mutationFn: async ({ id, is_starred }: { id: string; is_starred: boolean }) => {
-      const { error } = await supabase
-        .from('library_items')
-        .update({ is_starred })
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['library-items'] });
-    },
-    onError: (error) => {
-      console.error('Error toggling star:', error);
-      toast({
-        title: "שגיאה בעדכון הפריט",
-        description: error.message,
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: ['library'] });
     },
   });
 
   return {
-    addItem,
-    updateItem,
-    deleteItem,
-    toggleStar,
+    addItem: mutation.mutate,
+    isLoading: mutation.isPending,
+    error: mutation.error,
   };
 };

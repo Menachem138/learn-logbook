@@ -1,4 +1,4 @@
-export type ContentItemType = 'link' | 'image' | 'whatsapp' | 'video' | 'note';
+export type ContentItemType = 'link' | 'image' | 'whatsapp' | 'video' | 'note' | 'image_album';
 
 export interface ContentItem {
   id: string;
@@ -11,10 +11,11 @@ export interface ContentItem {
   file_name: string | null;
   file_size: number | null;
   mime_type: string | null;
+  cloudinary_urls?: { url: string; publicId: string }[];
 }
 
 export function isContentItemType(type: string): type is ContentItemType {
-  return ['link', 'image', 'whatsapp', 'video', 'note'].includes(type);
+  return ['link', 'image', 'whatsapp', 'video', 'note', 'image_album'].includes(type);
 }
 
 export function transformToContentItem(raw: any): ContentItem | null {
@@ -33,6 +34,7 @@ export function transformToContentItem(raw: any): ContentItem | null {
     file_path: raw.file_path,
     file_name: raw.file_name,
     file_size: raw.file_size,
-    mime_type: raw.mime_type
+    mime_type: raw.mime_type,
+    cloudinary_urls: raw.cloudinary_urls
   };
 }
