@@ -1,4 +1,4 @@
-export type ContentItemType = 'link' | 'image' | 'whatsapp' | 'video' | 'note' | 'pdf' | 'question' | 'youtube';
+export type ContentItemType = 'link' | 'image' | 'whatsapp' | 'video' | 'note' | 'pdf' | 'question' | 'image_album';
 
 export interface ContentItem {
   id: string;
@@ -25,7 +25,7 @@ export interface ContentItem {
 }
 
 export function isContentItemType(type: string): type is ContentItemType {
-  return ['link', 'image', 'whatsapp', 'video', 'note', 'pdf', 'question', 'youtube'].includes(type);
+  return ['link', 'image', 'whatsapp', 'video', 'note', 'pdf', 'question', 'image_album'].includes(type);
 }
 
 export function transformToContentItem(raw: any): ContentItem | null {
