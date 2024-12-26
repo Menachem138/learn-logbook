@@ -53,14 +53,14 @@ export function MediaCard({ type, src, title, itemId, cloudinaryUrls = [], onUpd
   return (
     <>
       <Card 
-        className="overflow-hidden cursor-pointer group relative"
+        className="overflow-hidden cursor-pointer"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
             src={src} 
             alt={title} 
-            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+            className="w-full h-auto"
             loading="lazy"
           />
         ) : type === "video" ? (
