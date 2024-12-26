@@ -7,8 +7,11 @@ import { MediaCardProps } from "./types";
 
 export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDetails }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-
+  
+  // מקבל את מקור המדיה מהנתונים שהתקבלו
   const getMediaSource = () => {
+    console.log('MediaCard props:', { type, cloudinaryData, cloudinaryUrls, fileDetails });
+    
     if (type === 'image_album' && cloudinaryUrls && cloudinaryUrls.length > 0) {
       return cloudinaryUrls;
     }
@@ -29,8 +32,10 @@ export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDet
   };
 
   const mediaSource = getMediaSource();
+  console.log('Media source:', mediaSource);
 
   if (!mediaSource) {
+    console.log('No media source found');
     return null;
   }
 
@@ -83,18 +88,22 @@ export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDet
         className="overflow-hidden cursor-pointer hover:shadow-lg transition-all"
         onClick={handleMediaClick}
       >
-        {type === "image" ? (
-          <img 
-            src={mediaSource as string}
-            alt={title}
-            className="w-full h-48 object-cover"
-            loading="lazy"
-            onError={(e) => {
-              console.error("Error loading image:", mediaSource);
-              e.currentTarget.src = "/placeholder.svg";
-            }}
-          />
-        ) : type === "video" ? (
+        {type === "image" && (
+          <div className="relative w-full h-48">
+            <img 
+              src={mediaSource as string}
+              alt={title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                console.error("Error loading image:", mediaSource);
+                e.currentTarget.src = "/placeholder.svg";
+              }}
+            />
+          </div>
+        )}
+        
+        {type === "video" && (
           <video 
             src={mediaSource as string}
             className="w-full h-48 object-cover"
@@ -102,7 +111,7 @@ export function MediaCard({ type, title, cloudinaryData, cloudinaryUrls, fileDet
           >
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
-        ) : null}
+        )}
       </Card>
 
       {(type === "image" || type === "video") && (

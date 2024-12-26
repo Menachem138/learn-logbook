@@ -12,6 +12,8 @@ interface LibraryItemCardProps {
 }
 
 export function LibraryItemCard({ item, onDelete, onEdit, onToggleStar }: LibraryItemCardProps) {
+  console.log('LibraryItemCard - Rendering item:', item);
+  
   return (
     <Card className="p-4 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-3">

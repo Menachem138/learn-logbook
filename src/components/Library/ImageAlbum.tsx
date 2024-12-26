@@ -3,14 +3,23 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageAlbumProps } from "./types";
+
+interface ImageAlbumProps {
+  images: string[];
+  title: string;
+}
 
 export function ImageAlbum({ images, title }: ImageAlbumProps) {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
+  console.log("ImageAlbum - Received images:", images);
+  
+  // וודא שהתמונות הן מערך ומכילות כתובות URL תקינות
   const imageUrls = Array.isArray(images) ? images.filter(url => url && typeof url === 'string') : 
     typeof images === 'string' ? [images] : [];
+  
+  console.log("ImageAlbum - Processed imageUrls:", imageUrls);
   
   const displayedImages = imageUrls.slice(0, 4);
   const extraCount = Math.max(0, imageUrls.length - 4);
@@ -29,6 +38,7 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
   };
 
   if (!imageUrls || imageUrls.length === 0) {
+    console.log("No images to display");
     return null;
   }
 
