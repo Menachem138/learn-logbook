@@ -33,9 +33,6 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           target="_blank" 
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
-          onClick={(e) => {
-            console.log('PDF link clicked:', pdfUrl);
-          }}
         >
           {title}
         </a>
@@ -44,6 +41,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   }
 
   if (type === "image_album" && Array.isArray(src)) {
+    console.log('Rendering image album with sources:', src);
     return <ImageAlbum images={src} title={title} />;
   }
 

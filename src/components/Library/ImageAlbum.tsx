@@ -9,6 +9,13 @@ interface ImageAlbumProps {
 
 export function ImageAlbum({ images, title }: ImageAlbumProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
+  
+  console.log('ImageAlbum rendered with:', { images, title });
+
+  if (!images || images.length === 0) {
+    console.log('No images provided to ImageAlbum');
+    return null;
+  }
 
   return (
     <>
@@ -24,6 +31,7 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
               alt={`${title} - Image ${index + 1}`}
               className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
               loading="lazy"
+              onError={(e) => console.error('Image failed to load:', image)}
             />
           </Card>
         ))}
@@ -34,7 +42,7 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
         onClose={() => setSelectedImageIndex(-1)}
         type="image"
         src={selectedImageIndex !== -1 ? images[selectedImageIndex] : ''}
-        title={title}
+        title={`${title} - Image ${selectedImageIndex + 1}`}
       />
     </>
   );
