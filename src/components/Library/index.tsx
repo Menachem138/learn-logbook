@@ -8,6 +8,7 @@ import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 import { toast } from "sonner";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -36,7 +37,37 @@ const getIcon = (type: LibraryItemType) => {
 const Library = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
-  const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
+  const { items, isLoading, error, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
+  const { session } = useAuth();
+
+  // Check for authentication
+  if (!session) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[200px] space-y-4">
+        <p className="text-lg">יש להתחבר כדי לצפות בספריית התוכן</p>
+      </div>
+    );
+  }
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    toast.error("שגיאה בטעינת הספרייה");
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[200px] space-y-4">
+        <p className="text-lg text-red-500">שגיאה בטעינת הספרייה</p>
+        <Button onClick={() => window.location.reload()}>נסה שוב</Button>
+      </div>
+    );
+  }
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -58,14 +89,6 @@ const Library = () => {
       toast.error("שגיאה בשמירת הפריט");
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
