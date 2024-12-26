@@ -39,6 +39,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     const files = event.target.files;
     if (files) {
       setSelectedFiles(files);
+      console.log("Selected files:", files); // Debug log
     }
   };
 

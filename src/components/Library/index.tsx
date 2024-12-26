@@ -136,7 +136,7 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {item.file_details?.path && (
+            {item.file_details && (
               <div className="mt-2">
                 <MediaCard
                   type={item.type as "image" | "video" | "pdf" | "image_album"}
@@ -166,6 +166,6 @@ const Library = () => {
       />
     </div>
   );
-};
+}
 
 export default Library;

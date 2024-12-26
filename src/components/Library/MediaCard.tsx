@@ -38,6 +38,7 @@ export function MediaCard({ type, src, title, images, onDeleteImage }: MediaCard
   };
 
   if (type === "image_album" && images && images.length > 0) {
+    console.log("Rendering image album with images:", images); // Debug log
     return <ImageAlbum images={images} onDeleteImage={onDeleteImage} />;
   }
 
