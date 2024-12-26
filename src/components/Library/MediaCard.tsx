@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText, Music } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
+import { ImageAlbumCard } from "./ImageAlbumCard";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf" | "audio" | "image_gallery";
+  type: "image" | "video" | "pdf" | "audio" | "image_album";
   src: string | string[];
   title: string;
 }
@@ -13,6 +14,12 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   
   console.log("MediaCard rendered with:", { type, src, title });
+
+  // Handle image albums separately using ImageAlbumCard
+  if (type === "image_album") {
+    const images = Array.isArray(src) ? src : [src];
+    return <ImageAlbumCard images={images} title={title} />;
+  }
 
   if (type === "pdf") {
     return (
@@ -57,19 +64,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         className="overflow-hidden cursor-pointer group relative"
         onClick={handleMediaClick}
       >
-        {type === "image_gallery" ? (
-          <div className="grid grid-cols-2 gap-2">
-            {(src as string[]).map((url, idx) => (
-              <img 
-                key={idx}
-                src={url} 
-                alt={`${title} - ${idx + 1}`} 
-                className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
-                loading="lazy"
-              />
-            ))}
-          </div>
-        ) : type === "image" ? (
+        {type === "image" ? (
           <img 
             src={src as string} 
             alt={title} 
