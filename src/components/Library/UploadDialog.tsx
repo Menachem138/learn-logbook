@@ -19,6 +19,7 @@ export function UploadDialog({ isOpen, onClose, onSubmit }: UploadDialogProps) {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   const handleTypeChange = (newType: string) => {
+    console.log("Type changed to:", newType);
     setType(newType);
     setFiles(null);
     setPreviewUrls([]);
@@ -33,6 +34,7 @@ export function UploadDialog({ isOpen, onClose, onSubmit }: UploadDialogProps) {
 
     if (type === 'image' || type === 'image_album') {
       const urls = Array.from(selectedFiles).map(file => URL.createObjectURL(file));
+      console.log("Created preview URLs:", urls);
       setPreviewUrls(urls);
     }
   };
@@ -64,6 +66,7 @@ export function UploadDialog({ isOpen, onClose, onSubmit }: UploadDialogProps) {
       console.log("Starting upload process with files:", files);
       
       if (type === 'image_album') {
+        console.log("Processing image album upload");
         const uploadPromises = Array.from(files).map(file => 
           uploadToCloudinary(file)
         );
@@ -74,7 +77,7 @@ export function UploadDialog({ isOpen, onClose, onSubmit }: UploadDialogProps) {
         const cloudinaryUrls = uploadResults.map(result => result.secure_url);
         console.log("Cloudinary URLs for image album:", cloudinaryUrls);
 
-        await onSubmit({
+        const submitData = {
           type,
           title,
           content,
@@ -84,12 +87,16 @@ export function UploadDialog({ isOpen, onClose, onSubmit }: UploadDialogProps) {
             names: Array.from(files).map(f => f.name),
             type: 'image_album'
           }
-        });
+        };
+
+        console.log("Submitting image album data:", submitData);
+        await onSubmit(submitData);
       } else {
+        console.log("Processing single file upload");
         const result = await uploadToCloudinary(files[0]);
         console.log("Upload result for single file:", result);
         
-        await onSubmit({
+        const submitData = {
           type,
           title,
           content,
@@ -100,7 +107,10 @@ export function UploadDialog({ isOpen, onClose, onSubmit }: UploadDialogProps) {
             size: files[0].size,
             type: files[0].type
           }
-        });
+        };
+
+        console.log("Submitting single file data:", submitData);
+        await onSubmit(submitData);
       }
 
       setType("");
