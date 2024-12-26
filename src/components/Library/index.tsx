@@ -135,24 +135,11 @@ const Library = () => {
             
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
             
-            {(item.type === 'image_album' || item.type === 'image_gallery') && item.cloudinary_urls && (
-              <div className="mt-2">
-                <ImageAlbumCard
-                  images={item.cloudinary_urls}
-                  title={item.title}
-                  onEdit={() => {
-                    setEditingItem(item);
-                    setIsDialogOpen(true);
-                  }}
-                />
-              </div>
-            )}
-            
-            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'audio') && (
+            {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'audio' || item.type === 'image_gallery') && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type as "image" | "video" | "pdf" | "audio"}
-                  src={item.file_details.path}
+                  type={item.type as "image" | "video" | "pdf" | "audio" | "image_gallery"}
+                  src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path || ''}
                   title={item.title}
                 />
               </div>
