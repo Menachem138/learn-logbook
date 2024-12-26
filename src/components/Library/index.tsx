@@ -3,10 +3,10 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle, Plus } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
-import { ItemDialog } from "./ItemDialog";
+import { UploadDialog } from "./UploadDialog";
 import { ImageAlbumCard } from "./ImageAlbumCard";
 import { toast } from "sonner";
 
@@ -26,6 +26,8 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
+    default:
+      return null;
   }
 };
 
@@ -48,9 +50,10 @@ const Library = () => {
       
       setIsDialogOpen(false);
       setEditingItem(null);
+      toast.success(editingItem ? "פריט עודכן בהצלחה" : "פריט נוסף בהצלחה");
     } catch (error) {
       console.error('Error adding/updating item:', error);
-      toast.error("Failed to save item");
+      toast.error("שגיאה בשמירת הפריט");
     }
   };
 
@@ -81,6 +84,7 @@ const Library = () => {
             }}
             className="gap-2"
           >
+            <Plus className="w-4 h-4" />
             הוסף פריט
           </Button>
         </div>
@@ -124,6 +128,7 @@ const Library = () => {
                 </Button>
               </div>
             </div>
+            
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
             
             {item.type === 'image_album' && item.cloudinary_urls && (
@@ -152,14 +157,13 @@ const Library = () => {
         ))}
       </div>
 
-      <ItemDialog
-        onSubmit={handleAddOrUpdateItem}
-        initialData={editingItem}
+      <UploadDialog
         isOpen={isDialogOpen}
         onClose={() => {
           setIsDialogOpen(false);
           setEditingItem(null);
         }}
+        onSubmit={handleAddOrUpdateItem}
       />
     </div>
   );
