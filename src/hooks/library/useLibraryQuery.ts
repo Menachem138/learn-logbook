@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { LibraryItem } from '@/types/library';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Database } from '@/integrations/supabase/types';
+
+type LibraryItemRow = Database['public']['Tables']['library_items']['Row'];
 
 export const useLibraryQuery = (filter: string) => {
   const { toast } = useToast();
@@ -38,7 +41,20 @@ export const useLibraryQuery = (filter: string) => {
         return [];
       }
 
-      return data as LibraryItem[];
+      // Transform the data to match LibraryItem type
+      const transformedData: LibraryItem[] = (data || []).map((item: LibraryItemRow) => ({
+        id: item.id,
+        title: item.title,
+        content: item.content,
+        type: item.type,
+        file_details: item.file_details as LibraryItem['file_details'],
+        cloudinary_data: item.cloudinary_data as LibraryItem['cloudinary_data'],
+        is_starred: item.is_starred,
+        created_at: item.created_at,
+        user_id: item.user_id
+      }));
+
+      return transformedData;
     },
   });
 };
