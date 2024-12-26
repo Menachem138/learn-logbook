@@ -34,6 +34,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         return;
       }
 
+      console.log('Submitting form with files:', selectedFiles);
       const formData = {
         ...data,
         files: selectedFiles,

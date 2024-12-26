@@ -40,6 +40,7 @@ const Library = () => {
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
+      console.log('Handling item submission:', data);
       if (editingItem) {
         await updateItem.mutateAsync({ id: editingItem.id, ...data });
       } else {
@@ -159,7 +160,7 @@ const Library = () => {
              (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type as "image" | "video" | "pdf"}
+                  type={item.type}
                   src={item.cloudinary_data?.url || item.file_details?.path || ''}
                   title={item.title}
                 />

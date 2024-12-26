@@ -53,7 +53,12 @@ export const useLibraryMutations = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting library item:', error);
+        throw error;
+      }
+      
+      console.log('New item created:', newItem);
       return newItem;
     },
     onSuccess: () => {
