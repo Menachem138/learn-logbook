@@ -5,7 +5,7 @@ import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf";
-  src?: string;
+  src: string;
   title: string;
 }
 
@@ -37,14 +37,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <Card 
-        className="overflow-hidden cursor-pointer"
+        className="overflow-hidden cursor-pointer group relative"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
             src={src} 
             alt={title} 
-            className="w-full h-auto"
+            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
           />
         ) : type === "video" ? (
@@ -60,7 +60,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
           type={type}
-          src={src || ''}
+          src={src}
           title={title}
         />
       )}

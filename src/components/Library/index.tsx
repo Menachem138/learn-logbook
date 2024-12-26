@@ -3,11 +3,12 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle, Images } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
+import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
-import { ImageAlbumCard } from "./ImageAlbumCard";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -17,8 +18,6 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4" />;
     case 'image':
       return <Image className="w-4 h-4" />;
-    case 'image_album':
-      return <Images className="w-4 h-4" />;
     case 'video':
       return <Video className="w-4 h-4" />;
     case 'whatsapp':
@@ -27,8 +26,6 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
-    default:
-      return <FileText className="w-4 h-4" />;
   }
 };
 
@@ -36,11 +33,9 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
-      console.log('Handling item submission:', data);
       if (editingItem) {
         await updateItem.mutateAsync({ id: editingItem.id, ...data });
       } else {
@@ -56,22 +51,6 @@ const Library = () => {
   const handleEdit = (item: LibraryItem) => {
     setEditingItem(item);
     setIsDialogOpen(true);
-  };
-
-  const handleDeleteImage = async (item: LibraryItem, imageIndex: number) => {
-    if (!item.cloudinary_urls) return;
-    
-    const newUrls = [...item.cloudinary_urls];
-    newUrls.splice(imageIndex, 1);
-    
-    try {
-      await updateItem.mutateAsync({
-        id: item.id,
-        cloudinary_urls: newUrls,
-      });
-    } catch (error) {
-      console.error('Error deleting image:', error);
-    }
   };
 
   if (isLoading) {
@@ -126,13 +105,7 @@ const Library = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => {
-                    if (item.type === 'image_album') {
-                      setIsEditing(!isEditing);
-                    } else {
-                      handleEdit(item);
-                    }
-                  }}
+                  onClick={() => handleEdit(item)}
                   className="hover:text-blue-500"
                 >
                   <Edit2 className="w-4 h-4" />
@@ -148,20 +121,11 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {item.type === 'image_album' && item.cloudinary_urls && (
-              <ImageAlbumCard
-                urls={item.cloudinary_urls}
-                title={item.title}
-                onDelete={isEditing ? (index) => handleDeleteImage(item, index) : undefined}
-                isEditing={isEditing}
-              />
-            )}
-            {(item.cloudinary_data?.url || item.file_details?.path) && 
-             (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
+            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type}
-                  src={item.cloudinary_data?.url || item.file_details?.path || ''}
+                  type={item.type as "image" | "video" | "pdf"}
+                  src={item.file_details.path}
                   title={item.title}
                 />
               </div>

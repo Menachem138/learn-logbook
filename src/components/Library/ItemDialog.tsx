@@ -6,12 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { Upload } from "lucide-react";
-import { toast } from "sonner";
 
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
+  onSubmit: (data: Partial<LibraryItem> & { file?: File }) => void;
   initialData?: LibraryItem | null;
 }
 
@@ -25,37 +24,22 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const selectedType = watch("type");
-  const [selectedFiles, setSelectedFiles] = React.useState<FileList | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
-  const onSubmitForm = async (data: any) => {
-    try {
-      if (selectedType === 'image_album' && (!selectedFiles || selectedFiles.length === 0)) {
-        toast.error("נא לבחור לפחות תמונה אחת לאלבום");
-        return;
-      }
-
-      console.log('Submitting form with files:', selectedFiles);
-      const formData = {
-        ...data,
-        files: selectedFiles,
-      };
-      
-      await onSubmit(formData);
-      setSelectedFiles(null);
-      reset();
-      onClose();
-      toast.success(initialData ? "הפריט עודכן בהצלחה" : "הפריט נוסף בהצלחה");
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error("אירעה שגיאה בשמירת הפריט");
-    }
+  const onSubmitForm = (data: any) => {
+    const formData = {
+      ...data,
+      file: selectedFile,
+    };
+    onSubmit(formData);
+    setSelectedFile(null);
+    reset();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      console.log('Selected files:', files.length);
-      setSelectedFiles(files);
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
     }
   };
 
@@ -80,7 +64,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
-              <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
@@ -94,30 +77,27 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf' || selectedType === 'image_album') && (
+          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'image_album' ? 'העלה תמונות' : 
-                 selectedType === 'image' ? 'העלה תמונה' : 
-                 selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
+                {selectedType === 'image' ? 'העלה תמונה' : selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
               </label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' || selectedType === 'image_album'
+                    selectedType === 'image' 
                       ? "image/*" 
                       : selectedType === 'video' 
                       ? "video/*" 
                       : "application/pdf"
                   }
-                  multiple={selectedType === 'image_album'}
                   onChange={handleFileChange}
                   className="flex-1"
                 />
-                {selectedFiles && selectedFiles.length > 0 && (
+                {selectedFile && (
                   <span className="text-sm text-gray-500">
-                    {selectedFiles.length} {selectedType === 'image_album' ? 'תמונות נבחרו' : 'קובץ נבחר'}
+                    {selectedFile.name}
                   </span>
                 )}
               </div>
