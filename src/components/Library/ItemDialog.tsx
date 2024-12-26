@@ -1,23 +1,22 @@
-import React, { useState } from "react";
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload } from "lucide-react";
-import { toast } from "sonner";
-import { uploadToCloudinary } from "@/utils/cloudinaryUtils";
+import { useDropzone } from "react-dropzone";
+import { toast } from "@/components/ui/use-toast";
 
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
+  onSubmit: (data: Partial<LibraryItem> & { files?: File[] }) => void;
   initialData?: LibraryItem | null;
 }
 
 export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
-  const { register, handleSubmit, watch, reset } = useForm({
+  const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
       content: "",
@@ -26,75 +25,71 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const selectedType = watch("type");
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      console.log("Selected files:", files);
-      setSelectedFiles(files);
-    }
-  };
-
-  const onSubmitForm = async (data: any) => {
+  const onSubmitForm = (data: any) => {
     try {
-      setIsUploading(true);
-      console.log("Starting form submission with data:", data);
+      console.log("Submitting form with data:", { ...data, files: selectedFiles });
       
-      if (selectedType === 'image_album' && selectedFiles) {
-        console.log("Processing image album with files:", selectedFiles);
-        
-        const uploadPromises = Array.from(selectedFiles).map(file => 
-          uploadToCloudinary(file)
-        );
-
-        const uploadResults = await Promise.all(uploadPromises);
-        console.log("Upload results:", uploadResults);
-
-        const cloudinaryUrls = uploadResults.map(result => result.secure_url);
-        console.log("Cloudinary URLs:", cloudinaryUrls);
-
-        await onSubmit({
-          ...data,
-          cloudinary_urls: cloudinaryUrls,
-          type: 'image_album'
+      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להעלות קובץ",
+          variant: "destructive",
         });
-      } else if (selectedFiles && selectedFiles.length > 0) {
-        console.log("Processing single file upload");
-        const file = selectedFiles[0];
-        const uploadResult = await uploadToCloudinary(file);
-        console.log("Single file upload result:", uploadResult);
-
-        await onSubmit({
-          ...data,
-          file_details: {
-            path: uploadResult.secure_url, // Changed from url to secure_url
-            name: file.name,
-            size: file.size,
-            type: file.type
-          },
-          cloudinary_data: {
-            ...uploadResult,
-            url: uploadResult.secure_url // Ensure we're using secure_url
-          }
-        });
-      } else {
-        console.log("Submitting text-only data");
-        await onSubmit(data);
+        return;
       }
 
-      setSelectedFiles(null);
+      if (selectedType === 'image_gallery' && selectedFiles.length === 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להעלות לפחות תמונה אחת",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const formData = {
+        ...data,
+        files: selectedFiles,
+      };
+      
+      onSubmit(formData);
+      setSelectedFiles([]);
       reset();
       onClose();
-      toast.success("פריט נשמר בהצלחה");
     } catch (error) {
-      console.error('Error uploading files:', error);
-      toast.error("שגיאה בשמירת הפריט");
-    } finally {
-      setIsUploading(false);
+      console.error("Error submitting form:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בשמירת הפריט",
+        variant: "destructive",
+      });
     }
   };
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      'image/*': [],
+      'video/*': [],
+      'application/pdf': []
+    },
+    onDrop: (acceptedFiles) => {
+      console.log("Files dropped:", acceptedFiles);
+      if (selectedType === 'image_gallery') {
+        setSelectedFiles(prev => [...prev, ...acceptedFiles]);
+      } else {
+        setSelectedFiles([acceptedFiles[0]]);
+      }
+    }
+  });
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedFiles([]);
+      reset();
+    }
+  }, [isOpen, reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -117,9 +112,9 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
-              <option value="image_album">אלבום תמונות</option>
+              <option value="image_gallery">אלבום תמונות</option>
               <option value="video">וידאו</option>
-              <option value="audio">אודיו</option>
+              <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
             </select>
@@ -131,54 +126,39 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image_album' || selectedType === 'image' || 
-            selectedType === 'video' || selectedType === 'audio' || 
-            selectedType === 'pdf') && (
+          {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'image_album' ? 'העלה תמונות' : 'העלה קובץ'}
-              </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  accept={
-                    selectedType === 'image' || selectedType === 'image_album' 
-                      ? "image/*"
-                      : selectedType === 'video'
-                      ? "video/*"
-                      : selectedType === 'audio'
-                      ? "audio/*"
-                      : selectedType === 'pdf'
-                      ? ".pdf"
-                      : undefined
-                  }
-                  multiple={selectedType === 'image_album'}
-                  onChange={handleFileChange}
-                  className="flex-1"
-                  disabled={isUploading}
-                />
-                {selectedFiles && selectedFiles.length > 0 && (
-                  <span className="text-sm text-gray-500">
-                    {selectedFiles.length} {selectedType === 'image_album' ? 'תמונות' : 'קובץ'} נבחרו
-                  </span>
-                )}
+              <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
+                <input {...getInputProps()} />
+                <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
+                {selectedType === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
               </div>
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm text-gray-500">{file.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                      >
+                        הסר
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isUploading}>
+            <Button type="button" variant="outline" onClick={onClose}>
               ביטול
             </Button>
-            <Button type="submit" disabled={isUploading}>
-              {isUploading ? (
-                <span className="flex items-center gap-2">
-                  <Upload className="animate-spin" />
-                  מעלה...
-                </span>
-              ) : (
-                initialData ? "עדכן" : "הוסף"
-              )}
+            <Button type="submit">
+              {initialData ? "עדכן" : "הוסף"}
             </Button>
           </div>
         </form>
