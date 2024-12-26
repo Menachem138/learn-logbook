@@ -24,9 +24,11 @@ export const useLibraryMutations = () => {
 
       if (data.files && data.files.length > 0) {
         if (data.type === 'image_album') {
+          console.log('Uploading multiple images for album:', data.files.length);
           const uploadPromises = Array.from(data.files).map(file => uploadToCloudinary(file));
           const results = await Promise.all(uploadPromises);
           cloudinaryUrls = results.map(result => result.url);
+          console.log('Uploaded images URLs:', cloudinaryUrls);
         } else {
           const result = await uploadToCloudinary(data.files[0]);
           if (result) {
@@ -87,6 +89,7 @@ export const useLibraryMutations = () => {
 
   const updateItem = useMutation({
     mutationFn: async (item: Partial<LibraryItem> & { id: string }) => {
+      console.log('Updating item:', item);
       const { error } = await supabase
         .from('library_items')
         .update(item)

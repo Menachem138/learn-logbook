@@ -29,6 +29,11 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const onSubmitForm = async (data: any) => {
     try {
+      if (selectedType === 'image_album' && (!selectedFiles || selectedFiles.length === 0)) {
+        toast.error("נא לבחור לפחות תמונה אחת לאלבום");
+        return;
+      }
+
       const formData = {
         ...data,
         files: selectedFiles,
@@ -48,6 +53,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
+      console.log('Selected files:', files.length);
       setSelectedFiles(files);
     }
   };
