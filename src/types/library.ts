@@ -2,15 +2,14 @@ export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' |
 
 export interface LibraryItem {
   id: string;
+  user_id: string;
+  type: LibraryItemType;
   title: string;
   content: string;
-  type: LibraryItemType;
+  is_starred?: boolean;
+  created_at: string;
   file_details?: {
     path?: string;
-    name?: string;
-    size?: number;
-    type?: string;
+    images?: { path: string; title: string }[];
   };
-  is_starred?: boolean;
-  created_at?: string;
 }

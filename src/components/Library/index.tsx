@@ -3,10 +3,8 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -26,6 +24,10 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
+    case 'image_album':
+      return <Image className="w-4 h-4" />;
+    default:
+      return <FileText className="w-4 h-4" />;
   }
 };
 
@@ -51,6 +53,19 @@ const Library = () => {
   const handleEdit = (item: LibraryItem) => {
     setEditingItem(item);
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteImage = async (itemId: string, imageIndex: number) => {
+    const item = items.find(i => i.id === itemId);
+    if (!item || !item.file_details?.images) return;
+
+    const updatedImages = [...item.file_details.images];
+    updatedImages.splice(imageIndex, 1);
+
+    await updateItem.mutateAsync({
+      id: itemId,
+      file_details: { ...item.file_details, images: updatedImages }
+    });
   };
 
   if (isLoading) {
@@ -121,12 +136,18 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
+            {item.file_details?.path && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type as "image" | "video" | "pdf"}
+                  type={item.type as "image" | "video" | "pdf" | "image_album"}
                   src={item.file_details.path}
                   title={item.title}
+                  images={item.file_details.images}
+                  onDeleteImage={
+                    item.type === 'image_album' 
+                      ? (index) => handleDeleteImage(item.id, index)
+                      : undefined
+                  }
                 />
               </div>
             )}

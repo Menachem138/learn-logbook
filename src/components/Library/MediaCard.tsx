@@ -5,7 +5,7 @@ import { MediaViewer } from "./MediaViewer";
 import { ImageAlbum } from "./ImageAlbum";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
+  type: "image" | "video" | "pdf" | "image_album";
   src: string;
   title: string;
   onDeleteImage?: (index: number) => void;
@@ -37,7 +37,7 @@ export function MediaCard({ type, src, title, images, onDeleteImage }: MediaCard
     }
   };
 
-  if (type === "image" && images && images.length > 0) {
+  if (type === "image_album" && images && images.length > 0) {
     return <ImageAlbum images={images} onDeleteImage={onDeleteImage} />;
   }
 
