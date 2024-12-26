@@ -40,7 +40,6 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
 
   const handleDeleteImage = async (publicId: string) => {
     try {
-      // Delete from Cloudinary
       const response = await fetch('/api/delete-cloudinary-asset', {
         method: 'POST',
         headers: {
@@ -53,7 +52,6 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
         throw new Error('Failed to delete image from Cloudinary');
       }
 
-      // Update Supabase record
       const updatedImages = pendingImages.filter(img => img.publicId !== publicId);
       
       const { error } = await supabase
@@ -71,6 +69,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
       
       if (updatedImages.length === 0) {
         setEditMode(false);
+        setViewerOpen(false);
       }
     } catch (error) {
       console.error('Error deleting image:', error);
@@ -85,7 +84,8 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
         {images.slice(0, 4).map((image, index) => (
           <div
             key={index}
-            className="relative cursor-pointer overflow-hidden rounded-md aspect-square"
+            className="relative cursor-pointer overflow-hidden rounded-md"
+            style={{ aspectRatio: '1/1' }}
             onClick={() => handleImageClick(index)}
           >
             <img
@@ -137,23 +137,27 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
               
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-                onClick={prevImage}
-              >
-                <ChevronLeft className="h-6 w-6 text-white" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-                onClick={nextImage}
-              >
-                <ChevronRight className="h-6 w-6 text-white" />
-              </Button>
+              {images.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+                    onClick={prevImage}
+                  >
+                    <ChevronLeft className="h-6 w-6 text-white" />
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+                    onClick={nextImage}
+                  >
+                    <ChevronRight className="h-6 w-6 text-white" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </DialogContent>
