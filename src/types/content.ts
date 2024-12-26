@@ -12,10 +12,16 @@ export interface ContentItem {
   file_size: number | null;
   mime_type: string | null;
   cloudinary_urls?: { url: string; publicId: string }[];
-  title: string; // Added this field to match LibraryItem
+  title: string;
   cloudinary_data?: {
     publicId?: string;
     url?: string;
+  };
+  file_details?: {
+    path?: string;
+    name?: string;
+    size?: number;
+    type?: string;
   };
 }
 
@@ -24,7 +30,7 @@ export function isContentItemType(type: string): type is ContentItemType {
 }
 
 export function transformToContentItem(raw: any): ContentItem | null {
-  if (!isContentItemType(raw.type)) {
+  if (!raw || !isContentItemType(raw.type)) {
     console.error('Invalid content type:', raw.type);
     return null;
   }
@@ -42,6 +48,7 @@ export function transformToContentItem(raw: any): ContentItem | null {
     mime_type: raw.mime_type,
     cloudinary_urls: raw.cloudinary_urls,
     title: raw.title || 'Untitled',
-    cloudinary_data: raw.cloudinary_data
+    cloudinary_data: raw.cloudinary_data,
+    file_details: raw.file_details
   };
 }

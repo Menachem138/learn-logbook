@@ -3,10 +3,8 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, Upload, HelpCircle } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { useDropzone } from "react-dropzone";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -26,6 +24,8 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
+    default:
+      return <FileText className="w-4 h-4" />;
   }
 };
 
@@ -37,9 +37,9 @@ const Library = () => {
   const handleAddOrUpdateItem = async (data: any) => {
     try {
       if (editingItem) {
-        await updateItem.mutateAsync({ id: editingItem.id, ...data });
+        await updateItem({ id: editingItem.id, ...data });
       } else {
-        await addItem.mutateAsync(data);
+        await addItem(data);
       }
       setIsDialogOpen(false);
       setEditingItem(null);
@@ -97,7 +97,7 @@ const Library = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
+                  onClick={() => toggleStar({ id: item.id, is_starred: !item.is_starred })}
                   className="hover:text-yellow-400"
                 >
                   <Star className={`w-4 h-4 ${item.is_starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
@@ -113,7 +113,7 @@ const Library = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => deleteItem.mutate(item.id)}
+                  onClick={() => deleteItem(item.id)}
                   className="hover:text-red-500"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -121,11 +121,12 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
-            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
+            {(item.file_details?.path || item.cloudinary_data?.url) && 
+             (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard
                   type={item.type as "image" | "video" | "pdf"}
-                  src={item.file_details.path}
+                  src={item.cloudinary_data?.url || item.file_details?.path || ''}
                   title={item.title}
                 />
               </div>
