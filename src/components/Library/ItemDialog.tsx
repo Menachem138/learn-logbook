@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType } from "@/types/library";
-import { Upload } from "lucide-react";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -64,7 +63,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
-              <option value="album">אלבום תמונות</option>
+              <option value="image_album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
@@ -78,10 +77,10 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'album' || selectedType === 'video' || selectedType === 'pdf') && (
+          {(selectedType === 'image' || selectedType === 'image_album' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'album' ? 'העלה תמונות לאלבום' : 
+                {selectedType === 'image_album' ? 'העלה תמונות לאלבום' : 
                  selectedType === 'image' ? 'העלה תמונה' : 
                  selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
               </label>
@@ -89,19 +88,19 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' || selectedType === 'album'
+                    selectedType === 'image' || selectedType === 'image_album'
                       ? "image/*" 
                       : selectedType === 'video' 
                       ? "video/*" 
                       : "application/pdf"
                   }
-                  multiple={selectedType === 'album'}
+                  multiple={selectedType === 'image_album'}
                   onChange={handleFileChange}
                   className="flex-1"
                 />
                 {selectedFiles && (
                   <span className="text-sm text-gray-500">
-                    {selectedFiles.length} {selectedType === 'album' ? 'קבצים נבחרו' : 'קובץ נבחר'}
+                    {selectedFiles.length} {selectedType === 'image_album' ? 'קבצים נבחרו' : 'קובץ נבחר'}
                   </span>
                 )}
               </div>
