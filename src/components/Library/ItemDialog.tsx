@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Upload } from "lucide-react";
 interface ItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<LibraryItem> & { file?: File }) => void;
+  onSubmit: (data: Partial<LibraryItem> & { files?: FileList }) => void;
   initialData?: LibraryItem | null;
 }
 
@@ -24,22 +24,22 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const selectedType = watch("type");
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
   const onSubmitForm = (data: any) => {
     const formData = {
       ...data,
-      file: selectedFile,
+      files: selectedFiles,
     };
     onSubmit(formData);
-    setSelectedFile(null);
+    setSelectedFiles(null);
     reset();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    const files = event.target.files;
+    if (files) {
+      setSelectedFiles(files);
     }
   };
 
@@ -64,6 +64,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
+              <option value="album">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
@@ -77,27 +78,30 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && (
+          {(selectedType === 'image' || selectedType === 'album' || selectedType === 'video' || selectedType === 'pdf') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'image' ? 'העלה תמונה' : selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
+                {selectedType === 'album' ? 'העלה תמונות לאלבום' : 
+                 selectedType === 'image' ? 'העלה תמונה' : 
+                 selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
               </label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' 
+                    selectedType === 'image' || selectedType === 'album'
                       ? "image/*" 
                       : selectedType === 'video' 
                       ? "video/*" 
                       : "application/pdf"
                   }
+                  multiple={selectedType === 'album'}
                   onChange={handleFileChange}
                   className="flex-1"
                 />
-                {selectedFile && (
+                {selectedFiles && (
                   <span className="text-sm text-gray-500">
-                    {selectedFile.name}
+                    {selectedFiles.length} {selectedType === 'album' ? 'קבצים נבחרו' : 'קובץ נבחר'}
                   </span>
                 )}
               </div>
