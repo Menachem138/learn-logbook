@@ -3,7 +3,7 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle, Plus } from "lucide-react";
+import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle, Plus, Music } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { UploadDialog } from "./UploadDialog";
@@ -17,9 +17,13 @@ const getIcon = (type: LibraryItemType) => {
     case 'note':
       return <FileText className="w-4 h-4" />;
     case 'image':
+    case 'image_album':
+    case 'image_gallery':
       return <Image className="w-4 h-4" />;
     case 'video':
       return <Video className="w-4 h-4" />;
+    case 'audio':
+      return <Music className="w-4 h-4" />;
     case 'whatsapp':
       return <MessageCircle className="w-4 h-4" />;
     case 'pdf':
@@ -32,9 +36,9 @@ const getIcon = (type: LibraryItemType) => {
 };
 
 const Library = () => {
-  const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
+  const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
 
   const handleAddOrUpdateItem = async (data: any) => {
     try {
@@ -131,7 +135,7 @@ const Library = () => {
             
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
             
-            {item.type === 'image_album' && item.cloudinary_urls && (
+            {(item.type === 'image_album' || item.type === 'image_gallery') && item.cloudinary_urls && (
               <div className="mt-2">
                 <ImageAlbumCard
                   images={item.cloudinary_urls}
@@ -144,10 +148,10 @@ const Library = () => {
               </div>
             )}
             
-            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
+            {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'audio') && (
               <div className="mt-2">
                 <MediaCard
-                  type={item.type as "image" | "video" | "pdf"}
+                  type={item.type as "image" | "video" | "pdf" | "audio"}
                   src={item.file_details.path}
                   title={item.title}
                 />

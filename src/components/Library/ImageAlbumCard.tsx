@@ -14,10 +14,15 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  console.log("Rendering ImageAlbumCard with images:", images);
+  // Add debug logging
+  console.log("ImageAlbumCard - Received images:", images);
   
-  const displayedImages = images.slice(0, 4);
-  const extraCount = Math.max(0, images.length - 4);
+  // Ensure images is always an array
+  const imageUrls = Array.isArray(images) ? images : 
+    typeof images === 'string' ? [images] : [];
+  
+  const displayedImages = imageUrls.slice(0, 4);
+  const extraCount = Math.max(0, imageUrls.length - 4);
 
   const handleImageClick = (index: number) => {
     setCurrentImageIndex(index);
@@ -25,14 +30,15 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % imageUrls.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentImageIndex((prev) => (prev - 1 + imageUrls.length) % imageUrls.length);
   };
 
-  if (!images || images.length === 0) {
+  if (!imageUrls || imageUrls.length === 0) {
+    console.log("No images to display");
     return null;
   }
 
@@ -50,6 +56,10 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
                 src={url}
                 alt={`${title} - תמונה ${idx + 1}`}
                 className="h-full w-full object-cover transition-transform hover:scale-105"
+                onError={(e) => {
+                  console.error("Error loading image:", url);
+                  e.currentTarget.src = "/placeholder.svg";
+                }}
               />
               {idx === 3 && extraCount > 0 && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-2xl font-bold text-white">
@@ -74,9 +84,13 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
             </Button>
             
             <img
-              src={images[currentImageIndex]}
+              src={imageUrls[currentImageIndex]}
               alt={`${title} - תמונה ${currentImageIndex + 1}`}
               className="max-h-full max-w-full object-contain"
+              onError={(e) => {
+                console.error("Error loading gallery image:", imageUrls[currentImageIndex]);
+                e.currentTarget.src = "/placeholder.svg";
+              }}
             />
             
             <Button
