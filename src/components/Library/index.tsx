@@ -92,7 +92,9 @@ const Library = () => {
                 <div className="relative aspect-video">
                   <MediaCard
                     type={item.type as "image" | "video" | "pdf" | "image_gallery"}
-                    src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
+                    src={item.type === 'image_gallery' && item.file_details.paths 
+                      ? item.file_details.paths 
+                      : item.file_details.path}
                     title={item.title}
                   />
                 </div>
