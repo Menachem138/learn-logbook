@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle, Plus, Music } from "lucide-react";
 import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
-import { UploadDialog } from "./UploadDialog";
+import { ItemDialog } from "./ItemDialog";
 import { toast } from "sonner";
 
 const getIcon = (type: LibraryItemType) => {
@@ -137,7 +137,6 @@ const Library = () => {
               <div className="mt-2">
                 <MediaCard
                   type={item.type}
-                  src={item.file_details?.path || ''}
                   title={item.title}
                   cloudinaryData={item.cloudinary_data}
                   cloudinaryUrls={item.cloudinary_urls}
@@ -149,13 +148,14 @@ const Library = () => {
         ))}
       </div>
 
-      <UploadDialog
+      <ItemDialog
         isOpen={isDialogOpen}
         onClose={() => {
           setIsDialogOpen(false);
           setEditingItem(null);
         }}
         onSubmit={handleAddOrUpdateItem}
+        initialData={editingItem}
       />
     </div>
   );
