@@ -10,54 +10,24 @@ export const useLibraryBaseMutations = () => {
   const queryClient = useQueryClient();
 
   const addItem = useMutation({
-    mutationFn: async ({ title, content, type, files }: { 
+    mutationFn: async ({ title, content, type, file }: { 
       title: string;
       content: string;
       type: LibraryItemType;
-      files?: FileList;
+      file?: File;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
 
-      console.log('Starting file upload process:', { type, filesCount: files?.length });
-      let cloudinaryResponses: CloudinaryResponse[] = [];
+      let cloudinaryResponse: CloudinaryResponse | null = null;
 
-      if (files && files.length > 0) {
-        console.log('Files to upload:', Array.from(files).map(f => ({ name: f.name, type: f.type, size: f.size })));
-        
-        try {
-          const uploadPromises = Array.from(files).map(async file => {
-            console.log('Uploading file to Cloudinary:', file.name);
-            const response = await uploadToCloudinary(file);
-            console.log('Cloudinary response for file:', file.name, response);
-            return response;
-          });
-          
-          cloudinaryResponses = await Promise.all(uploadPromises);
-          console.log('All Cloudinary upload responses:', cloudinaryResponses);
-        } catch (error) {
-          console.error('Error uploading to Cloudinary:', error);
-          throw new Error('Failed to upload files to Cloudinary');
-        }
+      if (file) {
+        console.log('Uploading file to Cloudinary:', file);
+        cloudinaryResponse = await uploadToCloudinary(file);
+        console.log('Cloudinary upload response:', cloudinaryResponse);
       }
-
-      const fileDetails = cloudinaryResponses.length > 0 ? {
-        path: cloudinaryResponses.length === 1 ? 
-          cloudinaryResponses[0].url : 
-          cloudinaryResponses.map(response => response.url),
-        type: files?.[0].type,
-        name: files?.[0].name,
-        size: files?.[0].size,
-      } : null;
-
-      console.log('Preparing to insert into Supabase:', {
-        title,
-        type,
-        fileDetails,
-        cloudinaryData: cloudinaryResponses.map(cloudinaryResponseToJson)
-      });
 
       const { error } = await supabase
         .from('library_items')
@@ -65,19 +35,17 @@ export const useLibraryBaseMutations = () => {
           title,
           content,
           type,
-          cloudinary_data: cloudinaryResponses.length === 1 ? 
-            cloudinaryResponseToJson(cloudinaryResponses[0]) : 
-            cloudinaryResponses.map(cloudinaryResponseToJson),
+          cloudinary_data: cloudinaryResponseToJson(cloudinaryResponse),
           user_id: user.id,
-          file_details: fileDetails,
+          file_details: cloudinaryResponse ? {
+            path: cloudinaryResponse.url,
+            type: file?.type,
+            name: file?.name,
+            size: file?.size,
+          } : null,
         });
 
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
-      }
-
-      console.log('Successfully inserted item into library');
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library-items'] });
