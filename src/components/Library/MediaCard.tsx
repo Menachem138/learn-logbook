@@ -12,15 +12,26 @@ interface MediaCardProps {
 export function MediaCard({ type, src, title }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
+  // Add logging to help debug the src URL
+  console.log('MediaCard rendered with:', { type, src, title });
+
   if (type === "pdf") {
+    // For PDFs, ensure we're using the full URL from Cloudinary
+    const pdfUrl = src.startsWith('http') ? src : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${src}`;
+    console.log('PDF URL:', pdfUrl);
+
     return (
       <Card className="p-4 flex items-center gap-2">
         <FileText className="w-6 h-6 text-red-500" />
         <a 
-          href={src} 
+          href={pdfUrl}
           target="_blank" 
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
+          onClick={(e) => {
+            // Add click handler logging
+            console.log('PDF link clicked:', pdfUrl);
+          }}
         >
           {title}
         </a>
