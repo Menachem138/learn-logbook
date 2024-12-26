@@ -28,8 +28,7 @@ export const uploadToCloudinary = async (file: File): Promise<CloudinaryResponse
   
   return {
     publicId: data.public_id,
-    url: data.url,
-    secure_url: data.secure_url,  // Added this field
+    url: data.secure_url,
     resourceType: data.resource_type,
     format: data.format,
     size: data.bytes,
@@ -41,7 +40,6 @@ export const cloudinaryResponseToJson = (response: CloudinaryResponse | null) =>
   return {
     publicId: response.publicId,
     url: response.url,
-    secure_url: response.secure_url,  // Added this field
     resourceType: response.resourceType,
     format: response.format,
     size: response.size,
@@ -52,12 +50,14 @@ export const deleteFromCloudinary = async (publicId: string): Promise<boolean> =
   try {
     console.log('Initiating Cloudinary deletion for public ID:', publicId);
     
+    // Check for active session
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       console.error('No active session found');
       throw new Error('Authentication required');
     }
 
+    // Call the Edge Function
     const { data, error } = await supabase.functions.invoke('delete-cloudinary-asset', {
       body: { publicId },
       headers: {

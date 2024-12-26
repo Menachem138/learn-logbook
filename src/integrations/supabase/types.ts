@@ -494,7 +494,6 @@ export type Database = {
         | "image_album"
         | "image_gallery"
         | "gallery"
-        | "audio"
     }
     CompositeTypes: {
       [_ in never]: never

@@ -2,7 +2,14 @@ import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MediaViewerProps } from "./types";
+
+interface MediaViewerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  type: "image" | "video";
+  src: string;
+  title: string;
+}
 
 export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerProps) {
   return (
@@ -22,10 +29,6 @@ export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerPr
               src={src}
               alt={title}
               className="w-full h-auto max-h-[80vh] object-contain"
-              onError={(e) => {
-                console.error("Error loading image in viewer:", src);
-                e.currentTarget.src = "/placeholder.svg";
-              }}
             />
           ) : (
             <video

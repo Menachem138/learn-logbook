@@ -5,13 +5,12 @@ import { useLibraryMutations } from './library/useLibraryMutations';
 export const useLibrary = () => {
   const [filter, setFilter] = useState('');
   
-  const { data: items = [], isLoading, error } = useLibraryQuery(filter);
+  const { data: items = [], isLoading } = useLibraryQuery(filter);
   const mutations = useLibraryMutations();
 
   return {
     items,
     isLoading,
-    error,
     filter,
     setFilter,
     ...mutations,
