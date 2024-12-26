@@ -37,9 +37,9 @@ const Library = () => {
   const handleAddOrUpdateItem = async (data: any) => {
     try {
       if (editingItem) {
-        await updateItem({ id: editingItem.id, ...data });
+        await updateItem.mutateAsync({ id: editingItem.id, ...data });
       } else {
-        await addItem(data);
+        await addItem.mutateAsync(data);
       }
       setIsDialogOpen(false);
       setEditingItem(null);
@@ -97,7 +97,7 @@ const Library = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => toggleStar({ id: item.id, is_starred: !item.is_starred })}
+                  onClick={() => toggleStar.mutate({ id: item.id, is_starred: !item.is_starred })}
                   className="hover:text-yellow-400"
                 >
                   <Star className={`w-4 h-4 ${item.is_starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
@@ -113,7 +113,7 @@ const Library = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => deleteItem(item.id)}
+                  onClick={() => deleteItem.mutate(item.id)}
                   className="hover:text-red-500"
                 >
                   <Trash2 className="w-4 h-4" />
