@@ -71,7 +71,7 @@ export function ImageAlbum({ images, itemId, onUpdate }: ImageAlbumProps) {
   return (
     <div className="space-y-4">
       {/* Preview Grid */}
-      <div className="grid grid-cols-2 gap-2 aspect-square">
+      <div className="grid grid-cols-2 gap-2">
         {images.slice(0, 4).map((image, index) => (
           <div
             key={index}
