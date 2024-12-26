@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, X, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, Trash2, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
@@ -71,6 +71,7 @@ export function ImageAlbum({ images, onDeleteImage }: ImageAlbumProps) {
             setIsEditMode(true);
           }}
         >
+          <Pencil className="h-4 w-4 mr-2" />
           ערוך אלבום
         </Button>
       </div>
