@@ -125,16 +125,20 @@ const Library = () => {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-3">{item.content}</p>
+            
             {item.type === 'image_album' && item.cloudinary_urls && (
-              <ImageAlbumCard
-                images={item.cloudinary_urls}
-                title={item.title}
-                onEdit={() => {
-                  setEditingItem(item);
-                  setIsDialogOpen(true);
-                }}
-              />
+              <div className="mt-2">
+                <ImageAlbumCard
+                  images={item.cloudinary_urls}
+                  title={item.title}
+                  onEdit={() => {
+                    setEditingItem(item);
+                    setIsDialogOpen(true);
+                  }}
+                />
+              </div>
             )}
+            
             {item.file_details?.path && (item.type === 'image' || item.type === 'video' || item.type === 'pdf') && (
               <div className="mt-2">
                 <MediaCard

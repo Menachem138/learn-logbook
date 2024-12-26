@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface ImageAlbumCardProps {
   images: string[];
@@ -32,6 +31,10 @@ export function ImageAlbumCard({ images, title, onEdit }: ImageAlbumCardProps) {
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
+
+  if (!images || images.length === 0) {
+    return null;
+  }
 
   return (
     <>
