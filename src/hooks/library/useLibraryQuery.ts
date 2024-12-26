@@ -7,6 +7,21 @@ import { Database } from '@/integrations/supabase/types';
 
 type LibraryItemRow = Database['public']['Tables']['library_items']['Row'];
 
+interface CloudinaryDataJson {
+  publicId?: string;
+  url?: string;
+  resourceType?: string;
+  format?: string;
+  size?: number;
+}
+
+interface FileDetailsJson {
+  path?: string | string[];
+  name?: string;
+  size?: number;
+  type?: string;
+}
+
 export const useLibraryQuery = (filter: string) => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -47,8 +62,9 @@ export const useLibraryQuery = (filter: string) => {
         let cloudinaryData: CloudinaryData | CloudinaryData[] | null = null;
         if (item.cloudinary_data) {
           try {
-            cloudinaryData = Array.isArray(item.cloudinary_data) 
-              ? item.cloudinary_data.map(d => ({
+            const cloudinaryJson = item.cloudinary_data as CloudinaryDataJson | CloudinaryDataJson[];
+            cloudinaryData = Array.isArray(cloudinaryJson) 
+              ? cloudinaryJson.map(d => ({
                   publicId: d.publicId,
                   url: d.url,
                   resourceType: d.resourceType,
@@ -56,11 +72,11 @@ export const useLibraryQuery = (filter: string) => {
                   size: d.size,
                 }))
               : {
-                  publicId: item.cloudinary_data.publicId,
-                  url: item.cloudinary_data.url,
-                  resourceType: item.cloudinary_data.resourceType,
-                  format: item.cloudinary_data.format,
-                  size: item.cloudinary_data.size,
+                  publicId: (cloudinaryJson as CloudinaryDataJson).publicId,
+                  url: (cloudinaryJson as CloudinaryDataJson).url,
+                  resourceType: (cloudinaryJson as CloudinaryDataJson).resourceType,
+                  format: (cloudinaryJson as CloudinaryDataJson).format,
+                  size: (cloudinaryJson as CloudinaryDataJson).size,
                 };
           } catch (e) {
             console.error('Error parsing cloudinary_data:', e);
@@ -71,11 +87,12 @@ export const useLibraryQuery = (filter: string) => {
         let fileDetails: FileDetails | undefined;
         if (item.file_details) {
           try {
+            const fileJson = item.file_details as FileDetailsJson;
             fileDetails = {
-              path: item.file_details.path,
-              name: item.file_details.name,
-              size: item.file_details.size,
-              type: item.file_details.type,
+              path: fileJson.path,
+              name: fileJson.name,
+              size: fileJson.size,
+              type: fileJson.type,
             };
           } catch (e) {
             console.error('Error parsing file_details:', e);
