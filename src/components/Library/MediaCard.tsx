@@ -5,7 +5,7 @@ import { MediaViewer } from "./MediaViewer";
 import { ImageAlbum } from "./ImageAlbum";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf" | "image_album";
+  type: "image" | "video" | "pdf" | "image_gallery";
   src: string | string[];
   title: string;
 }
@@ -34,8 +34,8 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     );
   }
 
-  if (type === "image_album" && Array.isArray(src)) {
-    console.log('Rendering image album with sources:', src);
+  if (type === "image_gallery" && Array.isArray(src)) {
+    console.log('Rendering image gallery with sources:', src);
     return <ImageAlbum images={src} title={title} />;
   }
 
