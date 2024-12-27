@@ -23,7 +23,7 @@ export function FileUpload({
     accept: {
       'image/*': [],
       'video/*': [],
-      'application/pdf': []
+      'application/pdf': ['.pdf']
     },
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
