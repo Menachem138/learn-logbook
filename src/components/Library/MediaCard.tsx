@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
 import { FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CLOUDINARY_CLOUD_NAME } from "@/integrations/cloudinary/client";
 
 interface MediaCardProps {
   type: "image" | "video" | "image_gallery" | "pdf";
@@ -76,26 +77,9 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
     const handlePdfClick = async () => {
       try {
         if (isCloudinaryUrl) {
-          // For Cloudinary URLs, we'll download the file and save it to Supabase Storage
-          const response = await fetch(pdfUrl);
-          const blob = await response.blob();
-          const fileName = pdfUrl.split('/').pop() || 'document.pdf';
-          
-          const { data, error } = await supabase.storage
-            .from('content_library')
-            .upload(`pdfs/${fileName}`, blob, {
-              contentType: 'application/pdf',
-              upsert: true
-            });
-            
-          if (error) throw error;
-          
-          // Get the public URL from Supabase
-          const { data: { publicUrl } } = supabase.storage
-            .from('content_library')
-            .getPublicUrl(`pdfs/${fileName}`);
-            
-          window.open(publicUrl, '_blank');
+          // For Cloudinary URLs, we'll use the download URL format
+          const downloadUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/fl_attachment/${pdfUrl.split('/upload/')[1]}`;
+          window.open(downloadUrl, '_blank');
         } else {
           // For Supabase URLs, open directly
           window.open(pdfUrl, '_blank');
