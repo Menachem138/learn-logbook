@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MediaCardProps {
   type: "image" | "video" | "pdf" | "image_gallery";
@@ -16,18 +17,38 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
 
   console.log("MediaCard props:", { type, src, title });
 
+  const getSignedUrl = async (path: string) => {
+    try {
+      const { data: { signedUrl }, error } = await supabase.storage
+        .from('content_library')
+        .createSignedUrl(path, 60 * 60); // 1 hour expiry
+
+      if (error) {
+        console.error("Error getting signed URL:", error);
+        return path;
+      }
+
+      return signedUrl;
+    } catch (error) {
+      console.error("Error in getSignedUrl:", error);
+      return path;
+    }
+  };
+
   if (type === "pdf") {
     return (
       <Card className="p-4 flex items-center gap-2">
         <FileText className="w-6 h-6 text-red-500" />
-        <a 
-          href={typeof src === 'string' ? src : '#'} 
-          target="_blank" 
-          rel="noopener noreferrer"
+        <button 
+          onClick={async () => {
+            const filePath = typeof src === 'string' ? src : src[0];
+            const signedUrl = await getSignedUrl(filePath);
+            window.open(signedUrl, '_blank');
+          }}
           className="text-blue-500 hover:underline"
         >
           {title}
-        </a>
+        </button>
       </Card>
     );
   }
