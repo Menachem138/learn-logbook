@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
 import { useToast } from "@/hooks/use-toast";
 import { FileUpload } from "./FileUpload";
+import { TypeSelector } from "./TypeSelector";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ interface ItemDialogProps {
 }
 
 export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
+  const { session } = useAuth();
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
@@ -30,13 +33,32 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const { toast } = useToast();
 
   React.useEffect(() => {
+    if (!session) {
+      toast({
+        title: "שגיאה",
+        description: "יש להתחבר כדי לבצע פעולה זו",
+        variant: "destructive",
+      });
+      onClose();
+      return;
+    }
+
     if (initialData?.type === 'image_gallery' && initialData.file_details?.paths) {
       setExistingPaths(initialData.file_details.paths);
     }
-  }, [initialData]);
+  }, [initialData, session, onClose, toast]);
 
   const onSubmitForm = async (data: any) => {
     try {
+      if (!session) {
+        toast({
+          title: "שגיאה",
+          description: "יש להתחבר כדי לבצע פעולה זו",
+          variant: "destructive",
+        });
+        return;
+      }
+
       console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       
       if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && 
@@ -106,20 +128,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
           <div>
-            <select
-              className="w-full p-2 border rounded-md"
-              {...register("type", { required: true })}
-              disabled={!!initialData}
-            >
-              <option value="note">הערה</option>
-              <option value="link">קישור</option>
-              <option value="image">תמונה</option>
-              <option value="image_gallery">אלבום תמונות</option>
-              <option value="video">וידאו</option>
-              <option value="whatsapp">וואטסאפ</option>
-              <option value="pdf">PDF</option>
-              <option value="question">שאלה</option>
-            </select>
+            <TypeSelector register={register} disabled={!!initialData} />
           </div>
           <div>
             <Textarea

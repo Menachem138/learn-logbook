@@ -42,13 +42,25 @@ export function FileUpload({
     );
   };
 
+  const getUploadMessage = () => {
+    switch (type) {
+      case 'pdf':
+        return "גרור קובץ PDF או לחץ לבחירת קובץ";
+      case 'image_gallery':
+        return "גרור תמונות או לחץ לבחירת קבצים";
+      case 'video':
+        return "גרור קובץ וידאו או לחץ לבחירת קובץ";
+      default:
+        return "גרור קובץ או לחץ לבחירת קובץ";
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
         <input {...getInputProps()} />
-        <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
+        <p>{getUploadMessage()}</p>
         {type === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
-        {type === 'pdf' && <p className="text-sm text-gray-500">ניתן להעלות קובץ PDF</p>}
       </div>
       
       {selectedFiles.length > 0 && (
