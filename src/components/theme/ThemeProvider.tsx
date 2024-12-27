@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 type Theme = 'light' | 'dark';
@@ -47,8 +48,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const value = {
+    theme,
+    toggleTheme,
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

@@ -1,80 +1,103 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf";
-  src: string;
+  type: "image" | "video" | "image_gallery";
+  src: string | string[];
   title: string;
+  onDeleteImage?: (index: number) => void;
 }
 
-export function MediaCard({ type, src, title }: MediaCardProps) {
+export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // Add logging to help debug the src URL
-  console.log('MediaCard rendered with:', { type, src, title });
-
-  if (type === "pdf") {
-    // For PDFs, use the URL directly if it's from Supabase storage or Cloudinary
-    const pdfUrl = src.includes('supabase.co') || src.includes('cloudinary.com') 
-      ? src 
-      : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${src}`;
-    
-    console.log('PDF URL:', pdfUrl);
-
-    return (
-      <Card className="p-4 flex items-center gap-2">
-        <FileText className="w-6 h-6 text-red-500" />
-        <a 
-          href={pdfUrl}
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-          onClick={(e) => {
-            // Add click handler logging
-            console.log('PDF link clicked:', pdfUrl);
-          }}
-        >
-          {title}
-        </a>
-      </Card>
-    );
-  }
+  console.log("MediaCard props:", { type, src, title });
 
   const handleMediaClick = () => {
-    if (type === "image" || type === "video") {
+    console.log("Media clicked:", { type, isViewerOpen });
+    if (type === "image" || type === "video" || type === "image_gallery") {
       setIsViewerOpen(true);
     }
   };
 
+  if (type === "image_gallery" && Array.isArray(src)) {
+    console.log("Rendering image gallery with sources:", src);
+    return (
+      <>
+        <div 
+          className="cursor-pointer group relative"
+          onClick={handleMediaClick}
+        >
+          <div className="grid grid-cols-2 gap-0.5 aspect-square">
+            {src.slice(0, 4).map((imgSrc, index) => (
+              <div key={index} className="relative">
+                <img 
+                  src={imgSrc} 
+                  alt={`${title} ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error("Image failed to load:", imgSrc);
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+                {index === 3 && src.length > 4 && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <span className="text-white text-xl font-bold">+{src.length - 4}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <MediaViewer
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          type="image_gallery"
+          src={src}
+          title={title}
+          selectedIndex={selectedImageIndex}
+          onImageChange={setSelectedImageIndex}
+          onDeleteImage={onDeleteImage}
+        />
+      </>
+    );
+  }
+
   return (
     <>
-      <Card 
-        className="overflow-hidden cursor-pointer group relative"
+      <div 
+        className="cursor-pointer group relative aspect-video"
         onClick={handleMediaClick}
       >
         {type === "image" ? (
           <img 
-            src={src} 
+            src={typeof src === 'string' ? src : src[0]} 
             alt={title} 
-            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              console.error("Image failed to load:", src);
+              e.currentTarget.src = "/placeholder.svg";
+            }}
           />
         ) : type === "video" ? (
-          <video controls className="w-full h-auto">
-            <source src={src} type="video/mp4" />
+          <video controls className="w-full h-full object-cover">
+            <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
         ) : null}
-      </Card>
+      </div>
 
       {(type === "image" || type === "video") && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
           type={type}
-          src={src}
+          src={typeof src === 'string' ? src : src[0]}
           title={title}
         />
       )}

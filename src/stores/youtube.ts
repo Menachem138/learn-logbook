@@ -10,17 +10,16 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
   error: null,
 
   fetchVideos: async () => {
-    console.log('Fetching videos from Supabase...');
+    console.log('YouTubeStore: Starting to fetch videos...');
     set({ isLoading: true, error: null });
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('Fetch videos - Auth state:', { isAuthenticated: !!user, userId: user?.id });
-
       if (!user) {
-        console.log('No authenticated user, cannot fetch videos');
-        throw new Error('Unauthorized');
+        throw new Error('User not authenticated');
       }
 
+      console.log('YouTubeStore: Fetching videos for user:', user.id);
       const { data, error } = await supabase
         .from('youtube_videos')
         .select('*')
@@ -28,16 +27,17 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching videos:', error);
+        console.error('YouTubeStore: Error fetching videos:', error);
         throw error;
       }
 
+      console.log('YouTubeStore: Successfully fetched videos:', data?.length);
       set({ videos: data || [], isLoading: false, error: null });
-      console.log('Videos updated in store:', data);
     } catch (error) {
-      console.error('Error in fetchVideos:', error);
+      console.error('YouTubeStore: Error in fetchVideos:', error);
       const message = error instanceof Error ? error.message : 'Failed to fetch videos';
       set({ error: getHebrewError(message), isLoading: false });
+      throw error;
     }
   },
 
@@ -46,7 +46,7 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('Unauthorized');
+        throw new Error('User not authenticated');
       }
 
       const videoId = parseYouTubeUrl(url);
@@ -62,7 +62,7 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
           video_id: videoId,
           title: details.title,
           thumbnail_url: details.thumbnail,
-          user_id: user.id,
+          user_id: user.id
         });
 
       if (error) throw error;
@@ -81,25 +81,23 @@ export const useYouTubeStore = create<YouTubeStore>()((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('Delete video - Auth state:', { isAuthenticated: !!user, userId: user?.id });
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       console.log('Attempting to delete video:', { videoId: id });
 
-      if (!user) {
-        console.error('Delete video - No authenticated user');
-        throw new Error('Unauthorized');
+      const { error } = await supabase
+        .from('youtube_videos')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Delete video - Database error:', error);
+        throw error;
       }
 
-      // Call the Edge Function to delete the video
-      const { error: functionError } = await supabase.functions.invoke('delete-youtube-video', {
-        body: { videoId: id }
-      });
-
-      if (functionError) {
-        console.error('Delete video - Edge Function error:', functionError);
-        throw functionError;
-      }
-
-      // Only update local state after successful server deletion
       set(state => ({
         videos: state.videos.filter(video => video.id !== id),
         isLoading: false,

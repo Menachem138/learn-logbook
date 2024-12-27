@@ -5,10 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
-import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { FileUpload } from "./FileUpload";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -18,7 +16,6 @@ interface ItemDialogProps {
 }
 
 export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
-  const { session } = useAuth();
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
@@ -33,35 +30,16 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const { toast } = useToast();
 
   React.useEffect(() => {
-    if (!session) {
-      toast({
-        title: "שגיאה",
-        description: "יש להתחבר כדי לבצע פעולה זו",
-        variant: "destructive",
-      });
-      onClose();
-      return;
-    }
-
     if (initialData?.type === 'image_gallery' && initialData.file_details?.paths) {
       setExistingPaths(initialData.file_details.paths);
     }
-  }, [initialData, session, onClose, toast]);
+  }, [initialData]);
 
   const onSubmitForm = async (data: any) => {
     try {
-      if (!session) {
-        toast({
-          title: "שגיאה",
-          description: "יש להתחבר כדי לבצע פעולה זו",
-          variant: "destructive",
-        });
-        return;
-      }
-
       console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       
-      if ((selectedType === 'image' || selectedType === 'video') && selectedFiles.length === 0 && !initialData?.file_details) {
+      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
         toast({
           title: "שגיאה",
           description: "נא להעלות קובץ",
@@ -98,30 +76,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         variant: "destructive",
       });
     }
-  };
-
-  const { getRootProps, getInputProps } = useDropzone({
-    accept: {
-      'image/*': [],
-      'video/*': []
-    },
-    onDrop: (acceptedFiles) => {
-      console.log("Files dropped:", acceptedFiles);
-      if (selectedType === 'image_gallery') {
-        setSelectedFiles(prev => [...prev, ...acceptedFiles]);
-      } else {
-        setSelectedFiles([acceptedFiles[0]]);
-      }
-    }
-  });
-
-  const handleRemoveExistingImage = (indexToRemove: number) => {
-    console.log("Removing image at index:", indexToRemove);
-    setExistingPaths(prev => {
-      const newPaths = prev.filter((_, index) => index !== indexToRemove);
-      console.log("Updated paths after removal:", newPaths);
-      return newPaths;
-    });
   };
 
   React.useEffect(() => {
@@ -162,6 +116,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="image_gallery">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
+              <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
             </select>
           </div>
@@ -172,52 +127,14 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video') && (
-            <div className="space-y-2">
-              <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
-                <input {...getInputProps()} />
-                <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
-                {selectedType === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
-              </div>
-              {selectedFiles.length > 0 && (
-                <div className="space-y-2">
-                  {selectedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm text-gray-500">{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
-                      >
-                        הסר
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {initialData?.type === 'image_gallery' && existingPaths.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-500 mb-2">תמונות קיימות באלבום:</p>
-                  <div className="grid grid-cols-4 gap-2">
-                    {existingPaths.map((path, index) => (
-                      <div key={index} className="relative aspect-square group">
-                        <img src={path} alt={`תמונה ${index + 1}`} className="w-full h-full object-cover rounded" />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleRemoveExistingImage(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
+            <FileUpload
+              type={selectedType}
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              existingPaths={existingPaths}
+              setExistingPaths={setExistingPaths}
+            />
           )}
 
           <div className="flex justify-end gap-2">

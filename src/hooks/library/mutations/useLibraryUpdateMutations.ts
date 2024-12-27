@@ -10,13 +10,16 @@ export const useLibraryUpdateMutations = () => {
   const queryClient = useQueryClient();
 
   const updateItem = useMutation({
-    mutationFn: async ({ id, title, content, type, file }: {
+    mutationFn: async ({ id, title, content, type, files, file_details }: {
       id: string;
       title: string;
       content: string;
       type: LibraryItemType;
-      file?: File;
+      files?: File[];
+      file_details?: { paths?: string[] };
     }) => {
+      console.log("Updating item:", { id, title, content, type, files, file_details });
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -24,7 +27,7 @@ export const useLibraryUpdateMutations = () => {
 
       const { data: currentItem } = await supabase
         .from('library_items')
-        .select('cloudinary_data')
+        .select('cloudinary_data, file_details')
         .eq('id', id)
         .single();
 
@@ -32,24 +35,44 @@ export const useLibraryUpdateMutations = () => {
         currentItem.cloudinary_data as unknown as CloudinaryResponse : 
         null;
 
-      if (file) {
+      // Handle file uploads if present
+      if (files?.length) {
         if (cloudinaryResponse?.publicId) {
           await deleteFromCloudinary(cloudinaryResponse.publicId);
         }
-        cloudinaryResponse = await uploadToCloudinary(file);
+        cloudinaryResponse = await uploadToCloudinary(files[0]);
       }
+
+      // Prepare update data
+      const updateData: any = {
+        title,
+        content,
+        type,
+      };
+
+      // Only include cloudinary_data if we have a response
+      if (cloudinaryResponse) {
+        updateData.cloudinary_data = cloudinaryResponseToJson(cloudinaryResponse);
+      }
+
+      // Include file_details if provided
+      if (file_details) {
+        updateData.file_details = file_details;
+      }
+
+      console.log("Sending update to Supabase:", updateData);
 
       const { error } = await supabase
         .from('library_items')
-        .update({
-          title,
-          content,
-          type,
-          cloudinary_data: cloudinaryResponseToJson(cloudinaryResponse),
-        })
+        .update(updateData)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase update error:", error);
+        throw error;
+      }
+
+      console.log("Update successful");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library-items'] });
