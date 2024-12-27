@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
-  type: "image" | "video" | "image_gallery";
+  type: "image" | "video" | "image_gallery" | "pdf";
   src: string | string[];
   title: string;
   onDeleteImage?: (index: number) => void;
@@ -17,7 +17,7 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
 
   const handleMediaClick = () => {
     console.log("Media clicked:", { type, isViewerOpen });
-    if (type === "image" || type === "video" || type === "image_gallery") {
+    if (type === "image" || type === "video" || type === "image_gallery" || type === "pdf") {
       setIsViewerOpen(true);
     }
   };
@@ -89,10 +89,14 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
             <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
+        ) : type === "pdf" ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <span className="text-gray-600">לחץ לצפייה ב-PDF</span>
+          </div>
         ) : null}
       </div>
 
-      {(type === "image" || type === "video") && (
+      {(type === "image" || type === "video" || type === "pdf") && (
         <MediaViewer
           isOpen={isViewerOpen}
           onClose={() => setIsViewerOpen(false)}
