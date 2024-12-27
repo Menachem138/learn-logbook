@@ -70,15 +70,21 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
 
   if (type === "pdf") {
     const pdfUrl = typeof src === 'string' ? src : src[0];
-    
-    // Check if the URL is from Cloudinary or Supabase
     const isCloudinaryUrl = pdfUrl.includes('cloudinary');
     
     const handlePdfClick = async () => {
       try {
         if (isCloudinaryUrl) {
-          // For Cloudinary URLs, we'll use the download URL format
-          const downloadUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/fl_attachment/${pdfUrl.split('/upload/')[1]}`;
+          // Extract the public ID and version from the URL
+          const urlParts = pdfUrl.split('/upload/');
+          if (urlParts.length !== 2) {
+            console.error("Invalid Cloudinary URL format");
+            return;
+          }
+          
+          // Create a direct download URL with fl_attachment
+          const downloadUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/fl_attachment/${urlParts[1]}`;
+          console.log("Opening PDF with URL:", downloadUrl);
           window.open(downloadUrl, '_blank');
         } else {
           // For Supabase URLs, open directly
