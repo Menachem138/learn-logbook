@@ -46,13 +46,23 @@ const Library = () => {
           file_details: data.file_details
         };
         await updateItem.mutateAsync(updateData);
+        toast({
+          title: "הפריט עודכן בהצלחה",
+        });
       } else {
         await addItem.mutateAsync(data);
+        toast({
+          title: "הפריט נוסף בהצלחה",
+        });
       }
       setIsDialogOpen(false);
       setEditingItem(null);
     } catch (error) {
       console.error('Error adding/updating item:', error);
+      toast({
+        title: "שגיאה בשמירת הפריט",
+        variant: "destructive",
+      });
     }
   };
 
@@ -69,6 +79,9 @@ const Library = () => {
         
         if (newPaths.length === 0) {
           await deleteItem.mutateAsync(item.id);
+          toast({
+            title: "האלבום נמחק בהצלחה",
+          });
         } else {
           const updateData: LibraryItemUpdate = {
             id: item.id,
@@ -78,6 +91,9 @@ const Library = () => {
             file_details: { paths: newPaths }
           };
           await updateItem.mutateAsync(updateData);
+          toast({
+            title: "התמונה נמחקה בהצלחה",
+          });
         }
       }
     } catch (error) {
