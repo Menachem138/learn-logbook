@@ -12,12 +12,12 @@ interface FileUploadProps {
   setExistingPaths: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export function FileUpload({ 
-  type, 
-  selectedFiles, 
-  setSelectedFiles, 
-  existingPaths, 
-  setExistingPaths 
+export function FileUpload({
+  type,
+  selectedFiles,
+  setSelectedFiles,
+  existingPaths,
+  setExistingPaths,
 }: FileUploadProps) {
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -28,39 +28,53 @@ export function FileUpload({
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
       if (type === 'image_gallery') {
-        setSelectedFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
+        setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
       } else {
         setSelectedFiles([acceptedFiles[0]]);
       }
-    }
+    },
   });
 
   const handleRemoveExistingImage = (indexToRemove: number) => {
     console.log("Removing image at index:", indexToRemove);
-    setExistingPaths(prevPaths => 
-      prevPaths.filter((_, index) => index !== indexToRemove)
+    setExistingPaths((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
     );
   };
 
   return (
     <div className="space-y-2">
-      <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
+      <div
+        {...getRootProps()}
+        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary"
+      >
         <input {...getInputProps()} />
         <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
-        {type === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
-        {type === 'pdf' && <p className="text-sm text-gray-500">ניתן להעלות קובץ PDF</p>}
+        {type === "image_gallery" && (
+          <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>
+        )}
+        {type === "pdf" && (
+          <p className="text-sm text-gray-500">ניתן להעלות קובץ PDF</p>
+        )}
       </div>
-      
+
       {selectedFiles.length > 0 && (
         <div className="space-y-2">
           {selectedFiles.map((file, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+            <div
+              key={index}
+              className="flex items-center justify-between p-2 bg-gray-50 rounded"
+            >
               <span className="text-sm text-gray-500">{file.name}</span>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                onClick={() =>
+                  setSelectedFiles((files) =>
+                    files.filter((_, i) => i !== index)
+                  )
+                }
               >
                 הסר
               </Button>
@@ -69,13 +83,17 @@ export function FileUpload({
         </div>
       )}
 
-      {type === 'image_gallery' && existingPaths.length > 0 && (
+      {type === "image_gallery" && existingPaths.length > 0 && (
         <div className="mt-4">
           <p className="text-sm text-gray-500 mb-2">תמונות קיימות באלבום:</p>
           <div className="grid grid-cols-4 gap-2">
             {existingPaths.map((path, index) => (
               <div key={index} className="relative aspect-square group">
-                <img src={path} alt={`תמונה ${index + 1}`} className="w-full h-full object-cover rounded" />
+                <img
+                  src={path}
+                  alt={`תמונה ${index + 1}`}
+                  className="w-full h-full object-cover rounded"
+                />
                 <Button
                   type="button"
                   variant="destructive"

@@ -136,9 +136,9 @@ const ItemDialog = ({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps)
               <option value="image">תמונה</option>
               <option value="image_gallery">אלבום תמונות</option>
               <option value="video">וידאו</option>
+              <option value="pdf">PDF</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="question">שאלה</option>
-              <option value="pdf">PDF</option>
             </select>
           </div>
           <div>
