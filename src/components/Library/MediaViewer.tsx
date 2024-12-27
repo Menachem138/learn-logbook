@@ -1,30 +1,131 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 interface MediaViewerProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "image" | "video" | "pdf" | "image_gallery";
+  type: "image" | "video" | "image_gallery";
   src: string | string[];
   title: string;
+  selectedIndex?: number;
+  onImageChange?: (index: number) => void;
+  onDeleteImage?: (index: number) => void;
 }
 
-export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerProps) {
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+export function MediaViewer({ 
+  isOpen, 
+  onClose, 
+  type, 
+  src, 
+  title,
+  selectedIndex = 0,
+  onImageChange,
+  onDeleteImage
+}: MediaViewerProps) {
+  const { toast } = useToast();
 
-  const handlePrevImage = () => {
-    if (Array.isArray(src)) {
-      setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : src.length - 1));
+  const handlePrevious = () => {
+    if (Array.isArray(src) && onImageChange) {
+      const newIndex = selectedIndex > 0 ? selectedIndex - 1 : src.length - 1;
+      onImageChange(newIndex);
     }
   };
 
-  const handleNextImage = () => {
-    if (Array.isArray(src)) {
-      setCurrentImageIndex((prev) => (prev < src.length - 1 ? prev + 1 : 0));
+  const handleNext = () => {
+    if (Array.isArray(src) && onImageChange) {
+      const newIndex = selectedIndex < src.length - 1 ? selectedIndex + 1 : 0;
+      onImageChange(newIndex);
     }
   };
+
+  const handleDelete = (index: number) => {
+    if (onDeleteImage) {
+      onDeleteImage(index);
+      toast({
+        title: "התמונה נמחקה בהצלחה",
+      });
+    }
+  };
+
+  if (type === "image_gallery" && Array.isArray(src)) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2 z-10 bg-black/20 hover:bg-black/40"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4 text-white" />
+            </Button>
+            
+            {onDeleteImage && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-12 top-2 z-10 bg-black/20 hover:bg-black/40"
+                onClick={() => handleDelete(selectedIndex)}
+              >
+                <Trash2 className="h-4 w-4 text-white" />
+              </Button>
+            )}
+
+            <div className="relative w-full aspect-[16/9]">
+              <img
+                src={src[selectedIndex]}
+                alt={`${title} ${selectedIndex + 1}`}
+                className="w-full h-full object-contain"
+              />
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+                onClick={handlePrevious}
+              >
+                <ChevronLeft className="h-6 w-6 text-white" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
+                onClick={handleNext}
+              >
+                <ChevronRight className="h-6 w-6 text-white" />
+              </Button>
+            </div>
+          </div>
+          
+          <ScrollArea className="w-full p-4">
+            <div className="flex gap-2">
+              {src.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => onImageChange?.(index)}
+                  className={`relative w-20 h-20 rounded-lg overflow-hidden focus:outline-none ${
+                    index === selectedIndex ? 'ring-2 ring-primary' : ''
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${title} thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -38,70 +139,22 @@ export function MediaViewer({ isOpen, onClose, type, src, title }: MediaViewerPr
           >
             <X className="h-4 w-4 text-white" />
           </Button>
-          
-          {type === "image_gallery" && Array.isArray(src) ? (
-            <div className="relative">
-              <img
-                src={src[currentImageIndex]}
-                alt={`${title} - תמונה ${currentImageIndex + 1}`}
-                className="w-full h-auto max-h-[80vh] object-contain"
-              />
-              {src.length > 1 && (
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                  {src.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full ${
-                        index === currentImageIndex ? "bg-white" : "bg-white/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-              {src.length > 1 && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-                    onClick={handlePrevImage}
-                  >
-                    <X className="h-4 w-4 text-white rotate-45" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-                    onClick={handleNextImage}
-                  >
-                    <X className="h-4 w-4 text-white -rotate-135" />
-                  </Button>
-                </>
-              )}
-            </div>
-          ) : type === "image" ? (
+          {type === "image" && typeof src === 'string' ? (
             <img
-              src={src as string}
+              src={src}
               alt={title}
               className="w-full h-auto max-h-[80vh] object-contain"
             />
-          ) : type === "video" ? (
+          ) : type === "video" && typeof src === 'string' ? (
             <video
-              src={src as string}
+              src={src}
               controls
               className="w-full max-h-[80vh]"
               autoPlay
             >
-              <source src={src as string} type="video/mp4" />
+              <source src={src} type="video/mp4" />
               הדפדפן שלך לא תומך בתגית וידאו.
             </video>
-          ) : type === "pdf" ? (
-            <iframe
-              src={src as string}
-              className="w-full h-[80vh]"
-              title={title}
-            />
           ) : null}
         </div>
       </DialogContent>

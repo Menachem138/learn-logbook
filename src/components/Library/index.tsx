@@ -4,20 +4,26 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
-import { LibraryItem, LibraryItemType } from "@/types/library";
+import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
-    case 'link': return <Link className="w-4 h-4" />;
-    case 'note': return <FileText className="w-4 h-4" />;
-    case 'image': return <Image className="w-4 h-4" />;
-    case 'video': return <Video className="w-4 h-4" />;
-    case 'whatsapp': return <MessageCircle className="w-4 h-4" />;
-    case 'pdf': return <FileText className="w-4 h-4 text-red-500" />;
-    case 'question': return <HelpCircle className="w-4 h-4 text-purple-500" />;
-    default: return null;
+    case 'link':
+      return <Link className="w-4 h-4" />;
+    case 'note':
+      return <FileText className="w-4 h-4" />;
+    case 'image':
+      return <Image className="w-4 h-4" />;
+    case 'video':
+      return <Video className="w-4 h-4" />;
+    case 'whatsapp':
+      return <MessageCircle className="w-4 h-4" />;
+    case 'pdf':
+      return <FileText className="w-4 h-4 text-red-500" />;
+    case 'question':
+      return <HelpCircle className="w-4 h-4 text-purple-500" />;
   }
 };
 
@@ -26,10 +32,18 @@ const Library = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
 
-  const handleAddOrUpdateItem = async (data: any) => {
+  const handleAddOrUpdateItem = async (data: LibraryItemInput) => {
     try {
       if (editingItem) {
-        await updateItem.mutateAsync({ id: editingItem.id, ...data });
+        const updateData: LibraryItemUpdate = {
+          id: editingItem.id,
+          title: data.title,
+          content: data.content,
+          type: data.type,
+          files: data.files,
+          file_details: data.file_details
+        };
+        await updateItem.mutateAsync(updateData);
       } else {
         await addItem.mutateAsync(data);
       }
@@ -43,6 +57,26 @@ const Library = () => {
   const handleEdit = (item: LibraryItem) => {
     setEditingItem(item);
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteImage = async (item: LibraryItem, imageIndex: number) => {
+    if (item.file_details?.paths) {
+      const newPaths = [...item.file_details.paths];
+      newPaths.splice(imageIndex, 1);
+      
+      if (newPaths.length === 0) {
+        await deleteItem.mutateAsync(item.id);
+      } else {
+        const updateData: LibraryItemUpdate = {
+          id: item.id,
+          title: item.title,
+          content: item.content,
+          type: item.type,
+          file_details: { paths: newPaths }
+        };
+        await updateItem.mutateAsync(updateData);
+      }
+    }
   };
 
   if (isLoading) {
@@ -76,15 +110,17 @@ const Library = () => {
           </Button>
         </div>
       </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {items.map((item: LibraryItem) => (
           <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            {item.file_details && (['image', 'video', 'pdf', 'image_gallery'].includes(item.type)) && (
+            {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_gallery') && (
               <div className="relative aspect-video">
                 <MediaCard
                   type={item.type as "image" | "video" | "pdf" | "image_gallery"}
                   src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
                   title={item.title}
+                  onDeleteImage={item.type === 'image_gallery' ? (index) => handleDeleteImage(item, index) : undefined}
                 />
               </div>
             )}
@@ -126,6 +162,7 @@ const Library = () => {
           </Card>
         ))}
       </div>
+
       <ItemDialog
         onSubmit={handleAddOrUpdateItem}
         initialData={editingItem}
