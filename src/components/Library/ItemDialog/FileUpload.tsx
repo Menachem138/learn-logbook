@@ -50,6 +50,8 @@ export function FileUpload({
         return "גרור תמונות או לחץ לבחירת קבצים";
       case 'video':
         return "גרור קובץ וידאו או לחץ לבחירת קובץ";
+      case 'image':
+        return "גרור תמונה או לחץ לבחירת קובץ";
       default:
         return "גרור קובץ או לחץ לבחירת קובץ";
     }
