@@ -67,10 +67,14 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
   }
 
   if (type === "pdf") {
+    const pdfUrl = typeof src === 'string' ? src : src[0];
+    // Add fl_attachment to force download instead of preview
+    const downloadUrl = pdfUrl.replace('/upload/', '/upload/fl_attachment/');
+    
     return (
       <div 
         className="cursor-pointer group relative aspect-video bg-gray-100 flex items-center justify-center"
-        onClick={() => window.open(typeof src === 'string' ? src : src[0], '_blank')}
+        onClick={() => window.open(downloadUrl, '_blank')}
       >
         <FileText className="w-12 h-12 text-gray-400" />
         <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2">
