@@ -15,7 +15,7 @@ interface ItemDialogProps {
   initialData?: LibraryItem | null;
 }
 
-export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
+const ItemDialog = ({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) => {
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
@@ -149,4 +149,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default ItemDialog;
