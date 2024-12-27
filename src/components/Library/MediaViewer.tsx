@@ -1,9 +1,12 @@
 import React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 
 interface MediaViewerProps {
   isOpen: boolean;
@@ -16,42 +19,16 @@ interface MediaViewerProps {
   onDeleteImage?: (index: number) => void;
 }
 
-export function MediaViewer({ 
-  isOpen, 
-  onClose, 
-  type, 
-  src, 
+export function MediaViewer({
+  isOpen,
+  onClose,
+  type,
+  src,
   title,
   selectedIndex = 0,
   onImageChange,
-  onDeleteImage
+  onDeleteImage,
 }: MediaViewerProps) {
-  const { toast } = useToast();
-
-  if (type === "pdf") {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl w-full p-0">
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 z-10 bg-black/20 hover:bg-black/40"
-              onClick={onClose}
-            >
-              <X className="h-4 w-4 text-white" />
-            </Button>
-            <iframe
-              src={typeof src === 'string' ? src : src[0]}
-              className="w-full h-[80vh]"
-              title={title}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   const handlePrevious = () => {
     if (Array.isArray(src) && onImageChange) {
       const newIndex = selectedIndex > 0 ? selectedIndex - 1 : src.length - 1;
@@ -66,133 +43,75 @@ export function MediaViewer({
     }
   };
 
-  const handleDelete = async (index: number) => {
-    try {
-      if (onDeleteImage) {
-        await onDeleteImage(index);
-        toast({
-          title: "התמונה נמחקה בהצלחה",
-        });
-        if (Array.isArray(src) && src.length > 1) {
-          handleNext();
-        } else {
-          onClose();
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      toast({
-        title: "שגיאה במחיקת התמונה",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (type === "image_gallery" && Array.isArray(src)) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 z-10 bg-black/20 hover:bg-black/40"
-              onClick={onClose}
-            >
-              <X className="h-4 w-4 text-white" />
-            </Button>
-            
-            {onDeleteImage && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-12 top-2 z-10 bg-black/20 hover:bg-black/40"
-                onClick={() => handleDelete(selectedIndex)}
-              >
-                <Trash2 className="h-4 w-4 text-white" />
-              </Button>
-            )}
-
-            <div className="relative w-full aspect-[16/9]">
-              <img
-                src={src[selectedIndex]}
-                alt={`${title} ${selectedIndex + 1}`}
-                className="w-full h-full object-contain"
-              />
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-                onClick={handlePrevious}
-              >
-                <ChevronLeft className="h-6 w-6 text-white" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40"
-                onClick={handleNext}
-              >
-                <ChevronRight className="h-6 w-6 text-white" />
-              </Button>
-            </div>
-          </div>
-          
-          <ScrollArea className="w-full p-4">
-            <div className="flex gap-2">
-              {src.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => onImageChange?.(index)}
-                  className={`relative w-20 h-20 rounded-lg overflow-hidden focus:outline-none ${
-                    index === selectedIndex ? 'ring-2 ring-primary' : ''
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${title} thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full p-0">
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2 z-10 bg-black/20 hover:bg-black/40"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4 text-white" />
-          </Button>
-          {type === "image" && typeof src === 'string' ? (
+      <DialogContent className="max-w-4xl w-full h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 relative overflow-hidden">
+          {type === "image" && (
             <img
-              src={src}
+              src={typeof src === "string" ? src : src[0]}
               alt={title}
-              className="w-full h-auto max-h-[80vh] object-contain"
+              className="w-full h-full object-contain"
             />
-          ) : type === "video" && typeof src === 'string' ? (
-            <video
-              src={src}
-              controls
-              className="w-full max-h-[80vh]"
-              autoPlay
-            >
-              <source src={src} type="video/mp4" />
+          )}
+          {type === "video" && (
+            <video controls className="w-full h-full">
+              <source src={typeof src === "string" ? src : src[0]} type="video/mp4" />
               הדפדפן שלך לא תומך בתגית וידאו.
             </video>
-          ) : null}
+          )}
+          {type === "pdf" && (
+            <iframe
+              src={`${typeof src === "string" ? src : src[0]}#toolbar=0`}
+              className="w-full h-full"
+              title={title}
+            />
+          )}
+          {type === "image_gallery" && Array.isArray(src) && (
+            <>
+              <div className="relative h-full">
+                <img
+                  src={src[selectedIndex]}
+                  alt={`${title} ${selectedIndex + 1}`}
+                  className="w-full h-full object-contain"
+                />
+                {onDeleteImage && (
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={() => onDeleteImage(selectedIndex)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <div className="absolute inset-x-0 bottom-0 flex justify-between p-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePrevious}
+                  className="bg-white/80"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="bg-white/80 px-2 py-1 rounded">
+                  {selectedIndex + 1} / {src.length}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNext}
+                  className="bg-white/80"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
