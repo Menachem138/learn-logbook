@@ -28,10 +28,14 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
           >
             <img 
               src={image} 
-              alt={`${title} - Image ${index + 1}`}
+              alt={`${title} - תמונה ${index + 1}`}
               className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
               loading="lazy"
-              onError={(e) => console.error('Image failed to load:', image)}
+              onError={(e) => {
+                console.error('Image failed to load:', image);
+                const imgElement = e.target as HTMLImageElement;
+                imgElement.style.display = 'none';
+              }}
             />
           </Card>
         ))}
@@ -42,7 +46,7 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
         onClose={() => setSelectedImageIndex(-1)}
         type="image"
         src={selectedImageIndex !== -1 ? images[selectedImageIndex] : ''}
-        title={`${title} - Image ${selectedImageIndex + 1}`}
+        title={`${title} - תמונה ${selectedImageIndex + 1}`}
       />
     </>
   );

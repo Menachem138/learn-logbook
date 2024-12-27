@@ -51,7 +51,11 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
             alt={title} 
             className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
-            onError={(e) => console.error('Image failed to load:', src)}
+            onError={(e) => {
+              console.error('Image failed to load:', src);
+              const imgElement = e.target as HTMLImageElement;
+              imgElement.style.display = 'none';
+            }}
           />
         ) : type === "video" ? (
           <video controls className="w-full h-auto">
