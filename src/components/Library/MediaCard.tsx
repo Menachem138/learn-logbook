@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
-import { FileText } from "lucide-react";
 
 interface MediaCardProps {
-  type: "image" | "video" | "image_gallery" | "pdf";
+  type: "image" | "video" | "image_gallery";
   src: string | string[];
   title: string;
   onDeleteImage?: (index: number) => void;
@@ -18,7 +17,9 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
 
   const handleMediaClick = () => {
     console.log("Media clicked:", { type, isViewerOpen });
-    setIsViewerOpen(true);
+    if (type === "image" || type === "video" || type === "image_gallery") {
+      setIsViewerOpen(true);
+    }
   };
 
   if (type === "image_gallery" && Array.isArray(src)) {
@@ -63,24 +64,6 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
           onDeleteImage={onDeleteImage}
         />
       </>
-    );
-  }
-
-  if (type === "pdf") {
-    return (
-      <div 
-        className="cursor-pointer group relative aspect-video bg-gray-100 flex items-center justify-center"
-        onClick={handleMediaClick}
-      >
-        <FileText className="w-12 h-12 text-gray-400" />
-        <MediaViewer
-          isOpen={isViewerOpen}
-          onClose={() => setIsViewerOpen(false)}
-          type="pdf"
-          src={typeof src === 'string' ? src : src[0]}
-          title={title}
-        />
-      </div>
     );
   }
 

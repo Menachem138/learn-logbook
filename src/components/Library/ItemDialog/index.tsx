@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
 import { useToast } from "@/hooks/use-toast";
 import { FileUpload } from "./FileUpload";
-import { useAuth } from "@/components/auth/AuthProvider";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -16,8 +15,7 @@ interface ItemDialogProps {
   initialData?: LibraryItem | null;
 }
 
-const ItemDialog = ({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) => {
-  const { session } = useAuth();
+export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
@@ -32,32 +30,13 @@ const ItemDialog = ({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps)
   const { toast } = useToast();
 
   React.useEffect(() => {
-    if (!session) {
-      toast({
-        title: "שגיאה",
-        description: "יש להתחבר כדי לבצע פעולה זו",
-        variant: "destructive",
-      });
-      onClose();
-      return;
-    }
-
     if (initialData?.type === 'image_gallery' && initialData.file_details?.paths) {
       setExistingPaths(initialData.file_details.paths);
     }
-  }, [initialData, session, onClose, toast]);
+  }, [initialData]);
 
   const onSubmitForm = async (data: any) => {
     try {
-      if (!session) {
-        toast({
-          title: "שגיאה",
-          description: "יש להתחבר כדי לבצע פעולה זו",
-          variant: "destructive",
-        });
-        return;
-      }
-
       console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       
       if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
@@ -136,8 +115,8 @@ const ItemDialog = ({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps)
               <option value="image">תמונה</option>
               <option value="image_gallery">אלבום תמונות</option>
               <option value="video">וידאו</option>
-              <option value="pdf">PDF</option>
               <option value="whatsapp">וואטסאפ</option>
+              <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
             </select>
           </div>
@@ -170,6 +149,4 @@ const ItemDialog = ({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps)
       </DialogContent>
     </Dialog>
   );
-};
-
-export default ItemDialog;
+}

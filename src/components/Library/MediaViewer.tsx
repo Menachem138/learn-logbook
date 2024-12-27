@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 interface MediaViewerProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "image" | "video" | "image_gallery" | "pdf";
+  type: "image" | "video" | "image_gallery";
   src: string | string[];
   title: string;
   selectedIndex?: number;
@@ -135,33 +135,6 @@ export function MediaViewer({
               ))}
             </div>
           </ScrollArea>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (type === "pdf") {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl w-full h-[80vh] p-0">
-          <div className="relative h-full">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 z-10 bg-black/20 hover:bg-black/40"
-              onClick={onClose}
-            >
-              <X className="h-4 w-4 text-white" />
-            </Button>
-            {typeof src === 'string' && (
-              <iframe
-                src={src}
-                title={title}
-                className="w-full h-full"
-                style={{ border: 'none' }}
-              />
-            )}
-          </div>
         </DialogContent>
       </Dialog>
     );
