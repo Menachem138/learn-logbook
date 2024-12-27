@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
-import { LibraryItem } from "@/types/library";
+import { LibraryItem, LibraryItemType } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 
@@ -24,6 +24,8 @@ const getIcon = (type: LibraryItemType) => {
       return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
+    default:
+      return <FileText className="w-4 h-4" />;
   }
 };
 
