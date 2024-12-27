@@ -1,72 +1,106 @@
-import React from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Trash2, FileText } from "lucide-react";
+import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf" | "image_gallery";
+  type: "image" | "video" | "image_gallery";
   src: string | string[];
   title: string;
   onDeleteImage?: (index: number) => void;
 }
 
 export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
   console.log("MediaCard props:", { type, src, title });
+
+  const handleMediaClick = () => {
+    console.log("Media clicked:", { type, isViewerOpen });
+    if (type === "image" || type === "video" || type === "image_gallery") {
+      setIsViewerOpen(true);
+    }
+  };
 
   if (type === "image_gallery" && Array.isArray(src)) {
     console.log("Rendering image gallery with sources:", src);
     return (
-      <div className="grid grid-cols-2 gap-2 p-2">
-        {src.map((imageSrc, index) => (
-          <div key={index} className="relative aspect-square">
-            <img
-              src={imageSrc}
-              alt={`${title} ${index + 1}`}
-              className="w-full h-full object-cover rounded"
-            />
-            {onDeleteImage && (
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => onDeleteImage(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+      <>
+        <div 
+          className="cursor-pointer group relative"
+          onClick={handleMediaClick}
+        >
+          <div className="grid grid-cols-2 gap-0.5 aspect-square">
+            {src.slice(0, 4).map((imgSrc, index) => (
+              <div key={index} className="relative">
+                <img 
+                  src={imgSrc} 
+                  alt={`${title} ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error("Image failed to load:", imgSrc);
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+                {index === 3 && src.length > 4 && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <span className="text-white text-xl font-bold">+{src.length - 4}</span>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (type === "pdf") {
-    return (
-      <div className="relative aspect-video bg-gray-100 flex items-center justify-center rounded">
-        <FileText className="w-12 h-12 text-red-500" />
-        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-center">
-          {title}
         </div>
-      </div>
+
+        <MediaViewer
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          type="image_gallery"
+          src={src}
+          title={title}
+          selectedIndex={selectedImageIndex}
+          onImageChange={setSelectedImageIndex}
+          onDeleteImage={onDeleteImage}
+        />
+      </>
     );
   }
 
-  if (type === "video") {
-    return (
-      <video
-        src={src as string}
-        controls
-        className="w-full h-full object-cover rounded"
-      />
-    );
-  }
-
-  // Default case - single image
   return (
-    <img
-      src={src as string}
-      alt={title}
-      className="w-full h-full object-cover rounded"
-    />
+    <>
+      <div 
+        className="cursor-pointer group relative aspect-video"
+        onClick={handleMediaClick}
+      >
+        {type === "image" ? (
+          <img 
+            src={typeof src === 'string' ? src : src[0]} 
+            alt={title} 
+            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+            loading="lazy"
+            onError={(e) => {
+              console.error("Image failed to load:", src);
+              e.currentTarget.src = "/placeholder.svg";
+            }}
+          />
+        ) : type === "video" ? (
+          <video controls className="w-full h-full object-cover">
+            <source src={typeof src === 'string' ? src : src[0]} type="video/mp4" />
+            הדפדפן שלך לא תומך בתגית וידאו.
+          </video>
+        ) : null}
+      </div>
+
+      {(type === "image" || type === "video") && (
+        <MediaViewer
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          type={type}
+          src={typeof src === 'string' ? src : src[0]}
+          title={title}
+        />
+      )}
+    </>
   );
 }
