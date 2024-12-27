@@ -19,13 +19,11 @@ export default function Index() {
         <h1 className="text-2xl font-bold">ברוך הבא</h1>
       </div>
 
-      {/* Timer and Chat Assistant in a row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <StudyTimer />
         <ChatAssistant />
       </div>
 
-      {/* Other components in full width */}
       <div className="space-y-6">
         <MotivationalQuotes />
         <CourseContent />
