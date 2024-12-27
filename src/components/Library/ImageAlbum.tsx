@@ -19,7 +19,7 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
         {images.map((image, index) => {
           console.log('Rendering image:', image);
           return (
@@ -47,9 +47,9 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
       <MediaViewer
         isOpen={selectedImageIndex !== -1}
         onClose={() => setSelectedImageIndex(-1)}
-        type="image"
-        src={selectedImageIndex !== -1 ? images[selectedImageIndex] : ''}
-        title={`${title} - תמונה ${selectedImageIndex + 1}`}
+        type="image_gallery"
+        src={images}
+        title={title}
       />
     </>
   );

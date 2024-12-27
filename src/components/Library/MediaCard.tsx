@@ -43,7 +43,7 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
     <>
       <Card 
         className="overflow-hidden cursor-pointer group relative"
-        onClick={() => type === "image" && setIsViewerOpen(true)}
+        onClick={() => setIsViewerOpen(true)}
       >
         {type === "image" ? (
           <img 
@@ -65,15 +65,13 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
         ) : null}
       </Card>
 
-      {type === "image" && (
-        <MediaViewer
-          isOpen={isViewerOpen}
-          onClose={() => setIsViewerOpen(false)}
-          type="image"
-          src={src as string}
-          title={title}
-        />
-      )}
+      <MediaViewer
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        type={type}
+        src={src}
+        title={title}
+      />
     </>
   );
 }
