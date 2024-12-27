@@ -43,10 +43,23 @@ export function MediaViewer({
   };
 
   const handleDelete = async (index: number) => {
-    if (onDeleteImage) {
-      await onDeleteImage(index);
+    try {
+      if (onDeleteImage) {
+        await onDeleteImage(index);
+        toast({
+          title: "התמונה נמחקה בהצלחה",
+        });
+        if (Array.isArray(src) && src.length > 1) {
+          handleNext();
+        } else {
+          onClose();
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
       toast({
-        title: "התמונה נמחקה בהצלחה",
+        title: "שגיאה במחיקת התמונה",
+        variant: "destructive",
       });
     }
   };

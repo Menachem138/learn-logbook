@@ -28,6 +28,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const selectedType = watch("type");
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [existingPaths, setExistingPaths] = React.useState<string[]>([]);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     if (initialData?.type === 'image_gallery' && initialData.file_details?.paths) {
@@ -96,7 +97,11 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   const handleRemoveExistingImage = (indexToRemove: number) => {
     console.log("Removing image at index:", indexToRemove);
-    setExistingPaths(prev => prev.filter((_, index) => index !== indexToRemove));
+    setExistingPaths(prev => {
+      const newPaths = prev.filter((_, index) => index !== indexToRemove);
+      console.log("Updated paths after removal:", newPaths);
+      return newPaths;
+    });
   };
 
   React.useEffect(() => {

@@ -60,22 +60,30 @@ const Library = () => {
   };
 
   const handleDeleteImage = async (item: LibraryItem, imageIndex: number) => {
-    if (item.file_details?.paths) {
-      const newPaths = [...item.file_details.paths];
-      newPaths.splice(imageIndex, 1);
-      
-      if (newPaths.length === 0) {
-        await deleteItem.mutateAsync(item.id);
-      } else {
-        const updateData: LibraryItemUpdate = {
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          type: item.type,
-          file_details: { paths: newPaths }
-        };
-        await updateItem.mutateAsync(updateData);
+    try {
+      if (item.file_details?.paths) {
+        const newPaths = [...item.file_details.paths];
+        newPaths.splice(imageIndex, 1);
+        
+        if (newPaths.length === 0) {
+          await deleteItem.mutateAsync(item.id);
+        } else {
+          const updateData: LibraryItemUpdate = {
+            id: item.id,
+            title: item.title,
+            content: item.content,
+            type: item.type,
+            file_details: { paths: newPaths }
+          };
+          await updateItem.mutateAsync(updateData);
+        }
       }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast({
+        title: "שגיאה במחיקת התמונה",
+        variant: "destructive",
+      });
     }
   };
 
