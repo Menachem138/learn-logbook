@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
 import { FileText } from "lucide-react";
 
@@ -18,9 +17,7 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
 
   const handleMediaClick = () => {
     console.log("Media clicked:", { type, isViewerOpen });
-    if (type === "image" || type === "video" || type === "image_gallery" || type === "pdf") {
-      setIsViewerOpen(true);
-    }
+    setIsViewerOpen(true);
   };
 
   if (type === "pdf") {
