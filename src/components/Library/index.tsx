@@ -45,6 +45,10 @@ const Library = () => {
           files: data.files,
           file_details: data.file_details
         };
+        
+        // Log the update data for debugging
+        console.log("Updating item with data:", updateData);
+        
         await updateItem.mutateAsync(updateData);
         toast({
           title: "הפריט עודכן בהצלחה",
@@ -73,16 +77,20 @@ const Library = () => {
 
   const handleDeleteImage = async (item: LibraryItem, imageIndex: number) => {
     try {
+      console.log("Deleting image at index:", imageIndex, "from item:", item);
+      
       if (item.file_details?.paths) {
         const newPaths = [...item.file_details.paths];
         newPaths.splice(imageIndex, 1);
         
         if (newPaths.length === 0) {
+          console.log("No images left, deleting the entire album");
           await deleteItem.mutateAsync(item.id);
           toast({
             title: "האלבום נמחק בהצלחה",
           });
         } else {
+          console.log("Updating album with new paths:", newPaths);
           const updateData: LibraryItemUpdate = {
             id: item.id,
             title: item.title,
