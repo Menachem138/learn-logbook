@@ -7,9 +7,9 @@ import { LibraryItemType } from "@/types/library";
 interface FileUploadProps {
   type: LibraryItemType;
   selectedFiles: File[];
-  setSelectedFiles: (files: File[]) => void;
+  setSelectedFiles: React.Dispatch<React.SetStateAction<File[]>>;
   existingPaths: string[];
-  setExistingPaths: (paths: string[]) => void;
+  setExistingPaths: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export function FileUpload({ 
@@ -28,7 +28,7 @@ export function FileUpload({
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
       if (type === 'image_gallery') {
-        setSelectedFiles(prev => [...prev, ...acceptedFiles]);
+        setSelectedFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
       } else {
         setSelectedFiles([acceptedFiles[0]]);
       }
@@ -37,11 +37,9 @@ export function FileUpload({
 
   const handleRemoveExistingImage = (indexToRemove: number) => {
     console.log("Removing image at index:", indexToRemove);
-    setExistingPaths(prev => {
-      const newPaths = prev.filter((_, index) => index !== indexToRemove);
-      console.log("Updated paths after removal:", newPaths);
-      return newPaths;
-    });
+    setExistingPaths(prevPaths => 
+      prevPaths.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   return (
