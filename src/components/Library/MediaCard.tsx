@@ -18,6 +18,11 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
   console.log("MediaCard props:", { type, src, title });
 
   const getSignedUrl = async (path: string) => {
+    // If it's a Cloudinary URL, return it directly
+    if (path.includes('cloudinary.com')) {
+      return path;
+    }
+
     try {
       const { data: { signedUrl }, error } = await supabase.storage
         .from('content_library')
