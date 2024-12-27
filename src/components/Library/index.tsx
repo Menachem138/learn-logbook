@@ -8,6 +8,8 @@ import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } fro
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -33,9 +35,26 @@ const Library = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
   const { toast } = useToast();
+  const { session } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!session) {
+      navigate("/login");
+    }
+  }, [session, navigate]);
 
   const handleAddOrUpdateItem = async (data: LibraryItemInput) => {
     try {
+      if (!session) {
+        toast({
+          title: "שגיאה",
+          description: "יש להתחבר כדי לבצע פעולה זו",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (editingItem) {
         const updateData: LibraryItemUpdate = {
           id: editingItem.id,
@@ -46,7 +65,6 @@ const Library = () => {
           file_details: data.file_details
         };
         
-        // Log the update data for debugging
         console.log("Updating item with data:", updateData);
         
         await updateItem.mutateAsync(updateData);
@@ -71,12 +89,29 @@ const Library = () => {
   };
 
   const handleEdit = (item: LibraryItem) => {
+    if (!session) {
+      toast({
+        title: "שגיאה",
+        description: "יש להתחבר כדי לבצע פעולה זו",
+        variant: "destructive",
+      });
+      return;
+    }
     setEditingItem(item);
     setIsDialogOpen(true);
   };
 
   const handleDeleteImage = async (item: LibraryItem, imageIndex: number) => {
     try {
+      if (!session) {
+        toast({
+          title: "שגיאה",
+          description: "יש להתחבר כדי לבצע פעולה זו",
+          variant: "destructive",
+        });
+        return;
+      }
+
       console.log("Deleting image at index:", imageIndex, "from item:", item);
       
       if (item.file_details?.paths) {
@@ -112,6 +147,10 @@ const Library = () => {
       });
     }
   };
+
+  if (!session) {
+    return null;
+  }
 
   if (isLoading) {
     return (
