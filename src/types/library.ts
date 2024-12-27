@@ -1,4 +1,12 @@
-export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'question' | 'image_gallery' | 'pdf';
+export type LibraryItemType = 
+  | "note"
+  | "link"
+  | "image"
+  | "video"
+  | "whatsapp"
+  | "pdf"
+  | "question"
+  | "image_gallery";
 
 export interface LibraryItem {
   id: string;
@@ -8,12 +16,9 @@ export interface LibraryItem {
   file_details?: {
     path?: string;
     paths?: string[];
-    name?: string;
-    size?: number;
-    type?: string;
   };
-  is_starred?: boolean;
-  created_at?: string;
+  is_starred: boolean;
+  created_at: string;
 }
 
 export interface LibraryItemInput {
@@ -21,14 +26,12 @@ export interface LibraryItemInput {
   content: string;
   type: LibraryItemType;
   files?: File[];
-  file_details?: LibraryItem['file_details'];
+  file_details?: {
+    path?: string;
+    paths?: string[];
+  };
 }
 
-export interface LibraryItemUpdate {
+export interface LibraryItemUpdate extends LibraryItemInput {
   id: string;
-  title: string;
-  content: string;
-  type: LibraryItemType;
-  files?: File[];
-  file_details?: LibraryItem['file_details'];
 }

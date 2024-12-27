@@ -1,5 +1,5 @@
-import { LibraryItemType } from "@/types/library";
 import { UseFormRegister } from "react-hook-form";
+import { LibraryItemType } from "@/types/library";
 
 interface TypeSelectorProps {
   register: UseFormRegister<any>;
