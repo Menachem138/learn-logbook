@@ -48,6 +48,7 @@ export function FileUpload({
         <input {...getInputProps()} />
         <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
         {type === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
+        {type === 'pdf' && <p className="text-sm text-gray-500">ניתן להעלות קובץ PDF</p>}
       </div>
       
       {selectedFiles.length > 0 && (
