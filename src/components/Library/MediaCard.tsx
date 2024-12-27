@@ -68,13 +68,25 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
 
   if (type === "pdf") {
     const pdfUrl = typeof src === 'string' ? src : src[0];
-    // Add fl_attachment to force download instead of preview
-    const downloadUrl = pdfUrl.replace('/upload/', '/upload/fl_attachment/');
+    // Transform the Cloudinary URL to use secure_url and fl_attachment
+    const downloadUrl = pdfUrl
+      .replace('http://', 'https://')
+      .replace('/upload/', '/upload/fl_attachment/');
+    
+    console.log("PDF URL:", { original: pdfUrl, download: downloadUrl });
     
     return (
       <div 
         className="cursor-pointer group relative aspect-video bg-gray-100 flex items-center justify-center"
-        onClick={() => window.open(downloadUrl, '_blank')}
+        onClick={() => {
+          console.log("Opening PDF:", downloadUrl);
+          // Create a temporary link element and trigger download
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.click();
+        }}
       >
         <FileText className="w-12 h-12 text-gray-400" />
         <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2">
