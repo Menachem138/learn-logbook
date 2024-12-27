@@ -74,18 +74,17 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
     const handlePdfClick = async () => {
       try {
         if (isCloudinaryUrl) {
-          // Extract just the filename from the URL
-          const urlParts = pdfUrl.split('/upload/');
-          if (urlParts.length !== 2) {
-            console.error("Invalid Cloudinary URL format");
+          // Extract the public ID and version from the URL
+          const matches = pdfUrl.match(/\/v\d+\/(.+)$/);
+          if (!matches || !matches[1]) {
+            console.error("Could not extract file path from URL:", pdfUrl);
             return;
           }
           
-          // Get everything after /upload/ and before any query parameters
-          const filePath = urlParts[1].split('?')[0];
+          const publicId = matches[1].split('?')[0]; // Remove any query parameters
           
-          // Create a direct download URL
-          const downloadUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/fl_attachment/${filePath}`;
+          // Construct a direct download URL with fl_attachment
+          const downloadUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/fl_attachment/${publicId}`;
           
           console.log("Opening PDF with URL:", downloadUrl);
           window.open(downloadUrl, '_blank');
