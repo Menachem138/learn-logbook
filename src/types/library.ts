@@ -1,4 +1,4 @@
-export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'question' | 'image_gallery';
+export type LibraryItemType = 'note' | 'link' | 'image' | 'video' | 'whatsapp' | 'question' | 'image_gallery' | 'pdf';
 
 export interface LibraryItem {
   id: string;
@@ -11,6 +11,7 @@ export interface LibraryItem {
     name?: string;
     size?: number;
     type?: string;
+    original_name?: string; // Added for PDF files
   };
   is_starred?: boolean;
   created_at?: string;
