@@ -35,9 +35,9 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     }
   }, [initialData]);
 
-  const onSubmitForm = (data: any) => {
+  const onSubmitForm = async (data: any) => {
     try {
-      console.log("Submitting form with data:", { ...data, files: selectedFiles });
+      console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       
       if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
         toast({
@@ -63,7 +63,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         file_details: selectedType === 'image_gallery' ? { paths: existingPaths } : initialData?.file_details,
       };
       
-      onSubmit(formData);
+      await onSubmit(formData);
       setSelectedFiles([]);
       setExistingPaths([]);
       reset();
@@ -95,6 +95,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   });
 
   const handleRemoveExistingImage = (indexToRemove: number) => {
+    console.log("Removing image at index:", indexToRemove);
     setExistingPaths(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 

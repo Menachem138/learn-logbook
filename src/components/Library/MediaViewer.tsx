@@ -42,9 +42,9 @@ export function MediaViewer({
     }
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
     if (onDeleteImage) {
-      onDeleteImage(index);
+      await onDeleteImage(index);
       toast({
         title: "התמונה נמחקה בהצלחה",
       });
