@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
+import { FileText } from "lucide-react";
 
 interface MediaCardProps {
-  type: "image" | "video" | "image_gallery";
+  type: "image" | "video" | "image_gallery" | "pdf";
   src: string | string[];
   title: string;
   onDeleteImage?: (index: number) => void;
@@ -17,10 +18,34 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
 
   const handleMediaClick = () => {
     console.log("Media clicked:", { type, isViewerOpen });
-    if (type === "image" || type === "video" || type === "image_gallery") {
+    if (type === "image" || type === "video" || type === "image_gallery" || type === "pdf") {
       setIsViewerOpen(true);
     }
   };
+
+  if (type === "pdf") {
+    return (
+      <>
+        <div 
+          className="cursor-pointer group relative aspect-video bg-gray-100 flex items-center justify-center"
+          onClick={handleMediaClick}
+        >
+          <FileText className="w-12 h-12 text-gray-400" />
+          <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-2 text-sm">
+            {title}
+          </div>
+        </div>
+
+        <MediaViewer
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          type="pdf"
+          src={typeof src === 'string' ? src : src[0]}
+          title={title}
+        />
+      </>
+    );
+  }
 
   if (type === "image_gallery" && Array.isArray(src)) {
     console.log("Rendering image gallery with sources:", src);

@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 interface MediaViewerProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "image" | "video" | "image_gallery";
+  type: "image" | "video" | "image_gallery" | "pdf";
   src: string | string[];
   title: string;
   selectedIndex?: number;
@@ -27,6 +27,30 @@ export function MediaViewer({
   onDeleteImage
 }: MediaViewerProps) {
   const { toast } = useToast();
+
+  if (type === "pdf") {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl w-full p-0">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2 z-10 bg-black/20 hover:bg-black/40"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4 text-white" />
+            </Button>
+            <iframe
+              src={typeof src === 'string' ? src : src[0]}
+              className="w-full h-[80vh]"
+              title={title}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const handlePrevious = () => {
     if (Array.isArray(src) && onImageChange) {

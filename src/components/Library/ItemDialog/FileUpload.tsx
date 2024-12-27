@@ -27,22 +27,10 @@ export function FileUpload({
     },
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
-      // Keep original file name for PDFs
-      const processedFiles = acceptedFiles.map(file => {
-        if (file.type === 'application/pdf') {
-          // Create a new File object with the original name
-          return new File([file], file.name, {
-            type: file.type,
-            lastModified: file.lastModified,
-          });
-        }
-        return file;
-      });
-
       if (type === 'image_gallery') {
-        setSelectedFiles(prevFiles => [...prevFiles, ...processedFiles]);
+        setSelectedFiles(prev => [...prev, ...acceptedFiles]);
       } else {
-        setSelectedFiles([processedFiles[0]]);
+        setSelectedFiles([acceptedFiles[0]]);
       }
     }
   });
@@ -60,6 +48,7 @@ export function FileUpload({
         <input {...getInputProps()} />
         <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
         {type === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
+        {type === 'pdf' && <p className="text-sm text-gray-500">ניתן להעלות קובץ PDF</p>}
       </div>
       
       {selectedFiles.length > 0 && (
