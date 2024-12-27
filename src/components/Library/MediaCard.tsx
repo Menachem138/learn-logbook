@@ -16,8 +16,11 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   console.log('MediaCard rendered with:', { type, src, title });
 
   if (type === "pdf") {
-    // For PDFs, ensure we're using the full URL from Cloudinary
-    const pdfUrl = src.startsWith('http') ? src : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${src}`;
+    // For PDFs, use the URL directly if it's from Supabase storage or Cloudinary
+    const pdfUrl = src.includes('supabase.co') || src.includes('cloudinary.com') 
+      ? src 
+      : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${src}`;
+    
     console.log('PDF URL:', pdfUrl);
 
     return (
