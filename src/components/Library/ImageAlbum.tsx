@@ -14,31 +14,34 @@ export function ImageAlbum({ images, title }: ImageAlbumProps) {
 
   if (!images || images.length === 0) {
     console.log('No images provided to ImageAlbum');
-    return null;
+    return <div className="text-gray-500">אין תמונות באלבום</div>;
   }
 
   return (
     <>
       <div className="grid grid-cols-2 gap-2">
-        {images.map((image, index) => (
-          <Card 
-            key={index}
-            className="overflow-hidden cursor-pointer group relative aspect-square"
-            onClick={() => setSelectedImageIndex(index)}
-          >
-            <img 
-              src={image} 
-              alt={`${title} - תמונה ${index + 1}`}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-              loading="lazy"
-              onError={(e) => {
-                console.error('Image failed to load:', image);
-                const imgElement = e.target as HTMLImageElement;
-                imgElement.style.display = 'none';
-              }}
-            />
-          </Card>
-        ))}
+        {images.map((image, index) => {
+          console.log('Rendering image:', image);
+          return (
+            <Card 
+              key={index}
+              className="overflow-hidden cursor-pointer group relative aspect-square"
+              onClick={() => setSelectedImageIndex(index)}
+            >
+              <img 
+                src={image} 
+                alt={`${title} - תמונה ${index + 1}`}
+                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                loading="lazy"
+                onError={(e) => {
+                  console.error('Image failed to load:', image);
+                  const imgElement = e.target as HTMLImageElement;
+                  imgElement.style.display = 'none';
+                }}
+              />
+            </Card>
+          );
+        })}
       </div>
 
       <MediaViewer
