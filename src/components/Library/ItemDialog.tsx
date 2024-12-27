@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
 import { useDropzone } from "react-dropzone";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 
 interface ItemDialogProps {

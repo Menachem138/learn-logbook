@@ -7,6 +7,7 @@ import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpC
 import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } from "@/types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const getIcon = (type: LibraryItemType) => {
   switch (type) {
@@ -31,6 +32,7 @@ const Library = () => {
   const { items, isLoading, filter, setFilter, addItem, deleteItem, toggleStar, updateItem } = useLibrary();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
+  const { toast } = useToast();
 
   const handleAddOrUpdateItem = async (data: LibraryItemInput) => {
     try {
