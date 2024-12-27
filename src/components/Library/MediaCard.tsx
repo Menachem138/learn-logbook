@@ -42,14 +42,14 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
   return (
     <>
       <Card 
-        className="overflow-hidden cursor-pointer group relative"
+        className="overflow-hidden cursor-pointer group relative aspect-video"
         onClick={() => setIsViewerOpen(true)}
       >
-        {type === "image" ? (
+        {type === "image" && (
           <img 
             src={src as string} 
             alt={title} 
-            className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               console.error('Image failed to load:', src);
@@ -57,12 +57,13 @@ export function MediaCard({ type, src, title }: MediaCardProps) {
               imgElement.style.display = 'none';
             }}
           />
-        ) : type === "video" ? (
-          <video controls className="w-full h-auto">
+        )}
+        {type === "video" && (
+          <video controls className="w-full h-full object-cover">
             <source src={src as string} type="video/mp4" />
             הדפדפן שלך לא תומך בתגית וידאו.
           </video>
-        ) : null}
+        )}
       </Card>
 
       <MediaViewer
