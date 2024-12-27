@@ -67,7 +67,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="note">הערה</option>
               <option value="link">קישור</option>
               <option value="image">תמונה</option>
-              <option value="image_album">אלבום תמונות</option>
+              <option value="image_gallery">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
               <option value="pdf">PDF</option>
@@ -81,10 +81,10 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf' || selectedType === 'image_album') && (
+          {(selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf' || selectedType === 'image_gallery') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                {selectedType === 'image_album' ? 'העלה תמונות' : 
+                {selectedType === 'image_gallery' ? 'העלה תמונות' : 
                   selectedType === 'image' ? 'העלה תמונה' : 
                   selectedType === 'video' ? 'העלה וידאו' : 'העלה PDF'}
               </label>
@@ -92,14 +92,14 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
                 <Input
                   type="file"
                   accept={
-                    selectedType === 'image' || selectedType === 'image_album'
+                    selectedType === 'image' || selectedType === 'image_gallery'
                       ? "image/*" 
                       : selectedType === 'video' 
                       ? "video/*" 
                       : "application/pdf"
                   }
                   onChange={handleFileChange}
-                  multiple={selectedType === 'image_album'}
+                  multiple={selectedType === 'image_gallery'}
                   className="flex-1"
                 />
                 {selectedFiles.length > 0 && (
