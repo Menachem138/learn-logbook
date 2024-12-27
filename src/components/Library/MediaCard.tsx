@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
 import { MediaViewer } from "./MediaViewer";
 
 interface MediaCardProps {
-  type: "image" | "video" | "pdf" | "image_gallery";
+  type: "image" | "video" | "image_gallery";
   src: string | string[];
   title: string;
   onDeleteImage?: (index: number) => void;
@@ -15,22 +14,6 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   console.log("MediaCard props:", { type, src, title });
-
-  if (type === "pdf") {
-    return (
-      <Card className="p-4 flex items-center gap-2">
-        <FileText className="w-6 h-6 text-red-500" />
-        <a 
-          href={typeof src === 'string' ? src : src[0]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-        >
-          {title}
-        </a>
-      </Card>
-    );
-  }
 
   const handleMediaClick = () => {
     console.log("Media clicked:", { type, isViewerOpen });

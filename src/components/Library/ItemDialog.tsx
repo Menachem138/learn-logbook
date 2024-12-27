@@ -61,7 +61,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
       console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       
-      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
+      if ((selectedType === 'image' || selectedType === 'video') && selectedFiles.length === 0 && !initialData?.file_details) {
         toast({
           title: "שגיאה",
           description: "נא להעלות קובץ",
@@ -103,8 +103,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': [],
-      'video/*': [],
-      'application/pdf': []
+      'video/*': []
     },
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
@@ -163,7 +162,6 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="image_gallery">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
-              <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
             </select>
           </div>
@@ -174,7 +172,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
+          {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video') && (
             <div className="space-y-2">
               <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
                 <input {...getInputProps()} />
