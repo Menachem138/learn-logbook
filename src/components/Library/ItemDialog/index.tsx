@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
 import { useToast } from "@/hooks/use-toast";
-import { FileUpload } from "../FileUpload";
+import { FileUpload } from "./FileUpload";
 
 interface ItemDialogProps {
   isOpen: boolean;
