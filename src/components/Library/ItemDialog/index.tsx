@@ -39,7 +39,8 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     try {
       console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       
-      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
+      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && 
+          selectedFiles.length === 0 && !initialData?.file_details) {
         toast({
           title: "שגיאה",
           description: "נא להעלות קובץ",
@@ -127,7 +128,8 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           </div>
 
-          {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
+          {(selectedType === 'image' || selectedType === 'image_gallery' || 
+            selectedType === 'video' || selectedType === 'pdf') && (
             <FileUpload
               type={selectedType}
               selectedFiles={selectedFiles}
