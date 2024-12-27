@@ -22,14 +22,27 @@ export function FileUpload({
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': [],
-      'video/*': []
+      'video/*': [],
+      'application/pdf': []
     },
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
+      // Keep original file name for PDFs
+      const processedFiles = acceptedFiles.map(file => {
+        if (file.type === 'application/pdf') {
+          // Create a new File object with the original name
+          return new File([file], file.name, {
+            type: file.type,
+            lastModified: file.lastModified,
+          });
+        }
+        return file;
+      });
+
       if (type === 'image_gallery') {
-        setSelectedFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
+        setSelectedFiles(prevFiles => [...prevFiles, ...processedFiles]);
       } else {
-        setSelectedFiles([acceptedFiles[0]]);
+        setSelectedFiles([processedFiles[0]]);
       }
     }
   });
