@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
-import { FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CLOUDINARY_CLOUD_NAME } from "@/integrations/cloudinary/client";
 
 interface MediaCardProps {
-  type: "image" | "video" | "image_gallery" | "pdf";
+  type: "image" | "video" | "image_gallery";
   src: string | string[];
   title: string;
   onDeleteImage?: (index: number) => void;
@@ -64,49 +61,6 @@ export function MediaCard({ type, src, title, onDeleteImage }: MediaCardProps) {
           onDeleteImage={onDeleteImage}
         />
       </>
-    );
-  }
-
-  if (type === "pdf") {
-    const pdfUrl = typeof src === 'string' ? src : src[0];
-    const isCloudinaryUrl = pdfUrl.includes('cloudinary');
-    
-    const handlePdfClick = async () => {
-      try {
-        if (isCloudinaryUrl) {
-          // Extract the public ID and version from the URL
-          const matches = pdfUrl.match(/\/v\d+\/(.+)$/);
-          if (!matches || !matches[1]) {
-            console.error("Could not extract file path from URL:", pdfUrl);
-            return;
-          }
-          
-          const publicId = matches[1].split('?')[0]; // Remove any query parameters
-          
-          // Construct a direct download URL with fl_attachment
-          const downloadUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/fl_attachment/${publicId}`;
-          
-          console.log("Opening PDF with URL:", downloadUrl);
-          window.open(downloadUrl, '_blank');
-        } else {
-          // For Supabase URLs, open directly
-          window.open(pdfUrl, '_blank');
-        }
-      } catch (error) {
-        console.error("Error handling PDF:", error);
-      }
-    };
-    
-    return (
-      <div 
-        className="cursor-pointer group relative aspect-video bg-gray-100 flex items-center justify-center"
-        onClick={handlePdfClick}
-      >
-        <FileText className="w-12 h-12 text-gray-400" />
-        <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2">
-          <p className="text-white text-sm truncate">{title}</p>
-        </div>
-      </div>
     );
   }
 
