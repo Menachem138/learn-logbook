@@ -25,8 +25,7 @@ export const uploadDocument = async (file: File): Promise<S3UploadResponse> => {
       body: formData,
       headers: {
         Authorization: `Bearer ${session.access_token}`,
-      },
-      responseType: 'json'
+      }
     });
 
     if (error) {

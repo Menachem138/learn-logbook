@@ -22,25 +22,34 @@ serve(async (req) => {
       throw new Error('Method not allowed');
     }
 
-    console.log('Starting file upload process');
-    
-    const formData = await req.formData();
-    const file = formData.get('file');
-    
-    if (!file) {
-      throw new Error('No file provided');
-    }
-
-    // Validate environment variables
-    const bucketName = Deno.env.get('AWS_BUCKET_NAME')?.replace('arn:aws:s3:::', '');
+    // Validate AWS credentials
+    const bucketName = Deno.env.get('AWS_BUCKET_NAME');
     const accessKeyId = Deno.env.get('AWS_ACCESS_KEY_ID');
     const secretAccessKey = Deno.env.get('AWS_SECRET_ACCESS_KEY');
 
     if (!bucketName || !accessKeyId || !secretAccessKey) {
+      console.error('Missing AWS credentials:', {
+        hasBucketName: !!bucketName,
+        hasAccessKey: !!accessKeyId,
+        hasSecretKey: !!secretAccessKey
+      });
       throw new Error('Missing required AWS credentials');
     }
 
-    console.log('Initializing S3 client with region eu-north-1');
+    console.log('Processing file upload request');
+    
+    const formData = await req.formData();
+    const file = formData.get('file');
+    
+    if (!file || !(file instanceof File)) {
+      throw new Error('No file provided');
+    }
+
+    console.log('File details:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
 
     const s3Client = new S3Client({
       region: 'eu-north-1',
@@ -53,7 +62,11 @@ serve(async (req) => {
     const fileBuffer = await file.arrayBuffer();
     const fileKey = `${crypto.randomUUID()}-${file.name}`;
 
-    console.log('Uploading file:', { fileKey, bucketName, contentType: file.type });
+    console.log('Uploading to S3:', {
+      bucket: bucketName,
+      key: fileKey,
+      contentType: file.type
+    });
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
@@ -66,7 +79,7 @@ serve(async (req) => {
 
     const fileUrl = `https://${bucketName}.s3.eu-north-1.amazonaws.com/${fileKey}`;
     
-    console.log('File uploaded successfully:', { fileUrl });
+    console.log('Upload successful:', { fileUrl });
 
     return new Response(
       JSON.stringify({
@@ -89,13 +102,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.stack,
-        env: {
-          bucketName: Deno.env.get('AWS_BUCKET_NAME'),
-          region: 'eu-north-1',
-          hasAccessKey: !!Deno.env.get('AWS_ACCESS_KEY_ID'),
-          hasSecretKey: !!Deno.env.get('AWS_SECRET_ACCESS_KEY'),
-        }
+        details: error.stack
       }),
       { 
         headers: { 
