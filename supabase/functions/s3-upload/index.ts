@@ -22,20 +22,21 @@ serve(async (req) => {
       throw new Error('Method not allowed');
     }
 
-    // Validate AWS credentials
+    // Get AWS credentials
     const bucketName = Deno.env.get('AWS_BUCKET_NAME');
     const accessKeyId = Deno.env.get('AWS_ACCESS_KEY_ID');
     const secretAccessKey = Deno.env.get('AWS_SECRET_ACCESS_KEY');
+    const region = Deno.env.get('AWS_REGION') || 'eu-north-1';
 
+    // Validate AWS credentials
     if (!bucketName || !accessKeyId || !secretAccessKey) {
-      console.error('Missing AWS credentials:', {
-        hasBucketName: !!bucketName,
-        hasAccessKey: !!accessKeyId,
-        hasSecretKey: !!secretAccessKey
-      });
+      console.error('Missing AWS credentials');
       throw new Error('Missing required AWS credentials');
     }
 
+    // Clean bucket name (remove any ARN prefix if present)
+    const cleanBucketName = bucketName.replace('arn:aws:s3:::', '');
+    
     console.log('Processing file upload request');
     
     const formData = await req.formData();
@@ -52,7 +53,7 @@ serve(async (req) => {
     });
 
     const s3Client = new S3Client({
-      region: 'eu-north-1',
+      region,
       credentials: {
         accessKeyId,
         secretAccessKey,
@@ -63,13 +64,13 @@ serve(async (req) => {
     const fileKey = `${crypto.randomUUID()}-${file.name}`;
 
     console.log('Uploading to S3:', {
-      bucket: bucketName,
+      bucket: cleanBucketName,
       key: fileKey,
       contentType: file.type
     });
 
     const command = new PutObjectCommand({
-      Bucket: bucketName,
+      Bucket: cleanBucketName,
       Key: fileKey,
       Body: fileBuffer,
       ContentType: file.type,
@@ -77,7 +78,7 @@ serve(async (req) => {
 
     await s3Client.send(command);
 
-    const fileUrl = `https://${bucketName}.s3.eu-north-1.amazonaws.com/${fileKey}`;
+    const fileUrl = `https://${cleanBucketName}.s3.${region}.amazonaws.com/${fileKey}`;
     
     console.log('Upload successful:', { fileUrl });
 
