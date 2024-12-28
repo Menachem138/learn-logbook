@@ -26,9 +26,9 @@ export const handler: Handler = async (event) => {
 
   try {
     // Verify Cloudinary configuration before using it
-    if (!process.env.VITE_CLOUDINARY_CLOUD_NAME || 
-        !process.env.VITE_CLOUDINARY_API_KEY || 
-        !process.env.VITE_CLOUDINARY_API_SECRET) {
+    if (!process.env.CLOUDINARY_CLOUD_NAME || 
+        !process.env.CLOUDINARY_API_KEY || 
+        !process.env.CLOUDINARY_API_SECRET) {
       console.error('Missing Cloudinary configuration');
       return {
         statusCode: 500,
@@ -39,9 +39,9 @@ export const handler: Handler = async (event) => {
 
     // Configure Cloudinary with environment variables
     cloudinary.config({
-      cloud_name: process.env.VITE_CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.VITE_CLOUDINARY_API_KEY,
-      api_secret: process.env.VITE_CLOUDINARY_API_SECRET,
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
     // Parse request body
@@ -68,7 +68,7 @@ export const handler: Handler = async (event) => {
 
     console.log('Attempting to delete Cloudinary asset with public ID:', publicId);
     
-    // Delete the asset from Cloudinary with resource_type: 'auto' to handle all types including PDFs
+    // Delete the asset from Cloudinary with resource_type: 'auto' to handle all types
     const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'auto' });
     console.log('Cloudinary deletion result:', result);
 
