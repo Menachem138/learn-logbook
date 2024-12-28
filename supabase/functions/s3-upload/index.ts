@@ -14,7 +14,7 @@ serve(async (req) => {
 
   try {
     const formData = await req.formData()
-    const file = formData.get('file') as File
+    const file = formData.get('file')
     
     if (!file) {
       throw new Error('No file provided')
@@ -27,11 +27,11 @@ serve(async (req) => {
       fileName: file.name, 
       fileType: file.type,
       bucketName: bucketName,
-      region: Deno.env.get('AWS_REGION')
+      region: 'eu-north-1' // Explicitly set the region
     });
 
     const s3Client = new S3Client({
-      region: Deno.env.get('AWS_REGION') || '',
+      region: 'eu-north-1', // Use the specified region
       credentials: {
         accessKeyId: Deno.env.get('AWS_ACCESS_KEY_ID') || '',
         secretAccessKey: Deno.env.get('AWS_SECRET_ACCESS_KEY') || '',
@@ -52,7 +52,7 @@ serve(async (req) => {
 
     await s3Client.send(command)
 
-    const fileUrl = `https://${bucketName}.s3.${Deno.env.get('AWS_REGION')}.amazonaws.com/${fileKey}`
+    const fileUrl = `https://${bucketName}.s3.eu-north-1.amazonaws.com/${fileKey}`
 
     console.log('File uploaded successfully:', { fileUrl, fileKey });
 
