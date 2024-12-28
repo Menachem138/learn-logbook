@@ -111,45 +111,6 @@ export type Database = {
         }
         Relationships: []
       }
-      documents: {
-        Row: {
-          cloudinary_public_id: string | null
-          created_at: string | null
-          description: string | null
-          file_size: number | null
-          file_url: string | null
-          id: string
-          title: string
-          type: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          cloudinary_public_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          file_size?: number | null
-          file_url?: string | null
-          id?: string
-          title: string
-          type: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          cloudinary_public_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          file_size?: number | null
-          file_url?: string | null
-          id?: string
-          title?: string
-          type?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       learning_journal: {
         Row: {
           content: string

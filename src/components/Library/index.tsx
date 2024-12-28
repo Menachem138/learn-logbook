@@ -23,10 +23,10 @@ const getIcon = (type: LibraryItemType) => {
       return <Video className="w-4 h-4" />;
     case 'whatsapp':
       return <MessageCircle className="w-4 h-4" />;
+    case 'pdf':
+      return <FileText className="w-4 h-4 text-red-500" />;
     case 'question':
       return <HelpCircle className="w-4 h-4 text-purple-500" />;
-    default:
-      return <FileText className="w-4 h-4" />;
   }
 };
 
@@ -187,10 +187,10 @@ const Library = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {items.map((item: LibraryItem) => (
           <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'image_gallery') && (
+            {item.file_details && (item.type === 'image' || item.type === 'video' || item.type === 'pdf' || item.type === 'image_gallery') && (
               <div className="relative aspect-video">
                 <MediaCard
-                  type={item.type as "image" | "video" | "image_gallery"}
+                  type={item.type as "image" | "video" | "pdf" | "image_gallery"}
                   src={item.type === 'image_gallery' && item.file_details.paths ? item.file_details.paths : item.file_details.path}
                   title={item.title}
                   onDeleteImage={item.type === 'image_gallery' ? (index) => handleDeleteImage(item, index) : undefined}
