@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand } from "npm:@aws-sdk/client-s3"
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
@@ -76,7 +77,13 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.stack 
+        details: error.stack,
+        env: {
+          bucketName: Deno.env.get('AWS_BUCKET_NAME'),
+          region: 'eu-north-1',
+          hasAccessKey: !!Deno.env.get('AWS_ACCESS_KEY_ID'),
+          hasSecretKey: !!Deno.env.get('AWS_SECRET_ACCESS_KEY'),
+        }
       }),
       { 
         headers: { 
