@@ -11,7 +11,7 @@ interface DocumentCardProps {
 export function DocumentCard({ document, onDelete }: DocumentCardProps) {
   const handleDownload = () => {
     // For PDFs from Cloudinary, ensure we're using the raw URL
-    const downloadUrl = document.file_url.includes('cloudinary') && document.type === 'application/pdf'
+    const downloadUrl = document.file_url.includes('cloudinary') && document.type === 'pdf'
       ? document.file_url.replace('/image/upload/', '/raw/upload/')
       : document.file_url;
     

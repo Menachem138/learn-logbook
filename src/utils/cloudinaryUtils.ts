@@ -1,8 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
+import { CloudinaryResponse } from '@/types/cloudinary';
 
-const CLOUDINARY_CLOUD_NAME = 'dxrl4mtlw';
-
-export async function uploadToCloudinary(file: File) {
+export async function uploadToCloudinary(file: File): Promise<CloudinaryResponse> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', 'content_library');
@@ -31,7 +30,10 @@ export async function uploadToCloudinary(file: File) {
 
   return {
     url,
-    publicId: data.public_id
+    publicId: data.public_id,
+    resourceType: data.resource_type,
+    format: data.format,
+    size: data.bytes
   };
 }
 
@@ -64,3 +66,16 @@ export async function deleteFromCloudinary(publicId: string) {
     throw error;
   }
 }
+
+export function cloudinaryResponseToJson(response: CloudinaryResponse | null): any {
+  if (!response) return null;
+  return {
+    url: response.url,
+    publicId: response.publicId,
+    resourceType: response.resourceType,
+    format: response.format,
+    size: response.size
+  };
+}
+
+const CLOUDINARY_CLOUD_NAME = 'dxrl4mtlw';
