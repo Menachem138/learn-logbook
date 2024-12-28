@@ -10,52 +10,63 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
   }
 
   try {
-    const formData = await req.formData()
-    const file = formData.get('file')
-    
-    if (!file) {
-      throw new Error('No file provided')
+    // Validate request method
+    if (req.method !== 'POST') {
+      throw new Error('Method not allowed');
     }
 
-    // Extract bucket name from ARN (remove the "arn:aws:s3:::" prefix)
-    const bucketName = (Deno.env.get('AWS_BUCKET_NAME') || '').replace('arn:aws:s3:::', '')
+    console.log('Starting file upload process');
     
-    console.log('Starting file upload process:', { 
-      fileName: file.name, 
-      fileType: file.type,
-      bucketName: bucketName,
-      region: 'eu-north-1' // Explicitly set the region
-    });
+    const formData = await req.formData();
+    const file = formData.get('file');
+    
+    if (!file) {
+      throw new Error('No file provided');
+    }
+
+    // Validate environment variables
+    const bucketName = Deno.env.get('AWS_BUCKET_NAME')?.replace('arn:aws:s3:::', '');
+    const accessKeyId = Deno.env.get('AWS_ACCESS_KEY_ID');
+    const secretAccessKey = Deno.env.get('AWS_SECRET_ACCESS_KEY');
+
+    if (!bucketName || !accessKeyId || !secretAccessKey) {
+      throw new Error('Missing required AWS credentials');
+    }
+
+    console.log('Initializing S3 client with region eu-north-1');
 
     const s3Client = new S3Client({
-      region: 'eu-north-1', // Use the specified region
+      region: 'eu-north-1',
       credentials: {
-        accessKeyId: Deno.env.get('AWS_ACCESS_KEY_ID') || '',
-        secretAccessKey: Deno.env.get('AWS_SECRET_ACCESS_KEY') || '',
+        accessKeyId,
+        secretAccessKey,
       },
-    })
+    });
 
-    const fileBuffer = await file.arrayBuffer()
-    const fileKey = `${crypto.randomUUID()}-${file.name}`
+    const fileBuffer = await file.arrayBuffer();
+    const fileKey = `${crypto.randomUUID()}-${file.name}`;
+
+    console.log('Uploading file:', { fileKey, bucketName, contentType: file.type });
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: fileKey,
       Body: fileBuffer,
       ContentType: file.type,
-    })
+    });
 
-    console.log('Attempting to upload to S3:', { fileKey });
+    await s3Client.send(command);
 
-    await s3Client.send(command)
-
-    const fileUrl = `https://${bucketName}.s3.eu-north-1.amazonaws.com/${fileKey}`
-
-    console.log('File uploaded successfully:', { fileUrl, fileKey });
+    const fileUrl = `https://${bucketName}.s3.eu-north-1.amazonaws.com/${fileKey}`;
+    
+    console.log('File uploaded successfully:', { fileUrl });
 
     return new Response(
       JSON.stringify({
@@ -68,9 +79,10 @@ serve(async (req) => {
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
-        } 
+        },
+        status: 200
       }
-    )
+    );
   } catch (error) {
     console.error('Error in s3-upload function:', error);
     
@@ -92,6 +104,6 @@ serve(async (req) => {
         },
         status: 500
       }
-    )
+    );
   }
-})
+});
