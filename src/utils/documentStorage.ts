@@ -16,29 +16,39 @@ export const uploadDocument = async (file: File): Promise<S3UploadResponse> => {
       throw new Error('No active session');
     }
 
-    // Create FormData with the file
-    const formData = new FormData();
-    formData.append('file', file);
+    // Create unique file path
+    const fileExt = file.name.split('.').pop();
+    const userId = session.user.id;
+    const folderName = crypto.randomUUID();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${userId}/${folderName}/${fileName}`;
 
-    // Call the Edge Function
-    const { data, error } = await supabase.functions.invoke('s3-upload', {
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      }
-    });
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('content_library')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (error) {
-      console.error('Error from Edge Function:', error);
+      console.error('Error uploading to Supabase Storage:', error);
       throw error;
     }
 
-    if (!data) {
-      throw new Error('No response data from upload function');
-    }
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('content_library')
+      .getPublicUrl(filePath);
 
-    console.log('Upload successful:', data);
-    return data as S3UploadResponse;
+    console.log('Upload successful:', { publicUrl });
+
+    return {
+      url: publicUrl,
+      key: filePath,
+      size: file.size,
+      type: file.type
+    };
   } catch (error) {
     console.error('Error in uploadDocument:', error);
     throw error;
@@ -47,17 +57,9 @@ export const uploadDocument = async (file: File): Promise<S3UploadResponse> => {
 
 export const deleteDocument = async (key: string): Promise<void> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      throw new Error('No active session');
-    }
-
-    const { error } = await supabase.functions.invoke('s3-delete', {
-      body: { key },
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
+    const { error } = await supabase.storage
+      .from('content_library')
+      .remove([key]);
 
     if (error) {
       console.error('Error deleting document:', error);
