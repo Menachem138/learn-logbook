@@ -20,10 +20,13 @@ serve(async (req) => {
       throw new Error('No file provided')
     }
 
+    // Extract bucket name from ARN (remove the "arn:aws:s3:::" prefix)
+    const bucketName = (Deno.env.get('AWS_BUCKET_NAME') || '').replace('arn:aws:s3:::', '')
+    
     console.log('Starting file upload process:', { 
       fileName: file.name, 
       fileType: file.type,
-      bucketName: Deno.env.get('AWS_BUCKET_NAME'),
+      bucketName: bucketName,
       region: Deno.env.get('AWS_REGION')
     });
 
@@ -39,7 +42,7 @@ serve(async (req) => {
     const fileKey = `${crypto.randomUUID()}-${file.name}`
 
     const command = new PutObjectCommand({
-      Bucket: Deno.env.get('AWS_BUCKET_NAME'),
+      Bucket: bucketName,
       Key: fileKey,
       Body: fileBuffer,
       ContentType: file.type,
@@ -49,7 +52,7 @@ serve(async (req) => {
 
     await s3Client.send(command)
 
-    const fileUrl = `https://${Deno.env.get('AWS_BUCKET_NAME')}.s3.${Deno.env.get('AWS_REGION')}.amazonaws.com/${fileKey}`
+    const fileUrl = `https://${bucketName}.s3.${Deno.env.get('AWS_REGION')}.amazonaws.com/${fileKey}`
 
     console.log('File uploaded successfully:', { fileUrl, fileKey });
 
