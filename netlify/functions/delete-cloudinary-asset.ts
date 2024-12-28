@@ -6,6 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Configure Cloudinary with environment variables
 cloudinary.config({
   cloud_name: process.env.VITE_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.VITE_CLOUDINARY_API_KEY,
@@ -26,13 +27,25 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 405,
       headers: corsHeaders,
-      body: 'Method Not Allowed',
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
     };
   }
 
   try {
-    const { publicId } = JSON.parse(event.body || '{}');
-    
+    // Parse request body
+    let publicId;
+    try {
+      const body = JSON.parse(event.body || '{}');
+      publicId = body.publicId;
+    } catch (e) {
+      console.error('Error parsing request body:', e);
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Invalid request body' }),
+      };
+    }
+
     if (!publicId) {
       return {
         statusCode: 400,
@@ -41,7 +54,21 @@ export const handler: Handler = async (event) => {
       };
     }
 
+    // Verify Cloudinary configuration
+    if (!process.env.VITE_CLOUDINARY_CLOUD_NAME || 
+        !process.env.VITE_CLOUDINARY_API_KEY || 
+        !process.env.VITE_CLOUDINARY_API_SECRET) {
+      console.error('Missing Cloudinary configuration');
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Cloudinary configuration error' }),
+      };
+    }
+
     console.log('Attempting to delete Cloudinary asset with public ID:', publicId);
+    
+    // Delete the asset from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId);
     console.log('Cloudinary deletion result:', result);
 
@@ -61,7 +88,10 @@ export const handler: Handler = async (event) => {
         ...corsHeaders,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ error: 'Failed to delete asset' }),
+      body: JSON.stringify({ 
+        error: 'Failed to delete asset',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
     };
   }
 };

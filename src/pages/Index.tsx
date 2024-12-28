@@ -10,6 +10,7 @@ import LearningJournal from "@/components/LearningJournal";
 import { YouTubeLibrary } from "@/components/YouTubeLibrary";
 import { TwitterLibrary } from "@/components/TwitterLibrary";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { Documents } from "@/components/Documents";
 
 export default function Index() {
   return (
@@ -29,6 +30,7 @@ export default function Index() {
         <CourseContent />
         <CourseSchedule />
         <Library />
+        <Documents />
         <YouTubeLibrary />
         <TwitterLibrary />
         <Questions />
