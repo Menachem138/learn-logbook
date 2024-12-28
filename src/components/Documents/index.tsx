@@ -7,7 +7,7 @@ import { AddDocumentDialog } from './AddDocumentDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadToCloudinary, deleteFromCloudinary } from '@/utils/cloudinaryUtils';
+import { uploadDocument, deleteDocument } from '@/utils/documentStorage';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export function Documents() {
@@ -19,19 +19,15 @@ export function Documents() {
   const { data: documents, isLoading } = useQuery({
     queryKey: ['documents'],
     queryFn: async () => {
-      console.log('Fetching documents with session:', session?.access_token);
       const { data, error } = await supabase
         .from('documents')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching documents:', error);
-        throw error;
-      }
+      if (error) throw error;
       return data as Document[];
     },
-    enabled: !!session, // Only run query if session exists
+    enabled: !!session,
   });
 
   const addDocumentMutation = useMutation({
@@ -39,8 +35,8 @@ export function Documents() {
       if (!session?.user) throw new Error('User not authenticated');
       if (!input.file) throw new Error('No file provided');
 
-      // Upload to Cloudinary
-      const cloudinaryResponse = await uploadToCloudinary(input.file);
+      // Upload to S3
+      const s3Response = await uploadDocument(input.file);
       
       // Save to Supabase
       const { data, error } = await supabase
@@ -50,9 +46,8 @@ export function Documents() {
           title: input.title,
           description: input.description,
           type: input.type,
-          file_url: cloudinaryResponse.url,
-          cloudinary_public_id: cloudinaryResponse.publicId,
-          file_size: input.file.size,
+          file_url: s3Response.url,
+          file_size: s3Response.size,
         })
         .select()
         .single();
@@ -81,9 +76,12 @@ export function Documents() {
     mutationFn: async (document: Document) => {
       if (!session?.user) throw new Error('User not authenticated');
 
-      // Delete from Cloudinary if we have the public_id
-      if (document.cloudinary_public_id) {
-        await deleteFromCloudinary(document.cloudinary_public_id);
+      // Delete from S3 if we have the key
+      if (document.file_url) {
+        const key = document.file_url.split('/').pop();
+        if (key) {
+          await deleteDocument(key);
+        }
       }
 
       // Delete from Supabase
