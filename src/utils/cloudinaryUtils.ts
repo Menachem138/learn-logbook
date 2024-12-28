@@ -1,16 +1,19 @@
-import { supabase } from '@/integrations/supabase/client';
 import { CloudinaryResponse } from '@/types/cloudinary';
+import { CLOUDINARY_CLOUD_NAME } from '../integrations/cloudinary/client';
+import { supabase } from '@/integrations/supabase/client';
 
-export async function uploadToCloudinary(file: File): Promise<CloudinaryResponse> {
+export const uploadToCloudinary = async (file: File): Promise<CloudinaryResponse> => {
+  console.log('Uploading to Cloudinary with cloud name:', CLOUDINARY_CLOUD_NAME);
+  
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', 'content_library');
 
-  // Determine the resource type based on file mime type
-  const resourceType = file.type === 'application/pdf' ? 'raw' : 'image';
+  // Use 'raw' upload endpoint for PDFs and other documents
+  const uploadEndpoint = file.type === 'application/pdf' ? 'raw' : 'auto';
   
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${uploadEndpoint}/upload`,
     {
       method: 'POST',
       body: formData,
@@ -18,26 +21,35 @@ export async function uploadToCloudinary(file: File): Promise<CloudinaryResponse
   );
 
   if (!response.ok) {
-    throw new Error(`Upload failed: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('Cloudinary upload failed:', errorText);
+    throw new Error(`Upload failed: ${errorText}`);
   }
 
   const data = await response.json();
+  console.log('Cloudinary response:', data);
   
-  // For PDFs, construct the correct URL
-  const url = file.type === 'application/pdf' 
-    ? `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/${data.public_id}.pdf`
-    : data.secure_url;
-
   return {
-    url,
     publicId: data.public_id,
+    url: data.secure_url,
     resourceType: data.resource_type,
     format: data.format,
-    size: data.bytes
+    size: data.bytes,
   };
-}
+};
 
-export async function deleteFromCloudinary(publicId: string) {
+export const cloudinaryResponseToJson = (response: CloudinaryResponse | null) => {
+  if (!response) return null;
+  return {
+    publicId: response.publicId,
+    url: response.url,
+    resourceType: response.resourceType,
+    format: response.format,
+    size: response.size,
+  };
+};
+
+export const deleteFromCloudinary = async (publicId: string): Promise<boolean> => {
   try {
     console.log('Initiating Cloudinary deletion for public ID:', publicId);
     
@@ -47,35 +59,23 @@ export async function deleteFromCloudinary(publicId: string) {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch('/api/delete-cloudinary-asset', {
-      method: 'POST',
+    // Call the Edge Function
+    const { data, error } = await supabase.functions.invoke('delete-cloudinary-asset', {
+      body: { publicId },
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ publicId }),
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`Deletion failed: ${response.statusText}`);
+    if (error) {
+      console.error('Error from Edge Function:', error);
+      throw error;
     }
 
-    return await response.json();
+    console.log('Edge Function response:', data);
+    return data?.result === 'ok';
   } catch (error) {
     console.error('Error deleting from Cloudinary:', error);
     throw error;
   }
-}
-
-export function cloudinaryResponseToJson(response: CloudinaryResponse | null): any {
-  if (!response) return null;
-  return {
-    url: response.url,
-    publicId: response.publicId,
-    resourceType: response.resourceType,
-    format: response.format,
-    size: response.size
-  };
-}
-
-const CLOUDINARY_CLOUD_NAME = 'dxrl4mtlw';
+};
