@@ -20,7 +20,12 @@ serve(async (req) => {
       throw new Error('No file provided')
     }
 
-    console.log('Uploading file:', { fileName: file.name, fileType: file.type });
+    console.log('Starting file upload process:', { 
+      fileName: file.name, 
+      fileType: file.type,
+      bucketName: Deno.env.get('AWS_BUCKET_NAME'),
+      region: Deno.env.get('AWS_REGION')
+    });
 
     const s3Client = new S3Client({
       region: Deno.env.get('AWS_REGION') || '',
@@ -39,6 +44,8 @@ serve(async (req) => {
       Body: fileBuffer,
       ContentType: file.type,
     })
+
+    console.log('Attempting to upload to S3:', { fileKey });
 
     await s3Client.send(command)
 
@@ -61,10 +68,13 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error uploading to S3:', error);
+    console.error('Error in s3-upload function:', error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack 
+      }),
       { 
         headers: { 
           ...corsHeaders,
