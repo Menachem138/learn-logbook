@@ -25,6 +25,18 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    // Verify Cloudinary configuration before using it
+    if (!process.env.VITE_CLOUDINARY_CLOUD_NAME || 
+        !process.env.VITE_CLOUDINARY_API_KEY || 
+        !process.env.VITE_CLOUDINARY_API_SECRET) {
+      console.error('Missing Cloudinary configuration');
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Cloudinary configuration error' }),
+      };
+    }
+
     // Configure Cloudinary with environment variables
     cloudinary.config({
       cloud_name: process.env.VITE_CLOUDINARY_CLOUD_NAME,
@@ -54,21 +66,9 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // Verify Cloudinary configuration
-    if (!process.env.VITE_CLOUDINARY_CLOUD_NAME || 
-        !process.env.VITE_CLOUDINARY_API_KEY || 
-        !process.env.VITE_CLOUDINARY_API_SECRET) {
-      console.error('Missing Cloudinary configuration');
-      return {
-        statusCode: 500,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Cloudinary configuration error' }),
-      };
-    }
-
     console.log('Attempting to delete Cloudinary asset with public ID:', publicId);
     
-    // Delete the asset from Cloudinary
+    // Delete the asset from Cloudinary with resource_type: 'auto' to handle all types including PDFs
     const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'auto' });
     console.log('Cloudinary deletion result:', result);
 
