@@ -7,7 +7,7 @@ import { AddDocumentDialog } from './AddDocumentDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadToCloudinary } from '@/utils/cloudinaryUtils';
+import { uploadToCloudinary, deleteFromCloudinary } from '@/utils/cloudinaryUtils';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export function Documents() {
