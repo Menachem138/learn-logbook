@@ -19,14 +19,19 @@ export function Documents() {
   const { data: documents, isLoading } = useQuery({
     queryKey: ['documents'],
     queryFn: async () => {
+      console.log('Fetching documents with session:', session?.access_token);
       const { data, error } = await supabase
         .from('documents')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching documents:', error);
+        throw error;
+      }
       return data as Document[];
     },
+    enabled: !!session, // Only run query if session exists
   });
 
   const addDocumentMutation = useMutation({
@@ -108,6 +113,7 @@ export function Documents() {
 
   const handleAddDocument = async (input: DocumentInput) => {
     await addDocumentMutation.mutateAsync(input);
+    setIsAddDialogOpen(false);
   };
 
   const handleDeleteDocument = async (document: Document) => {
