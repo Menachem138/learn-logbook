@@ -12,9 +12,9 @@ interface DocumentCardProps {
 
 export function DocumentCard({ document, onEdit, onDelete }: DocumentCardProps) {
   const handleDownload = () => {
-    // Add fl_attachment for PDFs from Cloudinary to force download
+    // Add fl=attachment for PDFs from Cloudinary to force download
     const downloadUrl = document.file_url.includes('cloudinary') 
-      ? `${document.file_url}?fl=attachment`
+      ? document.file_url.replace('/image/upload/', '/raw/upload/')
       : document.file_url;
     
     window.open(downloadUrl, '_blank');

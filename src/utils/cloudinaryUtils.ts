@@ -9,9 +9,11 @@ export const uploadToCloudinary = async (file: File): Promise<CloudinaryResponse
   formData.append('file', file);
   formData.append('upload_preset', 'content_library');
 
-  // Use 'raw' upload endpoint for documents
+  // Use 'raw' upload endpoint for PDFs and other documents
+  const uploadEndpoint = file.type === 'application/pdf' ? 'raw' : 'auto';
+  
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`,
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${uploadEndpoint}/upload`,
     {
       method: 'POST',
       body: formData,
@@ -51,7 +53,6 @@ export const deleteFromCloudinary = async (publicId: string): Promise<boolean> =
   try {
     console.log('Initiating Cloudinary deletion for public ID:', publicId);
     
-    // Check for active session
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       console.error('No active session found');
