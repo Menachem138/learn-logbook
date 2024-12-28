@@ -6,13 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Configure Cloudinary with environment variables
-cloudinary.config({
-  cloud_name: process.env.VITE_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.VITE_CLOUDINARY_API_KEY,
-  api_secret: process.env.VITE_CLOUDINARY_API_SECRET,
-});
-
 export const handler: Handler = async (event) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
@@ -32,6 +25,13 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    // Configure Cloudinary with environment variables
+    cloudinary.config({
+      cloud_name: process.env.VITE_CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.VITE_CLOUDINARY_API_KEY,
+      api_secret: process.env.VITE_CLOUDINARY_API_SECRET,
+    });
+
     // Parse request body
     let publicId;
     try {
@@ -69,7 +69,7 @@ export const handler: Handler = async (event) => {
     console.log('Attempting to delete Cloudinary asset with public ID:', publicId);
     
     // Delete the asset from Cloudinary
-    const result = await cloudinary.uploader.destroy(publicId);
+    const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'auto' });
     console.log('Cloudinary deletion result:', result);
 
     return {
