@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
-import { DocumentInput, DocumentType } from '@/types/documents';
+import { DocumentInput } from '@/types/documents';
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
-import { FileText } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 
 interface AddDocumentDialogProps {
   isOpen: boolean;
@@ -16,8 +16,9 @@ interface AddDocumentDialogProps {
 }
 
 export function AddDocumentDialog({ isOpen, onClose, onSubmit }: AddDocumentDialogProps) {
-  const { register, handleSubmit, watch, setValue, reset } = useForm<DocumentInput>();
+  const { register, handleSubmit, watch, reset } = useForm<DocumentInput>();
   const [file, setFile] = React.useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
   const selectedType = watch('type');
 
@@ -46,11 +47,17 @@ export function AddDocumentDialog({ isOpen, onClose, onSubmit }: AddDocumentDial
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       await onSubmit({ ...data, file });
       reset();
       setFile(null);
       onClose();
+      toast({
+        title: "הצלחה",
+        description: "המסמך נוסף בהצלחה",
+      });
     } catch (error) {
       console.error('Error submitting document:', error);
       toast({
@@ -58,6 +65,8 @@ export function AddDocumentDialog({ isOpen, onClose, onSubmit }: AddDocumentDial
         description: "אירעה שגיאה בשמירת המסמך",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -65,6 +74,7 @@ export function AddDocumentDialog({ isOpen, onClose, onSubmit }: AddDocumentDial
     if (!isOpen) {
       reset();
       setFile(null);
+      setIsSubmitting(false);
     }
   }, [isOpen, reset]);
 
@@ -129,11 +139,26 @@ export function AddDocumentDialog({ isOpen, onClose, onSubmit }: AddDocumentDial
           )}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               ביטול
             </Button>
-            <Button type="submit">
-              הוסף
+            <Button 
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  מוסיף...
+                </>
+              ) : (
+                'הוסף'
+              )}
             </Button>
           </div>
         </form>
