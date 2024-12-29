@@ -26,25 +26,13 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 405,
       headers: corsHeaders,
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
+      body: 'Method Not Allowed',
     };
   }
 
   try {
-    // Parse request body
-    let publicId;
-    try {
-      const body = JSON.parse(event.body || '{}');
-      publicId = body.publicId;
-    } catch (e) {
-      console.error('Error parsing request body:', e);
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Invalid request body' }),
-      };
-    }
-
+    const { publicId } = JSON.parse(event.body || '{}');
+    
     if (!publicId) {
       return {
         statusCode: 400,
@@ -53,22 +41,8 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // Verify Cloudinary configuration
-    if (!process.env.VITE_CLOUDINARY_CLOUD_NAME || 
-        !process.env.VITE_CLOUDINARY_API_KEY || 
-        !process.env.VITE_CLOUDINARY_API_SECRET) {
-      console.error('Missing Cloudinary configuration');
-      return {
-        statusCode: 500,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Cloudinary configuration error' }),
-      };
-    }
-
     console.log('Attempting to delete Cloudinary asset with public ID:', publicId);
-    
-    // Delete the asset from Cloudinary with resource_type: 'auto'
-    const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'auto' });
+    const result = await cloudinary.uploader.destroy(publicId);
     console.log('Cloudinary deletion result:', result);
 
     return {
@@ -87,10 +61,7 @@ export const handler: Handler = async (event) => {
         ...corsHeaders,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        error: 'Failed to delete asset',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }),
+      body: JSON.stringify({ error: 'Failed to delete asset' }),
     };
   }
 };
