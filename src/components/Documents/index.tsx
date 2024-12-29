@@ -7,7 +7,7 @@ import { AddDocumentDialog } from './AddDocumentDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadToCloudinary, deleteFromCloudinary } from '@/utils/cloudinaryUtils';
+import { uploadToCloudinary } from '@/utils/cloudinaryUtils';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export function Documents() {
@@ -19,19 +19,14 @@ export function Documents() {
   const { data: documents, isLoading } = useQuery({
     queryKey: ['documents'],
     queryFn: async () => {
-      console.log('Fetching documents with session:', session?.access_token);
       const { data, error } = await supabase
         .from('documents')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching documents:', error);
-        throw error;
-      }
+      if (error) throw error;
       return data as Document[];
     },
-    enabled: !!session, // Only run query if session exists
   });
 
   const addDocumentMutation = useMutation({
@@ -113,7 +108,6 @@ export function Documents() {
 
   const handleAddDocument = async (input: DocumentInput) => {
     await addDocumentMutation.mutateAsync(input);
-    setIsAddDialogOpen(false);
   };
 
   const handleDeleteDocument = async (document: Document) => {

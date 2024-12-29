@@ -9,9 +9,8 @@ export const uploadToCloudinary = async (file: File): Promise<CloudinaryResponse
   formData.append('file', file);
   formData.append('upload_preset', 'content_library');
 
-  // Use 'raw' upload endpoint for documents
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`,
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
     {
       method: 'POST',
       body: formData,
