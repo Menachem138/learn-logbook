@@ -28,3 +28,16 @@ export const uploadFileToStorage = async (file: File, userId: string) => {
     mimeType: file.type
   };
 };
+
+export const deleteFileFromStorage = async (filePath: string) => {
+  if (!filePath) return;
+  
+  const { error } = await supabase.storage
+    .from('content_library')
+    .remove([filePath]);
+
+  if (error) {
+    console.error('Error deleting file:', error);
+    throw error;
+  }
+};

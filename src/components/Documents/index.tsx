@@ -7,7 +7,7 @@ import { AddDocumentDialog } from './AddDocumentDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadToCloudinary } from '@/utils/cloudinaryUtils';
+import { uploadFileToStorage, deleteFileFromStorage } from '@/utils/fileStorage';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export function Documents() {
@@ -34,10 +34,10 @@ export function Documents() {
       if (!session?.user) throw new Error('User not authenticated');
       if (!input.file) throw new Error('No file provided');
 
-      // Upload to Cloudinary
-      const cloudinaryResponse = await uploadToCloudinary(input.file);
+      // Upload to Supabase Storage
+      const uploadResult = await uploadFileToStorage(input.file, session.user.id);
       
-      // Save to Supabase
+      // Save to Supabase Database
       const { data, error } = await supabase
         .from('documents')
         .insert({
@@ -45,9 +45,8 @@ export function Documents() {
           title: input.title,
           description: input.description,
           type: input.type,
-          file_url: cloudinaryResponse.url,
-          cloudinary_public_id: cloudinaryResponse.publicId,
-          file_size: input.file.size,
+          file_url: uploadResult.publicUrl,
+          file_size: uploadResult.fileSize,
         })
         .select()
         .single();
@@ -76,12 +75,13 @@ export function Documents() {
     mutationFn: async (document: Document) => {
       if (!session?.user) throw new Error('User not authenticated');
 
-      // Delete from Cloudinary if we have the public_id
-      if (document.cloudinary_public_id) {
-        await deleteFromCloudinary(document.cloudinary_public_id);
+      // Extract file path from URL
+      const urlParts = document.file_url?.split('content_library/');
+      if (urlParts && urlParts.length > 1) {
+        await deleteFileFromStorage(urlParts[1]);
       }
 
-      // Delete from Supabase
+      // Delete from Supabase Database
       const { error } = await supabase
         .from('documents')
         .delete()
