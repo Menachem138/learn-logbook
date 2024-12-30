@@ -18,7 +18,7 @@ export const useLibraryUpdateMutations = () => {
       files?: File[];
       file_details?: { paths?: string[] };
     }) => {
-      console.log("Updating item:", { id, title, content, type, files, file_details });
+      console.log("Starting update with data:", { id, title, content, type, files, file_details });
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -31,16 +31,35 @@ export const useLibraryUpdateMutations = () => {
         .eq('id', id)
         .single();
 
-      let cloudinaryResponse: CloudinaryResponse | null = currentItem?.cloudinary_data ? 
-        currentItem.cloudinary_data as unknown as CloudinaryResponse : 
-        null;
+      let cloudinaryData = currentItem?.cloudinary_data;
+      let updatedFileDetails = file_details || {};
 
-      // Handle file uploads if present
-      if (files?.length) {
-        if (cloudinaryResponse?.publicId) {
-          await deleteFromCloudinary(cloudinaryResponse.publicId);
+      // Handle file uploads for image gallery
+      if (type === 'image_gallery' && files && files.length > 0) {
+        console.log("Processing new files for image gallery:", files.length);
+        
+        const uploadPromises = files.map(file => uploadToCloudinary(file));
+        const uploadResults = await Promise.all(uploadPromises);
+        
+        // Get URLs from new uploads
+        const newUrls = uploadResults.map(result => result.url);
+        console.log("New uploaded URLs:", newUrls);
+
+        // Combine existing paths with new URLs
+        const existingPaths = file_details?.paths || [];
+        updatedFileDetails = {
+          paths: [...existingPaths, ...newUrls]
+        };
+        
+        console.log("Updated file details:", updatedFileDetails);
+      }
+      // Handle single file upload
+      else if ((type === 'image' || type === 'video' || type === 'pdf') && files?.[0]) {
+        if (cloudinaryData?.publicId) {
+          await deleteFromCloudinary(cloudinaryData.publicId);
         }
-        cloudinaryResponse = await uploadToCloudinary(files[0]);
+        const uploadResult = await uploadToCloudinary(files[0]);
+        cloudinaryData = cloudinaryResponseToJson(uploadResult);
       }
 
       // Prepare update data
@@ -48,31 +67,26 @@ export const useLibraryUpdateMutations = () => {
         title,
         content,
         type,
+        file_details: updatedFileDetails
       };
 
-      // Only include cloudinary_data if we have a response
-      if (cloudinaryResponse) {
-        updateData.cloudinary_data = cloudinaryResponseToJson(cloudinaryResponse);
+      if (cloudinaryData) {
+        updateData.cloudinary_data = cloudinaryData;
       }
 
-      // Include file_details if provided
-      if (file_details) {
-        updateData.file_details = file_details;
-      }
+      console.log("Sending final update to Supabase:", updateData);
 
-      console.log("Sending update to Supabase:", updateData);
-
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('library_items')
         .update(updateData)
         .eq('id', id);
 
-      if (error) {
-        console.error("Supabase update error:", error);
-        throw error;
+      if (updateError) {
+        console.error("Supabase update error:", updateError);
+        throw updateError;
       }
 
-      console.log("Update successful");
+      console.log("Update completed successfully");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['library-items'] });
