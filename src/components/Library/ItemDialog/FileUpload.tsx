@@ -27,22 +27,10 @@ export function FileUpload({
     },
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
-      // Keep original file name for PDFs
-      const processedFiles = acceptedFiles.map(file => {
-        if (file.type === 'application/pdf') {
-          // Create a new File object with the original name
-          return new File([file], file.name, {
-            type: file.type,
-            lastModified: file.lastModified,
-          });
-        }
-        return file;
-      });
-
       if (type === 'image_gallery') {
-        setSelectedFiles(prevFiles => [...prevFiles, ...processedFiles]);
+        setSelectedFiles(prev => [...prev, ...acceptedFiles]);
       } else {
-        setSelectedFiles([processedFiles[0]]);
+        setSelectedFiles([acceptedFiles[0]]);
       }
     }
   });
@@ -55,7 +43,7 @@ export function FileUpload({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
       <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
         <input {...getInputProps()} />
         <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
@@ -83,7 +71,7 @@ export function FileUpload({
       {type === 'image_gallery' && existingPaths.length > 0 && (
         <div className="mt-4">
           <p className="text-sm text-gray-500 mb-2">תמונות קיימות באלבום:</p>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {existingPaths.map((path, index) => (
               <div key={index} className="relative aspect-square group">
                 <img src={path} alt={`תמונה ${index + 1}`} className="w-full h-full object-cover rounded" />
