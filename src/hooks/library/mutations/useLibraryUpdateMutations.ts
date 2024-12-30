@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LibraryItemType } from '@/types/library';
 import { cloudinaryResponseToJson, uploadToCloudinary, deleteFromCloudinary } from '@/utils/cloudinaryUtils';
-import { CloudinaryResponse } from '@/types/cloudinary';
+import { CloudinaryResponse, CloudinaryData } from '@/types/cloudinary';
 
 export const useLibraryUpdateMutations = () => {
   const { toast } = useToast();
@@ -31,7 +31,7 @@ export const useLibraryUpdateMutations = () => {
         .eq('id', id)
         .single();
 
-      let cloudinaryData = currentItem?.cloudinary_data;
+      let cloudinaryData = currentItem?.cloudinary_data as CloudinaryData | null;
       let updatedFileDetails = file_details || {};
 
       // Handle file uploads for image gallery
