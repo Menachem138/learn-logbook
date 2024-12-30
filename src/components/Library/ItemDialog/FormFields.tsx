@@ -1,13 +1,15 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { LibraryItem } from "@/types/library";
 
 interface FormFieldsProps {
   register: any;
   selectedType: string;
+  initialData?: LibraryItem | null;
 }
 
-export function FormFields({ register, selectedType }: FormFieldsProps) {
+export function FormFields({ register, selectedType, initialData }: FormFieldsProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -20,6 +22,7 @@ export function FormFields({ register, selectedType }: FormFieldsProps) {
         <select
           className="w-full p-2 border rounded-md"
           {...register("type", { required: true })}
+          disabled={!!initialData}
         >
           <option value="note">הערה</option>
           <option value="link">קישור</option>

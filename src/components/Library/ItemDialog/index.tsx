@@ -92,13 +92,13 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] flex flex-col">
+      <DialogContent className="max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>{initialData ? "ערוך פריט" : "הוסף פריט חדש"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmitForm)} className="flex-1 flex flex-col space-y-4 overflow-y-auto">
-          <div className="space-y-4 flex-1 overflow-y-auto">
-            <FormFields register={register} selectedType={selectedType} />
+        <form onSubmit={handleSubmit(onSubmitForm)} className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-4 p-1">
+            <FormFields register={register} selectedType={selectedType} initialData={initialData} />
 
             {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
               <FileUpload

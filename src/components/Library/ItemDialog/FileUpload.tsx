@@ -38,11 +38,13 @@ export function FileUpload({
   };
 
   return (
-    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-      <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary">
+    <div className="flex flex-col space-y-4 max-h-[50vh] overflow-y-auto">
+      <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary min-h-[100px] flex items-center justify-center">
         <input {...getInputProps()} />
-        <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
-        {type === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
+        <div>
+          <p>גרור קבצים לכאן או לחץ לבחירת קבצים</p>
+          {type === 'image_gallery' && <p className="text-sm text-gray-500">ניתן להעלות מספר תמונות</p>}
+        </div>
       </div>
       
       {selectedFiles.length > 0 && (
