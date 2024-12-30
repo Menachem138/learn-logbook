@@ -56,11 +56,21 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         return;
       }
 
+      // כאשר מעדכנים אלבום תמונות קיים, נשלב את התמונות החדשות עם הקיימות
+      let updatedFileDetails = initialData?.file_details;
+      if (selectedType === 'image_gallery') {
+        updatedFileDetails = {
+          paths: existingPaths // התמונות הקיימות שלא נמחקו
+        };
+      }
+
       const formData = {
         ...data,
         files: selectedFiles,
-        file_details: selectedType === 'image_gallery' ? { paths: existingPaths } : initialData?.file_details,
+        file_details: updatedFileDetails
       };
+      
+      console.log("Submitting final form data:", formData);
       
       await onSubmit(formData);
       setSelectedFiles([]);
