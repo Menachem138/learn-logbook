@@ -5,6 +5,19 @@ import { LibraryItemType } from '@/types/library';
 import { cloudinaryResponseToJson, uploadToCloudinary, deleteFromCloudinary } from '@/utils/cloudinaryUtils';
 import { CloudinaryResponse, CloudinaryData } from '@/types/cloudinary';
 
+// Helper function to validate CloudinaryData shape
+const isCloudinaryData = (data: any): data is CloudinaryData => {
+  return (
+    data &&
+    typeof data === 'object' &&
+    'publicId' in data &&
+    'url' in data &&
+    'resourceType' in data &&
+    'format' in data &&
+    'size' in data
+  );
+};
+
 export const useLibraryUpdateMutations = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -31,7 +44,12 @@ export const useLibraryUpdateMutations = () => {
         .eq('id', id)
         .single();
 
-      let cloudinaryData = currentItem?.cloudinary_data as CloudinaryData | null;
+      // Safely convert cloudinary_data to CloudinaryData type
+      let cloudinaryData: CloudinaryData | null = null;
+      if (currentItem?.cloudinary_data && isCloudinaryData(currentItem.cloudinary_data)) {
+        cloudinaryData = currentItem.cloudinary_data;
+      }
+
       let updatedFileDetails = file_details || {};
 
       // Handle file uploads for image gallery
