@@ -8,7 +8,7 @@ interface DialogFooterProps {
 
 export function DialogFooter({ onClose, initialData }: DialogFooterProps) {
   return (
-    <div className="sticky bottom-0 bg-background pt-2 border-t mt-4">
+    <div className="sticky bottom-0 bg-background py-4 px-6 border-t mt-auto">
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
           ביטול

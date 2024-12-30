@@ -38,7 +38,7 @@ export function FileUpload({
   };
 
   return (
-    <div className="flex flex-col space-y-4 max-h-[50vh] overflow-y-auto">
+    <div className="space-y-4">
       <div {...getRootProps()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary min-h-[100px] flex items-center justify-center">
         <input {...getInputProps()} />
         <div>
