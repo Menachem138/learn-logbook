@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface FileUploadProps {
   type: string;
@@ -18,6 +23,8 @@ export function FileUpload({
   existingPaths,
   setExistingPaths,
 }: FileUploadProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': [],
@@ -48,21 +55,40 @@ export function FileUpload({
       </div>
       
       {selectedFiles.length > 0 && (
-        <div className="space-y-2">
-          {selectedFiles.map((file, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-              <span className="text-sm text-gray-500">{file.name}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
-              >
-                הסר
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              {selectedFiles.length} קבצים נבחרו
+            </p>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm">
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </Button>
+            </CollapsibleTrigger>
+          </div>
+          
+          <CollapsibleContent className="mt-2">
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              {selectedFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <span className="text-sm text-gray-500">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                  >
+                    הסר
+                  </Button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {type === 'image_gallery' && existingPaths.length > 0 && (
