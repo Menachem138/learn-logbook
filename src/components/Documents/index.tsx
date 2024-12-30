@@ -73,21 +73,35 @@ export function Documents() {
 
   const deleteDocumentMutation = useMutation({
     mutationFn: async (document: Document) => {
+      console.log('Attempting to delete document:', document);
+      
       if (!session?.user) throw new Error('User not authenticated');
 
       // Extract file path from URL
       const urlParts = document.file_url?.split('content_library/');
       if (urlParts && urlParts.length > 1) {
-        await deleteFileFromStorage(urlParts[1]);
+        try {
+          await deleteFileFromStorage(urlParts[1]);
+          console.log('Successfully deleted file from storage');
+        } catch (error) {
+          console.error('Error deleting file from storage:', error);
+          // Continue with database deletion even if storage deletion fails
+        }
       }
 
       // Delete from Supabase Database
       const { error } = await supabase
         .from('documents')
         .delete()
-        .eq('id', document.id);
+        .eq('id', document.id)
+        .eq('user_id', session.user.id); // Add user_id check for extra security
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting from database:', error);
+        throw error;
+      }
+      
+      console.log('Successfully deleted document from database');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
