@@ -1,13 +1,12 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { FileUpload } from "./FileUpload";
+import { FormFields } from "./FormFields";
+import { DialogFooter } from "./DialogFooter";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -58,9 +57,8 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
         return;
       }
 
-      console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
-      
-      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
+      if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && 
+          selectedFiles.length === 0 && !initialData?.file_details) {
         toast({
           title: "שגיאה",
           description: "נא להעלות קובץ",
@@ -114,58 +112,31 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{initialData ? "ערוך פריט" : "הוסף פריט חדש"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
-          <div>
-            <Input
-              placeholder="כותרת"
-              {...register("title", { required: true })}
+        
+        <form onSubmit={handleSubmit(onSubmitForm)} className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto space-y-4 p-1">
+            <FormFields 
+              register={register}
+              selectedType={selectedType}
+              isEditing={!!initialData}
             />
-          </div>
-          <div>
-            <select
-              className="w-full p-2 border rounded-md"
-              {...register("type", { required: true })}
-              disabled={!!initialData}
-            >
-              <option value="note">הערה</option>
-              <option value="link">קישור</option>
-              <option value="image">תמונה</option>
-              <option value="image_gallery">אלבום תמונות</option>
-              <option value="video">וידאו</option>
-              <option value="whatsapp">וואטסאפ</option>
-              <option value="question">שאלה</option>
-              <option value="pdf">PDF</option>
-            </select>
-          </div>
-          <div>
-            <Textarea
-              placeholder={selectedType === 'question' ? "מה השאלה שלך?" : "תוכן"}
-              {...register("content", { required: true })}
-            />
+
+            {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
+              <FileUpload
+                type={selectedType}
+                selectedFiles={selectedFiles}
+                setSelectedFiles={setSelectedFiles}
+                existingPaths={existingPaths}
+                setExistingPaths={setExistingPaths}
+              />
+            )}
           </div>
 
-          {(selectedType === 'image' || selectedType === 'image_gallery' || selectedType === 'video' || selectedType === 'pdf') && (
-            <FileUpload
-              type={selectedType}
-              selectedFiles={selectedFiles}
-              setSelectedFiles={setSelectedFiles}
-              existingPaths={existingPaths}
-              setExistingPaths={setExistingPaths}
-            />
-          )}
-
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-white dark:bg-gray-950 py-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              ביטול
-            </Button>
-            <Button type="submit">
-              {initialData ? "עדכן" : "הוסף"}
-            </Button>
-          </div>
+          <DialogFooter onClose={onClose} isEditing={!!initialData} />
         </form>
       </DialogContent>
     </Dialog>
