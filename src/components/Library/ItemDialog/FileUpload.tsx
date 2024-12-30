@@ -32,6 +32,7 @@ export function FileUpload({
       'application/pdf': []
     },
     onDrop: (acceptedFiles) => {
+      console.log("Files dropped:", acceptedFiles);
       if (type === 'image_gallery') {
         setSelectedFiles(prev => [...prev, ...acceptedFiles]);
       } else {
@@ -41,7 +42,13 @@ export function FileUpload({
   });
 
   const handleRemoveExistingImage = (indexToRemove: number) => {
+    console.log("Removing existing image at index:", indexToRemove);
     setExistingPaths(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleRemoveNewFile = (indexToRemove: number) => {
+    console.log("Removing new file at index:", indexToRemove);
+    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   return (
@@ -58,7 +65,7 @@ export function FileUpload({
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
-              {selectedFiles.length} קבצים נבחרו
+              {selectedFiles.length} קבצים חדשים נבחרו
             </p>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -80,7 +87,7 @@ export function FileUpload({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                    onClick={() => handleRemoveNewFile(index)}
                   >
                     הסר
                   </Button>
