@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { FileUpload } from "./FileUpload";
 
 interface ItemDialogProps {
@@ -16,6 +17,7 @@ interface ItemDialogProps {
 }
 
 export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialogProps) {
+  const { session } = useAuth();
   const { register, handleSubmit, reset, watch } = useForm({
     defaultValues: initialData || {
       title: "",
@@ -30,13 +32,32 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
   const { toast } = useToast();
 
   React.useEffect(() => {
+    if (!session) {
+      toast({
+        title: "שגיאה",
+        description: "יש להתחבר כדי לבצע פעולה זו",
+        variant: "destructive",
+      });
+      onClose();
+      return;
+    }
+
     if (initialData?.type === 'image_gallery' && initialData.file_details?.paths) {
       setExistingPaths(initialData.file_details.paths);
     }
-  }, [initialData]);
+  }, [initialData, session, onClose, toast]);
 
   const onSubmitForm = async (data: any) => {
     try {
+      if (!session) {
+        toast({
+          title: "שגיאה",
+          description: "יש להתחבר כדי לבצע פעולה זו",
+          variant: "destructive",
+        });
+        return;
+      }
+
       console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       
       if ((selectedType === 'image' || selectedType === 'video' || selectedType === 'pdf') && selectedFiles.length === 0 && !initialData?.file_details) {
@@ -93,7 +114,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initialData ? "ערוך פריט" : "הוסף פריט חדש"}</DialogTitle>
         </DialogHeader>
@@ -116,8 +137,8 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
               <option value="image_gallery">אלבום תמונות</option>
               <option value="video">וידאו</option>
               <option value="whatsapp">וואטסאפ</option>
-              <option value="pdf">PDF</option>
               <option value="question">שאלה</option>
+              <option value="pdf">PDF</option>
             </select>
           </div>
           <div>
@@ -137,7 +158,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
             />
           )}
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 sticky bottom-0 bg-white dark:bg-gray-950 py-2">
             <Button type="button" variant="outline" onClick={onClose}>
               ביטול
             </Button>
