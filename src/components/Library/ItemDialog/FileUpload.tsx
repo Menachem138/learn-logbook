@@ -2,22 +2,21 @@ import React from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { LibraryItemType } from "@/types/library";
 
 interface FileUploadProps {
-  type: LibraryItemType;
+  type: string;
   selectedFiles: File[];
   setSelectedFiles: React.Dispatch<React.SetStateAction<File[]>>;
   existingPaths: string[];
   setExistingPaths: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export function FileUpload({ 
-  type, 
-  selectedFiles, 
-  setSelectedFiles, 
-  existingPaths, 
-  setExistingPaths 
+export function FileUpload({
+  type,
+  selectedFiles,
+  setSelectedFiles,
+  existingPaths,
+  setExistingPaths,
 }: FileUploadProps) {
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -26,7 +25,6 @@ export function FileUpload({
       'application/pdf': []
     },
     onDrop: (acceptedFiles) => {
-      console.log("Files dropped:", acceptedFiles);
       if (type === 'image_gallery') {
         setSelectedFiles(prev => [...prev, ...acceptedFiles]);
       } else {
@@ -36,10 +34,7 @@ export function FileUpload({
   });
 
   const handleRemoveExistingImage = (indexToRemove: number) => {
-    console.log("Removing image at index:", indexToRemove);
-    setExistingPaths(prevPaths => 
-      prevPaths.filter((_, index) => index !== indexToRemove)
-    );
+    setExistingPaths(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   return (
