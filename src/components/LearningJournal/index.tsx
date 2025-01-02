@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import Editor from "./Editor";
 import { JournalEntryForm } from "./JournalEntryForm";
-import { ImageModal } from "@/components/ui/image-modal";
-import { SearchFilters } from "./SearchFilters";
 import { CollapsibleEntry } from "./CollapsibleEntry";
+import { JournalHeader } from "./components/JournalHeader";
+import { JournalDialogs } from "./components/JournalDialogs";
+import { useJournalEntries } from "./hooks/useJournalEntries";
 
 interface JournalEntry {
   id: string;
@@ -19,83 +16,14 @@ interface JournalEntry {
 }
 
 export default function LearningJournal() {
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const { entries, loading, deleteEntry, updateEntry, loadEntries } = useJournalEntries();
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    loadEntries();
-  }, []);
-
-  const loadEntries = async () => {
-    try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user?.id) {
-        toast.error("יש להתחבר כדי לצפות ביומן");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('learning_journal')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setEntries(data || []);
-    } catch (error) {
-      console.error('Error loading entries:', error);
-      toast.error("שגיאה בטעינת היומן");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteEntry = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('learning_journal')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setEntries(entries.filter(entry => entry.id !== id));
-      toast.success("הרשומה נמחקה בהצלחה!");
-    } catch (error) {
-      console.error('Error deleting entry:', error);
-      toast.error("שגיאה במחיקת רשומה");
-    }
-  };
-
-  const updateEntry = async () => {
-    if (!editingEntry) return;
-
-    try {
-      const { error } = await supabase
-        .from('learning_journal')
-        .update({ content: editingEntry.content })
-        .eq('id', editingEntry.id);
-
-      if (error) throw error;
-
-      setEntries(entries.map(entry =>
-        entry.id === editingEntry.id ? editingEntry : entry
-      ));
-      setIsEditing(false);
-      setEditingEntry(null);
-      toast.success("הרשומה עודכנה בהצלחה!");
-    } catch (error) {
-      console.error('Error updating entry:', error);
-      toast.error("שגיאה בעדכון רשומה");
-    }
-  };
 
   const generateSummary = async (entry: JournalEntry) => {
     try {
@@ -129,9 +57,7 @@ export default function LearningJournal() {
 
   return (
     <Card className="p-6 w-full bg-background text-foreground transition-colors duration-300">
-      <h2 className="text-2xl font-bold mb-4">יומן למידה</h2>
-      
-      <SearchFilters
+      <JournalHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onClearSearch={() => setSearchTerm("")}
@@ -155,50 +81,17 @@ export default function LearningJournal() {
         ))}
       </div>
 
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="w-full max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>ערוך רשומה</DialogTitle>
-          </DialogHeader>
-          <div className="w-full max-h-[60vh] overflow-y-auto">
-            <Editor
-              content={editingEntry?.content || ""}
-              onChange={(content) => setEditingEntry(editingEntry ? { ...editingEntry, content } : null)}
-            />
-          </div>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button onClick={updateEntry}>שמור שינויים</Button>
-            <Button variant="outline" onClick={() => {
-              setIsEditing(false);
-              setEditingEntry(null);
-            }}>
-              ביטול
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showSummary} onOpenChange={setShowSummary}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>סיכום רשומה</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 whitespace-pre-wrap">
-            {summary}
-          </div>
-          <Button 
-            onClick={() => setShowSummary(false)} 
-            className="mt-4"
-          >
-            סגור
-          </Button>
-        </DialogContent>
-      </Dialog>
-
-      <ImageModal
-        isOpen={!!selectedImage}
-        onClose={() => setSelectedImage(null)}
-        imageUrl={selectedImage || ""}
+      <JournalDialogs
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        editingEntry={editingEntry}
+        setEditingEntry={setEditingEntry}
+        onUpdateEntry={updateEntry}
+        showSummary={showSummary}
+        setShowSummary={setShowSummary}
+        summary={summary}
+        selectedImage={selectedImage}
+        setSelectedImage={setSelectedImage}
       />
     </Card>
   );
