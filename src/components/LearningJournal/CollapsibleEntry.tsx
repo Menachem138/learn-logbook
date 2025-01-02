@@ -14,18 +14,23 @@ interface CollapsibleEntryProps {
   onEdit: () => void;
   onDelete: () => void;
   onGenerateSummary: () => void;
+  onImageClick?: (imageUrl: string) => void;
 }
 
-export function CollapsibleEntry({ entry, onEdit, onDelete, onGenerateSummary }: CollapsibleEntryProps) {
+export function CollapsibleEntry({ entry, onEdit, onDelete, onGenerateSummary, onImageClick }: CollapsibleEntryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const previewLength = 200; // Show first 200 characters as preview
-  const hasMoreContent = entry.content.length > previewLength;
+  const previewLength = 200;
+  
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(entry.content, 'text/html');
+  const textContent = doc.body.textContent || '';
+  const hasMoreContent = textContent.length > previewLength;
 
-  const getPreviewContent = () => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(entry.content, 'text/html');
-    const textContent = doc.body.textContent || '';
-    return isExpanded ? entry.content : textContent.slice(0, previewLength) + (hasMoreContent ? '...' : '');
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG' && onImageClick) {
+      onImageClick((target as HTMLImageElement).src);
+    }
   };
 
   return (
@@ -63,7 +68,8 @@ export function CollapsibleEntry({ entry, onEdit, onDelete, onGenerateSummary }:
       
       <div 
         className={`prose prose-sm rtl dark:prose-invert ${!isExpanded ? 'line-clamp-3' : ''}`}
-        dangerouslySetInnerHTML={{ __html: getPreviewContent() }}
+        dangerouslySetInnerHTML={{ __html: isExpanded ? entry.content : entry.content.slice(0, previewLength) + (hasMoreContent ? '...' : '') }}
+        onClick={handleContentClick}
       />
       
       {hasMoreContent && (

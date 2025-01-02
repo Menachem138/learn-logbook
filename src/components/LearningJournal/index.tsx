@@ -150,6 +150,7 @@ export default function LearningJournal() {
             }}
             onDelete={() => deleteEntry(entry.id)}
             onGenerateSummary={() => generateSummary(entry)}
+            onImageClick={setSelectedImage}
           />
         ))}
       </div>
