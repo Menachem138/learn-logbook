@@ -6,6 +6,7 @@ import { CollapsibleEntry } from "./CollapsibleEntry";
 import { JournalHeader } from "./components/JournalHeader";
 import { JournalDialogs } from "./components/JournalDialogs";
 import { useJournalEntries } from "./hooks/useJournalEntries";
+import { toast } from "sonner";
 
 interface JournalEntry {
   id: string;
