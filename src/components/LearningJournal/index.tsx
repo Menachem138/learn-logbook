@@ -1,14 +1,15 @@
-import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { JournalEntryForm } from './JournalEntryForm';
-import { JournalEntry } from './JournalEntry';
+import React, { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import Editor from "./Editor";
+import { JournalEntryForm } from "./JournalEntryForm";
+import { ImageModal } from "@/components/ui/image-modal";
+import { SearchFilters } from "./SearchFilters";
+import { CollapsibleEntry } from "./CollapsibleEntry";
 
-interface JournalEntryType {
+interface JournalEntry {
   id: string;
   content: string;
   created_at: string;
@@ -17,101 +18,154 @@ interface JournalEntryType {
 }
 
 export default function LearningJournal() {
-  const [editingEntry, setEditingEntry] = React.useState<JournalEntryType | null>(null);
-  const [isEditing, setIsEditing] = React.useState(false);
-  const queryClient = useQueryClient();
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [summarizing, setSummarizing] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: entries = [], isLoading } = useQuery({
-    queryKey: ['journal-entries'],
-    queryFn: async () => {
+  useEffect(() => {
+    loadEntries();
+  }, []);
+
+  const loadEntries = async () => {
+    try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user?.id) {
-        throw new Error('יש להתחבר כדי לצפות ביומן');
+        toast.error("יש להתחבר כדי לצפות ביומן");
+        return;
       }
 
       const { data, error } = await supabase
         .from('learning_journal')
         .select('*')
-        .eq('user_id', session.session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
-    },
-  });
 
-  const deleteEntryMutation = useMutation({
-    mutationFn: async (id: string) => {
+      setEntries(data || []);
+    } catch (error) {
+      console.error('Error loading entries:', error);
+      toast.error("שגיאה בטעינת היומן");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteEntry = async (id: string) => {
+    try {
       const { error } = await supabase
         .from('learning_journal')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['journal-entries'] });
-      toast.success('הרשומה נמחקה בהצלחה');
-    },
-  });
 
-  const updateEntryMutation = useMutation({
-    mutationFn: async (entry: JournalEntryType) => {
+      setEntries(entries.filter(entry => entry.id !== id));
+      toast.success("הרשומה נמחקה בהצלחה!");
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+      toast.error("שגיאה במחיקת רשומה");
+    }
+  };
+
+  const updateEntry = async () => {
+    if (!editingEntry) return;
+
+    try {
       const { error } = await supabase
         .from('learning_journal')
-        .update({ content: entry.content })
-        .eq('id', entry.id);
+        .update({ content: editingEntry.content })
+        .eq('id', editingEntry.id);
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['journal-entries'] });
+
+      setEntries(entries.map(entry =>
+        entry.id === editingEntry.id ? editingEntry : entry
+      ));
       setIsEditing(false);
       setEditingEntry(null);
-      toast.success('הרשומה עודכנה בהצלחה');
-    },
+      toast.success("הרשומה עודכנה בהצלחה!");
+    } catch (error) {
+      console.error('Error updating entry:', error);
+      toast.error("שגיאה בעדכון רשומה");
+    }
+  };
+
+  const generateSummary = async (entry: JournalEntry) => {
+    try {
+      setSummarizing(true);
+      const { data, error } = await supabase.functions.invoke('summarize-journal', {
+        body: { content: entry.content }
+      });
+
+      if (error) throw error;
+
+      setSummary(data.summary);
+      setShowSummary(true);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast.error("שגיאה בהפקת סיכום");
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
+  const filteredEntries = entries.filter(entry => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(entry.content, 'text/html');
+    const textContent = doc.body.textContent || '';
+    return textContent.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  if (isLoading) {
+  if (loading) {
     return <div>טוען...</div>;
   }
 
   return (
-    <div className="space-y-6 bg-white rounded-lg p-6 shadow-sm">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">יומן למידה</h2>
-        <h3 className="text-lg text-muted-foreground mb-4">מה למדת היום?</h3>
-      </div>
+    <Card className="p-6 w-full bg-background text-foreground transition-colors duration-300">
+      <h2 className="text-2xl font-bold mb-4">יומן למידה</h2>
       
-      <JournalEntryForm onEntryAdded={() => queryClient.invalidateQueries({ queryKey: ['journal-entries'] })} />
+      <SearchFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onClearSearch={() => setSearchTerm("")}
+      />
+      
+      <JournalEntryForm onEntryAdded={loadEntries} />
 
-      <div className="space-y-4 mt-8">
-        {entries.map((entry) => (
-          <JournalEntry
+      <div className="mt-6 space-y-4">
+        {filteredEntries.map((entry) => (
+          <CollapsibleEntry
             key={entry.id}
             entry={entry}
             onEdit={() => {
               setEditingEntry(entry);
               setIsEditing(true);
             }}
-            onDelete={() => deleteEntryMutation.mutate(entry.id)}
+            onDelete={() => deleteEntry(entry.id)}
+            onGenerateSummary={() => generateSummary(entry)}
           />
         ))}
       </div>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent>
+        <DialogContent className="w-full max-w-4xl">
           <DialogHeader>
             <DialogTitle>ערוך רשומה</DialogTitle>
           </DialogHeader>
-          <Textarea
-            value={editingEntry?.content || ""}
-            onChange={(e) => setEditingEntry(editingEntry ? { ...editingEntry, content: e.target.value } : null)}
-            className="min-h-[200px]"
-            dir="rtl"
-          />
-          <div className="flex justify-end gap-2 mt-4">
-            <Button onClick={() => updateEntryMutation.mutate(editingEntry!)}>שמור שינויים</Button>
+          <div className="w-full max-h-[60vh] overflow-y-auto">
+            <Editor
+              content={editingEntry?.content || ""}
+              onChange={(content) => setEditingEntry(editingEntry ? { ...editingEntry, content } : null)}
+            />
+          </div>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button onClick={updateEntry}>שמור שינויים</Button>
             <Button variant="outline" onClick={() => {
               setIsEditing(false);
               setEditingEntry(null);
@@ -121,6 +175,29 @@ export default function LearningJournal() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>סיכום רשומה</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 whitespace-pre-wrap">
+            {summary}
+          </div>
+          <Button 
+            onClick={() => setShowSummary(false)} 
+            className="mt-4"
+          >
+            סגור
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage || ""}
+      />
+    </Card>
   );
 }
