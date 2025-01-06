@@ -28,12 +28,13 @@ import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 
 interface EditorProps {
-  content: string
-  onChange: (content: string) => void
-  onClear?: () => void
+  content: string;
+  onChange: (content: string) => void;
+  onSave?: () => Promise<void>;
+  onClear?: () => void;
 }
 
-const Editor: React.FC<EditorProps> = ({ content, onChange, onClear }) => {
+const Editor: React.FC<EditorProps> = ({ content, onChange, onSave, onClear }) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -198,6 +199,20 @@ const Editor: React.FC<EditorProps> = ({ content, onChange, onClear }) => {
         >
           <ImageIcon className="h-4 w-4" />
         </Button>
+
+        {onSave && (
+          <>
+            <div className="h-4 w-[1px] bg-gray-200 mx-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSave}
+              className="px-2"
+            >
+              שמור
+            </Button>
+          </>
+        )}
       </div>
 
       <div className="w-full max-h-[60vh] overflow-y-auto">

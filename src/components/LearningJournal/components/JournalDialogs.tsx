@@ -15,7 +15,7 @@ interface JournalDialogsProps {
   setIsEditing: (value: boolean) => void;
   editingEntry: JournalEntry | null;
   setEditingEntry: (entry: JournalEntry | null) => void;
-  onUpdateEntry: (entry: JournalEntry) => Promise<boolean>;
+  onUpdateEntry: (entry: JournalEntry) => Promise<void>;
   showSummary: boolean;
   setShowSummary: (value: boolean) => void;
   summary: string | null;
@@ -47,10 +47,8 @@ export function JournalDialogs({
               }}
               onSave={async () => {
                 if (editingEntry) {
-                  const success = await onUpdateEntry(editingEntry);
-                  if (success) {
-                    setIsEditing(false);
-                  }
+                  await onUpdateEntry(editingEntry);
+                  setIsEditing(false);
                 }
               }}
             />
