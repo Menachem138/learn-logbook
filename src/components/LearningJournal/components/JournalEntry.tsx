@@ -26,9 +26,34 @@ export const JournalEntry = ({ entry, onEdit, onDelete, onSummarize }: JournalEn
     const doc = parser.parseFromString(content, 'text/html');
     const textContent = doc.body.textContent || '';
     const lines = textContent.split('\n');
+    
+    // Check if content needs to be truncated
     if (lines.length > previewLines && !isExpanded) {
-      return lines.slice(0, previewLines).join('\n') + '...';
+      // Create a temporary div to hold the preview HTML
+      const tempDoc = parser.parseFromString(content, 'text/html');
+      const paragraphs = tempDoc.body.getElementsByTagName('p');
+      let previewHtml = '';
+      let lineCount = 0;
+      
+      // Build preview HTML from first few paragraphs
+      for (let i = 0; i < paragraphs.length && lineCount < previewLines; i++) {
+        const pText = paragraphs[i].textContent || '';
+        const pLines = pText.split('\n');
+        if (lineCount + pLines.length <= previewLines) {
+          previewHtml += paragraphs[i].outerHTML;
+          lineCount += pLines.length;
+        } else {
+          // Add partial paragraph if needed
+          const remainingLines = previewLines - lineCount;
+          const truncatedText = pLines.slice(0, remainingLines).join('\n');
+          previewHtml += `<p>${truncatedText}...</p>`;
+          break;
+        }
+      }
+      
+      return previewHtml;
     }
+    
     return content;
   };
 
@@ -60,9 +85,10 @@ export const JournalEntry = ({ entry, onEdit, onDelete, onSummarize }: JournalEn
         </div>
       </div>
       
-      <div className="prose prose-sm rtl dark:prose-invert">
-        <div dangerouslySetInnerHTML={{ __html: getPreviewContent(entry.content) }} />
-      </div>
+      <div 
+        className="prose prose-sm rtl dark:prose-invert"
+        dangerouslySetInnerHTML={{ __html: getPreviewContent(entry.content) }}
+      />
       
       <div className="flex justify-between items-center mt-2">
         {entry.content.split('\n').length > previewLines && (
