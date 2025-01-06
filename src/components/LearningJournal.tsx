@@ -3,10 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Edit, Trash2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Editor from "./LearningJournal/Editor";
 import { JournalEntryForm } from "./LearningJournal/JournalEntryForm";
-import { JournalEntry } from "./LearningJournal/components/JournalEntry";
 import { ImageModal } from "@/components/ui/image-modal";
 
 interface JournalEntry {
@@ -95,6 +96,14 @@ export default function LearningJournal() {
     }
   };
 
+  // Extract image URLs from HTML content
+  const extractImageUrls = (htmlContent: string): string[] => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    const images = doc.getElementsByTagName('img');
+    return Array.from(images).map(img => img.src);
+  };
+
   const generateSummary = async (entry: JournalEntry) => {
     try {
       setSummarizing(true);
@@ -126,17 +135,55 @@ export default function LearningJournal() {
 
       <div className="mt-6 space-y-4">
         {entries.map((entry) => (
-          <JournalEntry
-            key={entry.id}
-            entry={entry}
-            onEdit={() => {
-              setEditingEntry(entry);
-              setIsEditing(true);
-            }}
-            onDelete={() => deleteEntry(entry.id)}
-            onSummarize={() => generateSummary(entry)}
-            onImageClick={(src) => setSelectedImage(src)}
-          />
+          <Card key={entry.id} className={`p-4 ${entry.is_important ? 'border-2 border-yellow-500' : ''}`}>
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center space-x-2">
+                {entry.is_important && (
+                  <Badge variant="secondary">חשוב</Badge>
+                )}
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => generateSummary(entry)}
+                  disabled={summarizing}
+                >
+                  <BookOpen className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingEntry(entry);
+                    setIsEditing(true);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteEntry(entry.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div 
+              className="prose prose-sm rtl dark:prose-invert" 
+              dangerouslySetInnerHTML={{ __html: entry.content }}
+              onClick={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'IMG') {
+                  setSelectedImage((target as HTMLImageElement).src);
+                }
+              }}
+            />
+            <p className="text-sm text-muted-foreground mt-2">
+              {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString()}
+            </p>
+          </Card>
         ))}
       </div>
 

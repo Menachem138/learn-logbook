@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import Editor from "./Editor";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { triggerConfetti } from "@/utils/confetti";
 
 interface JournalEntryFormProps {
   onEntryAdded: () => void;
@@ -11,18 +11,16 @@ interface JournalEntryFormProps {
 
 export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
   const [content, setContent] = useState("");
-  const [type, setType] = useState<'learning' | 'trading'>('learning');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
+  const addEntry = async (isImportant: boolean = false) => {
     if (!content.trim()) {
-      toast.error("יש להזין תוכן לרשומה");
+      toast.error("אנא הכנס תוכן ליומן");
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
+      setIsSubmitting(true);
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user?.id) {
         toast.error("יש להתחבר כדי להוסיף רשומה");
@@ -31,19 +29,18 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
 
       const { error } = await supabase
         .from('learning_journal')
-        .insert([
-          {
-            content,
-            type,
-            user_id: session.session.user.id,
-          },
-        ]);
+        .insert([{
+          content,
+          is_important: isImportant,
+          user_id: session.session.user.id
+        }]);
 
       if (error) throw error;
 
-      toast.success("הרשומה נוספה בהצלחה!");
       setContent("");
       onEntryAdded();
+      toast.success("הרשומה נוספה בהצלחה!");
+      triggerConfetti(); // Trigger confetti after successful entry
     } catch (error) {
       console.error('Error adding entry:', error);
       toast.error("שגיאה בהוספת רשומה");
@@ -54,26 +51,28 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4 items-center">
-        <Select value={type} onValueChange={(value: 'learning' | 'trading') => setType(value)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="בחר סוג רשומה" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="learning">למידה</SelectItem>
-            <SelectItem value="trading">מסחר</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="space-y-2">
+        <Editor
+          content={content}
+          onChange={setContent}
+          onClear={() => setContent("")}
+        />
       </div>
-
-      <Editor content={content} onChange={setContent} />
-
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSubmit}
+      <div className="flex space-x-2">
+        <Button 
+          onClick={() => addEntry(false)} 
+          className="flex-1"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'מוסיף...' : 'הוסף רשומה'}
+          הוסף רשומה
+        </Button>
+        <Button 
+          onClick={() => addEntry(true)} 
+          variant="secondary" 
+          className="flex-1"
+          disabled={isSubmitting}
+        >
+          הוסף כהערה חשובה
         </Button>
       </div>
     </div>
