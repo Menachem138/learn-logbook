@@ -25,8 +25,11 @@ export const JournalEntry = ({ entry, onEdit, onDelete, onSummarize }: JournalEn
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/html');
     const textContent = doc.body.textContent || '';
-    const lines = textContent.split('\n').slice(0, previewLines);
-    return lines.join('\n');
+    const lines = textContent.split('\n');
+    if (lines.length > previewLines && !isExpanded) {
+      return lines.slice(0, previewLines).join('\n') + '...';
+    }
+    return content;
   };
 
   return (
@@ -58,32 +61,30 @@ export const JournalEntry = ({ entry, onEdit, onDelete, onSummarize }: JournalEn
       </div>
       
       <div className="prose prose-sm rtl dark:prose-invert">
-        {isExpanded ? (
-          <div dangerouslySetInnerHTML={{ __html: entry.content }} />
-        ) : (
-          <div dangerouslySetInnerHTML={{ __html: getPreviewContent(entry.content) }} />
-        )}
+        <div dangerouslySetInnerHTML={{ __html: getPreviewContent(entry.content) }} />
       </div>
       
       <div className="flex justify-between items-center mt-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-muted-foreground"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp className="h-4 w-4 ml-1" />
-              הצג פחות
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 ml-1" />
-              הצג עוד
-            </>
-          )}
-        </Button>
+        {entry.content.split('\n').length > previewLines && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-muted-foreground"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-4 w-4 ml-1" />
+                הצג פחות
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4 ml-1" />
+                הצג עוד
+              </>
+            )}
+          </Button>
+        )}
         <p className="text-sm text-muted-foreground">
           {new Date(entry.created_at).toLocaleDateString('he-IL')} {new Date(entry.created_at).toLocaleTimeString('he-IL')}
         </p>
