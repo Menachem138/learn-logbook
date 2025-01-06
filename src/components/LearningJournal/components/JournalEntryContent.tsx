@@ -33,24 +33,26 @@ export const JournalEntryContent: React.FC<JournalEntryContentProps> = ({
       />
       
       {isTruncated && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-muted-foreground"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp className="h-4 w-4 ml-1" />
-              הצג פחות
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 ml-1" />
-              הצג עוד
-            </>
-          )}
-        </Button>
+        <div className="flex justify-end mt-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-4 w-4 ml-1" />
+                הצג פחות
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4 ml-1" />
+                הצג עוד
+              </>
+            )}
+          </Button>
+        </div>
       )}
     </div>
   );
