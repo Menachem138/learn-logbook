@@ -54,7 +54,7 @@ export const useJournalEntries = () => {
     }
   };
 
-  const updateEntry = async (editingEntry: JournalEntry) => {
+  const updateEntry = async (editingEntry: JournalEntry): Promise<void> => {
     try {
       const { error } = await supabase
         .from('learning_journal')
@@ -67,11 +67,10 @@ export const useJournalEntries = () => {
         entry.id === editingEntry.id ? editingEntry : entry
       ));
       toast.success("הרשומה עודכנה בהצלחה!");
-      return true;
     } catch (error) {
       console.error('Error updating entry:', error);
       toast.error("שגיאה בעדכון רשומה");
-      return false;
+      throw error; // Re-throw to handle in the UI
     }
   };
 
