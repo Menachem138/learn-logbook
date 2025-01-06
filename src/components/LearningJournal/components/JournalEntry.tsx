@@ -17,45 +17,44 @@ interface JournalEntryProps {
   onSummarize?: () => void;
 }
 
+const MAX_PREVIEW_LENGTH = 300; // Characters to show in preview
+
 export const JournalEntry = ({ entry, onEdit, onDelete, onSummarize }: JournalEntryProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const previewLines = 3;
   
-  const getPreviewContent = (content: string) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    const textContent = doc.body.textContent || '';
-    const lines = textContent.split('\n');
+  const createPreview = (htmlContent: string) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    const textContent = tempDiv.textContent || '';
     
-    // Check if content needs to be truncated
-    if (lines.length > previewLines && !isExpanded) {
-      // Create a temporary div to hold the preview HTML
-      const tempDoc = parser.parseFromString(content, 'text/html');
-      const paragraphs = tempDoc.body.getElementsByTagName('p');
-      let previewHtml = '';
-      let lineCount = 0;
-      
-      // Build preview HTML from first few paragraphs
-      for (let i = 0; i < paragraphs.length && lineCount < previewLines; i++) {
-        const pText = paragraphs[i].textContent || '';
-        const pLines = pText.split('\n');
-        if (lineCount + pLines.length <= previewLines) {
-          previewHtml += paragraphs[i].outerHTML;
-          lineCount += pLines.length;
-        } else {
-          // Add partial paragraph if needed
-          const remainingLines = previewLines - lineCount;
-          const truncatedText = pLines.slice(0, remainingLines).join('\n');
-          previewHtml += `<p>${truncatedText}...</p>`;
-          break;
-        }
-      }
-      
-      return previewHtml;
+    if (textContent.length <= MAX_PREVIEW_LENGTH) {
+      return htmlContent;
     }
-    
-    return content;
+
+    // Find a safe truncation point that doesn't break HTML tags
+    let previewHtml = '';
+    let currentLength = 0;
+    const nodes = Array.from(tempDiv.childNodes);
+
+    for (const node of nodes) {
+      const nodeHtml = node.nodeType === Node.TEXT_NODE ? 
+        node.textContent : 
+        (node as HTMLElement).outerHTML;
+        
+      if (!nodeHtml) continue;
+
+      if (currentLength + (node.textContent?.length || 0) > MAX_PREVIEW_LENGTH && !isExpanded) {
+        break;
+      }
+
+      previewHtml += nodeHtml;
+      currentLength += node.textContent?.length || 0;
+    }
+
+    return isExpanded ? htmlContent : previewHtml;
   };
+
+  const needsExpansion = entry.content.length > MAX_PREVIEW_LENGTH;
 
   return (
     <Card className={`p-4 ${entry.is_important ? 'border-2 border-yellow-500' : ''}`}>
@@ -87,11 +86,11 @@ export const JournalEntry = ({ entry, onEdit, onDelete, onSummarize }: JournalEn
       
       <div 
         className="prose prose-sm rtl dark:prose-invert"
-        dangerouslySetInnerHTML={{ __html: getPreviewContent(entry.content) }}
+        dangerouslySetInnerHTML={{ __html: createPreview(entry.content) }}
       />
       
-      <div className="flex justify-between items-center mt-2">
-        {entry.content.split('\n').length > previewLines && (
+      {needsExpansion && (
+        <div className="flex justify-start mt-2">
           <Button
             variant="ghost"
             size="sm"
@@ -110,11 +109,12 @@ export const JournalEntry = ({ entry, onEdit, onDelete, onSummarize }: JournalEn
               </>
             )}
           </Button>
-        )}
-        <p className="text-sm text-muted-foreground">
-          {new Date(entry.created_at).toLocaleDateString('he-IL')} {new Date(entry.created_at).toLocaleTimeString('he-IL')}
-        </p>
-      </div>
+        </div>
+      )}
+      
+      <p className="text-sm text-muted-foreground mt-2">
+        {new Date(entry.created_at).toLocaleDateString('he-IL')} {new Date(entry.created_at).toLocaleTimeString('he-IL')}
+      </p>
     </Card>
   );
 };
