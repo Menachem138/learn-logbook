@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { JournalEntryForm } from "./JournalEntryForm";
-import { JournalHeader } from "./components/JournalHeader";
-import { JournalFilters } from "./components/JournalFilters";
-import { JournalEntry } from "./components/JournalEntry";
 import Editor from "./Editor";
+import { JournalEntryForm } from "./JournalEntryForm";
+import { JournalEntry } from "./components/JournalEntry";
+import { JournalFilters } from "./components/JournalFilters";
 
 interface JournalEntry {
   id: string;
@@ -24,8 +24,10 @@ export default function LearningJournal() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTag, setSelectedTag] = useState("all");
-  const [isAddingEntry, setIsAddingEntry] = useState(false);
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [summarizing, setSummarizing] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   useEffect(() => {
     loadEntries();
@@ -95,10 +97,29 @@ export default function LearningJournal() {
     }
   };
 
+  const generateSummary = async (entry: JournalEntry) => {
+    try {
+      setSummarizing(true);
+      const { data, error } = await supabase.functions.invoke('summarize-journal', {
+        body: { content: entry.content }
+      });
+
+      if (error) throw error;
+
+      setSummary(data.summary);
+      setShowSummary(true);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast.error("שגיאה בהפקת סיכום");
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
   const filteredEntries = entries.filter(entry => {
     const matchesSearch = entry.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTag = selectedTag === 'all' || entry.type === selectedTag;
-    return matchesSearch && matchesTag;
+    const matchesType = selectedType === 'all' || entry.type === selectedType;
+    return matchesSearch && matchesType;
   });
 
   if (loading) {
@@ -107,16 +128,18 @@ export default function LearningJournal() {
 
   return (
     <Card className="p-6 w-full bg-background text-foreground transition-colors duration-300">
-      <JournalHeader onAddEntry={() => setIsAddingEntry(true)} />
+      <h2 className="text-2xl font-bold mb-4">יומן למידה</h2>
+      
+      <JournalEntryForm onEntryAdded={loadEntries} />
       
       <JournalFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        selectedTag={selectedTag}
-        onTagChange={setSelectedTag}
+        selectedType={selectedType}
+        onTypeChange={setSelectedType}
       />
 
-      <div className="space-y-4">
+      <div className="mt-6 space-y-4">
         {filteredEntries.map((entry) => (
           <JournalEntry
             key={entry.id}
@@ -126,23 +149,10 @@ export default function LearningJournal() {
               setIsEditing(true);
             }}
             onDelete={() => deleteEntry(entry.id)}
+            onSummarize={() => generateSummary(entry)}
           />
         ))}
       </div>
-
-      <Dialog open={isAddingEntry} onOpenChange={setIsAddingEntry}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>הוסף רשומה חדשה</DialogTitle>
-          </DialogHeader>
-          <JournalEntryForm
-            onEntryAdded={() => {
-              loadEntries();
-              setIsAddingEntry(false);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent>
@@ -162,6 +172,20 @@ export default function LearningJournal() {
               ביטול
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>סיכום רשומה</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 whitespace-pre-wrap">
+            {summary}
+          </div>
+          <Button onClick={() => setShowSummary(false)} className="mt-4">
+            סגור
+          </Button>
         </DialogContent>
       </Dialog>
     </Card>
