@@ -23,7 +23,7 @@ export const JournalEntryContent: React.FC<JournalEntryContentProps> = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <div 
         className="prose prose-sm rtl dark:prose-invert"
         onClick={handleClick}
@@ -33,22 +33,22 @@ export const JournalEntryContent: React.FC<JournalEntryContentProps> = ({
       />
       
       {isTruncated && (
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-4">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 bg-navy-800 hover:bg-navy-900 text-white"
           >
             {isExpanded ? (
               <>
-                <ChevronUp className="h-4 w-4 ml-1" />
-                הצג פחות
+                <ChevronUp className="h-4 w-4" />
+                <span>הצג פחות</span>
               </>
             ) : (
               <>
-                <ChevronDown className="h-4 w-4 ml-1" />
-                הצג עוד
+                <ChevronDown className="h-4 w-4" />
+                <span>הצג עוד</span>
               </>
             )}
           </Button>
