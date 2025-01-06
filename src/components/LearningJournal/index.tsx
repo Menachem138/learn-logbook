@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { JournalEntryForm } from "./JournalEntryForm";
 import { CollapsibleEntry } from "./CollapsibleEntry";
 import { JournalHeader } from "./components/JournalHeader";
 import { JournalDialogs } from "./components/JournalDialogs";
 import { useJournalEntries } from "./hooks/useJournalEntries";
-import { toast } from "sonner";
 
 interface JournalEntry {
   id: string;
@@ -53,7 +53,7 @@ export default function LearningJournal() {
   });
 
   if (loading) {
-    return <div>טוען...</div>;
+    return <div className="text-center p-4">טוען...</div>;
   }
 
   return (

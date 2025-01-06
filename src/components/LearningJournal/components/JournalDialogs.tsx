@@ -1,8 +1,6 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import Editor from "../Editor";
-import { ImageModal } from "@/components/ui/image-modal";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Editor } from "../Editor";
 
 interface JournalEntry {
   id: string;
@@ -25,7 +23,7 @@ interface JournalDialogsProps {
   setSelectedImage: (value: string | null) => void;
 }
 
-export const JournalDialogs: React.FC<JournalDialogsProps> = ({
+export function JournalDialogs({
   isEditing,
   setIsEditing,
   editingEntry,
@@ -35,57 +33,46 @@ export const JournalDialogs: React.FC<JournalDialogsProps> = ({
   setShowSummary,
   summary,
   selectedImage,
-  setSelectedImage,
-}) => {
+  setSelectedImage
+}: JournalDialogsProps) {
   return (
     <>
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="w-full max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>ערוך רשומה</DialogTitle>
-          </DialogHeader>
-          <div className="w-full max-h-[60vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl">
+          {editingEntry && (
             <Editor
-              content={editingEntry?.content || ""}
-              onChange={(content) => setEditingEntry(editingEntry ? { ...editingEntry, content } : null)}
+              content={editingEntry.content}
+              onChange={(content) => {
+                setEditingEntry({ ...editingEntry, content });
+              }}
+              onSave={async () => {
+                if (editingEntry) {
+                  const success = await onUpdateEntry(editingEntry);
+                  if (success) {
+                    setIsEditing(false);
+                  }
+                }
+              }}
             />
-          </div>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button onClick={() => editingEntry && onUpdateEntry(editingEntry)}>
-              שמור שינויים
-            </Button>
-            <Button variant="outline" onClick={() => {
-              setIsEditing(false);
-              setEditingEntry(null);
-            }}>
-              ביטול
-            </Button>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
       <Dialog open={showSummary} onOpenChange={setShowSummary}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>סיכום רשומה</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 whitespace-pre-wrap">
+          <div className="prose prose-sm dark:prose-invert">
             {summary}
           </div>
-          <Button 
-            onClick={() => setShowSummary(false)} 
-            className="mt-4"
-          >
-            סגור
-          </Button>
         </DialogContent>
       </Dialog>
 
-      <ImageModal
-        isOpen={!!selectedImage}
-        onClose={() => setSelectedImage(null)}
-        imageUrl={selectedImage || ""}
-      />
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl">
+          {selectedImage && (
+            <img src={selectedImage} alt="Selected" className="w-full h-auto" />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
-};
+}
