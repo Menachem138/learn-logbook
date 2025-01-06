@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Editor } from "../Editor";
+import Editor from "../Editor";
 
 interface JournalEntry {
   id: string;
