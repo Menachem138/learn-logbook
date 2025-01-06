@@ -48,7 +48,13 @@ export default function LearningJournal() {
 
       if (error) throw error;
 
-      setEntries(data || []);
+      // Type assertion to ensure the type is either 'learning' or 'trading'
+      const typedData = (data || []).map(entry => ({
+        ...entry,
+        type: (entry.type || 'learning') as 'learning' | 'trading'
+      }));
+
+      setEntries(typedData);
     } catch (error) {
       console.error('Error loading entries:', error);
       toast.error("שגיאה בטעינת היומן");
