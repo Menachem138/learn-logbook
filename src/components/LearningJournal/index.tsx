@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { JournalEntryForm } from "./JournalEntryForm";
-import { JournalEntry } from "./components/JournalEntry";
+import { JournalHeader } from "./components/JournalHeader";
 import { JournalFilters } from "./components/JournalFilters";
-import { ImageModal } from "@/components/ui/image-modal";
+import { JournalEntry } from "./components/JournalEntry";
 import Editor from "./Editor";
 
 interface JournalEntry {
@@ -16,31 +15,21 @@ interface JournalEntry {
   created_at: string;
   is_important: boolean;
   user_id: string;
+  type?: 'learning' | 'trading';
 }
 
 export default function LearningJournal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [summarizing, setSummarizing] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [showSummary, setShowSummary] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: undefined,
-    to: undefined
-  });
+  const [selectedTag, setSelectedTag] = useState("all");
+  const [isAddingEntry, setIsAddingEntry] = useState(false);
 
   useEffect(() => {
     loadEntries();
   }, []);
-
-  useEffect(() => {
-    filterEntries();
-  }, [entries, searchQuery, dateRange]);
 
   const loadEntries = async () => {
     try {
@@ -64,34 +53,6 @@ export default function LearningJournal() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterEntries = () => {
-    let filtered = [...entries];
-
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(entry => 
-        entry.content.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply date range filter
-    if (dateRange.from || dateRange.to) {
-      filtered = filtered.filter(entry => {
-        const entryDate = new Date(entry.created_at);
-        if (dateRange.from && dateRange.to) {
-          return entryDate >= dateRange.from && entryDate <= dateRange.to;
-        } else if (dateRange.from) {
-          return entryDate >= dateRange.from;
-        } else if (dateRange.to) {
-          return entryDate <= dateRange.to;
-        }
-        return true;
-      });
-    }
-
-    setFilteredEntries(filtered);
   };
 
   const deleteEntry = async (id: string) => {
@@ -134,24 +95,11 @@ export default function LearningJournal() {
     }
   };
 
-  const generateSummary = async (entry: JournalEntry) => {
-    try {
-      setSummarizing(true);
-      const { data, error } = await supabase.functions.invoke('summarize-journal', {
-        body: { content: entry.content }
-      });
-
-      if (error) throw error;
-
-      setSummary(data.summary);
-      setShowSummary(true);
-    } catch (error) {
-      console.error('Error generating summary:', error);
-      toast.error("שגיאה בהפקת סיכום");
-    } finally {
-      setSummarizing(false);
-    }
-  };
+  const filteredEntries = entries.filter(entry => {
+    const matchesSearch = entry.content.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = selectedTag === 'all' || entry.type === selectedTag;
+    return matchesSearch && matchesTag;
+  });
 
   if (loading) {
     return <div>טוען...</div>;
@@ -159,18 +107,16 @@ export default function LearningJournal() {
 
   return (
     <Card className="p-6 w-full bg-background text-foreground transition-colors duration-300">
-      <h2 className="text-2xl font-bold mb-4">יומן למידה</h2>
+      <JournalHeader onAddEntry={() => setIsAddingEntry(true)} />
       
-      <JournalEntryForm onEntryAdded={loadEntries} />
-
       <JournalFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
+        selectedTag={selectedTag}
+        onTagChange={setSelectedTag}
       />
 
-      <div className="mt-6 space-y-4">
+      <div className="space-y-4">
         {filteredEntries.map((entry) => (
           <JournalEntry
             key={entry.id}
@@ -180,23 +126,34 @@ export default function LearningJournal() {
               setIsEditing(true);
             }}
             onDelete={() => deleteEntry(entry.id)}
-            onGenerateSummary={() => generateSummary(entry)}
           />
         ))}
       </div>
 
+      <Dialog open={isAddingEntry} onOpenChange={setIsAddingEntry}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>הוסף רשומה חדשה</DialogTitle>
+          </DialogHeader>
+          <JournalEntryForm
+            onEntryAdded={() => {
+              loadEntries();
+              setIsAddingEntry(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="w-full max-w-4xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>ערוך רשומה</DialogTitle>
           </DialogHeader>
-          <div className="w-full max-h-[60vh] overflow-y-auto">
-            <Editor
-              content={editingEntry?.content || ""}
-              onChange={(content) => setEditingEntry(editingEntry ? { ...editingEntry, content } : null)}
-            />
-          </div>
-          <div className="flex justify-end space-x-2 mt-4">
+          <Editor
+            content={editingEntry?.content || ""}
+            onChange={(content) => setEditingEntry(editingEntry ? { ...editingEntry, content } : null)}
+          />
+          <div className="flex justify-end gap-2 mt-4">
             <Button onClick={updateEntry}>שמור שינויים</Button>
             <Button variant="outline" onClick={() => {
               setIsEditing(false);
@@ -207,29 +164,6 @@ export default function LearningJournal() {
           </div>
         </DialogContent>
       </Dialog>
-
-      <Dialog open={showSummary} onOpenChange={setShowSummary}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>סיכום רשומה</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 whitespace-pre-wrap">
-            {summary}
-          </div>
-          <Button 
-            onClick={() => setShowSummary(false)} 
-            className="mt-4"
-          >
-            סגור
-          </Button>
-        </DialogContent>
-      </Dialog>
-
-      <ImageModal
-        isOpen={!!selectedImage}
-        onClose={() => setSelectedImage(null)}
-        imageUrl={selectedImage || ""}
-      />
     </Card>
   );
 }
