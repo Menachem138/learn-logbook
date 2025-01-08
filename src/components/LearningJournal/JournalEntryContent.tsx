@@ -37,23 +37,26 @@ export function JournalEntryContent({ content }: JournalEntryContentProps) {
         dangerouslySetInnerHTML={{ __html: truncatedContent }}
       />
       {shouldShowButton && (
-        <Button
-          variant="outline"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-center gap-2 py-2 text-sm font-medium bg-accent hover:bg-accent/80 text-accent-foreground transition-all duration-200 border-2 hover:border-primary/50"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp className="h-4 w-4" />
-              הצג פחות
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4" />
-              הצג עוד
-            </>
-          )}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-background hover:bg-accent/10 text-accent-foreground transition-all duration-200 rounded-full border border-accent/20 hover:border-accent/40 shadow-sm hover:shadow"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3.5 w-3.5" />
+                פחות
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3.5 w-3.5" />
+                עוד
+              </>
+            )}
+          </Button>
+        </div>
       )}
     </div>
   );
