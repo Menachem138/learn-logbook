@@ -16,11 +16,9 @@ export function JournalEntryContent({ content }: JournalEntryContentProps) {
     const doc = parser.parseFromString(content, 'text/html');
     const textContent = doc.body.textContent || '';
     
-    // Check if content needs truncation (more than 3 lines, roughly 200 characters)
     if (textContent.length > 200) {
       setShouldShowButton(true);
       if (!isExpanded) {
-        // Truncate the content while preserving HTML
         const truncated = content.slice(0, 200) + '...';
         setTruncatedContent(truncated);
       } else {
@@ -40,18 +38,18 @@ export function JournalEntryContent({ content }: JournalEntryContentProps) {
       />
       {shouldShowButton && (
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full flex items-center justify-center gap-1 py-1"
+          className="w-full flex items-center justify-center gap-2 py-2 text-sm font-medium bg-accent hover:bg-accent/80 text-accent-foreground transition-all duration-200 border-2 hover:border-primary/50"
         >
           {isExpanded ? (
             <>
-              <ChevronUp className="h-3 w-3" />
+              <ChevronUp className="h-4 w-4" />
               הצג פחות
             </>
           ) : (
             <>
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className="h-4 w-4" />
               הצג עוד
             </>
           )}
