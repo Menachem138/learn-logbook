@@ -43,10 +43,10 @@ export function JournalEntryContent({ content }: JournalEntryContentProps) {
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium 
-              bg-white hover:bg-white/90
+              bg-white hover:bg-white/95
               text-gray-700 transition-all duration-300 rounded-full 
-              border-2 border-transparent hover:scale-105 transform
-              [background:padding-box_#fff,border-box_linear-gradient(90deg,#9b87f5,#D946EF)]
+              border-[3px] border-transparent hover:scale-105 transform
+              [background:padding-box_#fff,border-box_linear-gradient(90deg,#9F2BC1,#E963D5)]
               shadow-sm hover:shadow-md"
           >
             {isExpanded ? (
