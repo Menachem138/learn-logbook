@@ -37,12 +37,17 @@ export function JournalEntryContent({ content }: JournalEntryContentProps) {
         dangerouslySetInnerHTML={{ __html: truncatedContent }}
       />
       {shouldShowButton && (
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-background hover:bg-accent/10 text-accent-foreground transition-all duration-200 rounded-full border border-accent/20 hover:border-accent/40 shadow-sm hover:shadow"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium 
+              bg-gradient-to-r from-purple-400 via-pink-400 to-purple-300 
+              hover:from-purple-500 hover:via-pink-500 hover:to-purple-400
+              text-white transition-all duration-300 rounded-full 
+              border-none shadow-md hover:shadow-lg 
+              hover:scale-105 transform"
           >
             {isExpanded ? (
               <>
