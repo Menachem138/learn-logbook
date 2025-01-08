@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import Editor from "./LearningJournal/Editor";
 import { JournalEntryForm } from "./LearningJournal/JournalEntryForm";
-import { ImageModal } from "@/components/ui/image-modal";
 import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
 import { SearchBar } from "./LearningJournal/SearchBar";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface JournalEntry {
   id: string;
@@ -26,13 +24,12 @@ export default function LearningJournal() {
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [summarizing, setSummarizing] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [showSummary, setShowSummary] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [showSummary, setShowSummary] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [summarizing, setSummarizing] = useState(false);
 
   useEffect(() => {
     loadEntries();
@@ -249,12 +246,6 @@ export default function LearningJournal() {
           </Button>
         </DialogContent>
       </Dialog>
-
-      <ImageModal
-        isOpen={!!selectedImage}
-        onClose={() => setSelectedImage(null)}
-        imageUrl={selectedImage || ""}
-      />
     </Card>
   );
 }
