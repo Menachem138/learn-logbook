@@ -43,21 +43,21 @@ export function JournalEntryContent({ content }: JournalEntryContentProps) {
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium 
-              bg-gradient-to-r from-purple-400 via-pink-400 to-purple-300 
-              hover:from-purple-500 hover:via-pink-500 hover:to-purple-400
-              text-white transition-all duration-300 rounded-full 
-              border-none shadow-md hover:shadow-lg 
-              hover:scale-105 transform"
+              bg-white hover:bg-white/90
+              text-gray-700 transition-all duration-300 rounded-full 
+              border-2 border-transparent hover:scale-105 transform
+              [background:padding-box_#fff,border-box_linear-gradient(90deg,#9b87f5,#D946EF)]
+              shadow-sm hover:shadow-md"
           >
             {isExpanded ? (
               <>
                 <ChevronUp className="h-3.5 w-3.5" />
-                פחות
+                הצג פחות
               </>
             ) : (
               <>
                 <ChevronDown className="h-3.5 w-3.5" />
-                עוד
+                הצג עוד
               </>
             )}
           </Button>
