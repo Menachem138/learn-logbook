@@ -40,23 +40,21 @@ export function JournalEntryContent({ content }: JournalEntryContentProps) {
       />
       {shouldShowButton && (
         <Button
-          variant="secondary"
+          variant="ghost"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full mt-2 bg-gray-800 text-white hover:bg-gray-700"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full flex items-center justify-center gap-1 py-1"
         >
-          <span className="flex items-center gap-2">
-            {isExpanded ? (
-              <>
-                <ChevronUp className="h-4 w-4" />
-                הצג פחות
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4" />
-                הצג עוד
-              </>
-            )}
-          </span>
+          {isExpanded ? (
+            <>
+              <ChevronUp className="h-3 w-3" />
+              הצג פחות
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3 w-3" />
+              הצג עוד
+            </>
+          )}
         </Button>
       )}
     </div>
