@@ -8,6 +8,8 @@ import Editor from "./LearningJournal/Editor";
 import { JournalEntryForm } from "./LearningJournal/JournalEntryForm";
 import { ImageModal } from "@/components/ui/image-modal";
 import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
+import { SearchBar } from "./LearningJournal/SearchBar";
+import { Badge } from "@/components/ui/badge";
 
 interface JournalEntry {
   id: string;
@@ -15,10 +17,12 @@ interface JournalEntry {
   created_at: string;
   is_important: boolean;
   user_id: string;
+  tags?: string[];
 }
 
 export default function LearningJournal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -26,10 +30,17 @@ export default function LearningJournal() {
   const [summarizing, setSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]);
 
   useEffect(() => {
     loadEntries();
   }, []);
+
+  useEffect(() => {
+    filterEntries();
+  }, [searchQuery, selectedTags, entries]);
 
   const loadEntries = async () => {
     try {
@@ -47,12 +58,49 @@ export default function LearningJournal() {
       if (error) throw error;
 
       setEntries(data || []);
+      
+      // Extract all unique tags
+      const tags = data?.reduce((acc: string[], entry: JournalEntry) => {
+        if (entry.tags) {
+          return [...new Set([...acc, ...entry.tags])];
+        }
+        return acc;
+      }, []);
+      setAllTags(tags);
     } catch (error) {
       console.error('Error loading entries:', error);
       toast.error("שגיאה בטעינת היומן");
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterEntries = () => {
+    let filtered = entries;
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(entry =>
+        entry.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(entry =>
+        entry.tags?.some(tag => selectedTags.includes(tag))
+      );
+    }
+
+    setFilteredEntries(filtered);
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
   };
 
   const deleteEntry = async (id: string) => {
@@ -125,18 +173,41 @@ export default function LearningJournal() {
       <JournalEntryForm onEntryAdded={loadEntries} />
 
       <div className="mt-6 space-y-4">
-        {entries.map((entry) => (
-          <JournalEntryCard
-            key={entry.id}
-            entry={entry}
-            onEdit={() => {
-              setEditingEntry(entry);
-              setIsEditing(true);
-            }}
-            onDelete={() => deleteEntry(entry.id)}
-            onGenerateSummary={() => generateSummary(entry)}
-          />
-        ))}
+        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {allTags.map((tag) => (
+              <Badge
+                key={tag}
+                variant={selectedTags.includes(tag) ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => toggleTag(tag)}
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {(filteredEntries.length === 0 && (searchQuery || selectedTags.length > 0)) ? (
+          <div className="text-center text-muted-foreground py-8">
+            לא נמצאו רשומות התואמות לחיפוש
+          </div>
+        ) : (
+          filteredEntries.map((entry) => (
+            <JournalEntryCard
+              key={entry.id}
+              entry={entry}
+              onEdit={() => {
+                setEditingEntry(entry);
+                setIsEditing(true);
+              }}
+              onDelete={() => deleteEntry(entry.id)}
+              onGenerateSummary={() => generateSummary(entry)}
+            />
+          ))
+        )}
       </div>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>

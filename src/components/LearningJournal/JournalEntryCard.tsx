@@ -11,6 +11,7 @@ interface JournalEntryCardProps {
     content: string;
     created_at: string;
     is_important: boolean;
+    tags?: string[];
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -21,9 +22,18 @@ export function JournalEntryCard({ entry, onEdit, onDelete, onGenerateSummary }:
   return (
     <Card className={`p-4 ${entry.is_important ? 'border-2 border-yellow-500' : ''}`}>
       <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           {entry.is_important && (
             <Badge variant="secondary">חשוב</Badge>
+          )}
+          {entry.tags && entry.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {entry.tags.map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
           )}
         </div>
         <div className="flex space-x-2">

@@ -157,6 +157,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_important: boolean | null
+          tags: string[] | null
           type: string | null
           user_id: string
         }
@@ -166,6 +167,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_important?: boolean | null
+          tags?: string[] | null
           type?: string | null
           user_id: string
         }
@@ -175,6 +177,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_important?: boolean | null
+          tags?: string[] | null
           type?: string | null
           user_id?: string
         }

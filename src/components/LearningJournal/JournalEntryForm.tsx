@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import Editor from "./Editor";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerConfetti } from "@/utils/confetti";
+import { TagInput } from "./TagInput";
 
 interface JournalEntryFormProps {
   onEntryAdded: () => void;
@@ -11,6 +12,7 @@ interface JournalEntryFormProps {
 
 export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
   const [content, setContent] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addEntry = async (isImportant: boolean = false) => {
@@ -31,6 +33,7 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
         .from('learning_journal')
         .insert([{
           content,
+          tags,
           is_important: isImportant,
           user_id: session.session.user.id
         }]);
@@ -38,9 +41,10 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
       if (error) throw error;
 
       setContent("");
+      setTags([]);
       onEntryAdded();
       toast.success("הרשומה נוספה בהצלחה!");
-      triggerConfetti(); // Trigger confetti after successful entry
+      triggerConfetti();
     } catch (error) {
       console.error('Error adding entry:', error);
       toast.error("שגיאה בהוספת רשומה");
@@ -57,6 +61,7 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
           onChange={setContent}
           onClear={() => setContent("")}
         />
+        <TagInput tags={tags} onChange={setTags} />
       </div>
       <div className="flex space-x-2">
         <Button 
