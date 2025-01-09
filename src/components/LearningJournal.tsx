@@ -9,9 +9,8 @@ import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
 import { SearchBar } from "./LearningJournal/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { FileDown } from 'lucide-react';
+import { Document, Page, Text, View, StyleSheet, PDFViewer, pdf } from '@react-pdf/renderer';
 
 interface JournalEntry {
   id: string;
@@ -21,6 +20,54 @@ interface JournalEntry {
   user_id: string;
   tags?: string[];
 }
+
+// Create styles for PDF
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#FFFFFF',
+    padding: 30,
+  },
+  section: {
+    margin: 10,
+    padding: 10,
+    flexGrow: 1
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 10,
+    textAlign: 'right',
+  },
+  entry: {
+    marginBottom: 20,
+    padding: 10,
+    borderBottom: 1,
+  },
+  date: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 5,
+  }
+});
+
+// PDF Document Component
+const JournalPDF = ({ entries }: { entries: JournalEntry[] }) => (
+  <Document>
+    <Page size="A4" style={styles.page}>
+      <View style={styles.section}>
+        <Text style={styles.title}>יומן למידה</Text>
+        {entries.map((entry) => (
+          <View key={entry.id} style={styles.entry}>
+            <Text>{entry.content.replace(/<[^>]*>/g, '')}</Text>
+            <Text style={styles.date}>
+              {new Date(entry.created_at).toLocaleDateString()}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </Page>
+  </Document>
+);
 
 export default function LearningJournal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -35,71 +82,32 @@ export default function LearningJournal() {
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
 
-  const journalContentRef = useRef<HTMLDivElement>(null);
-
   const exportToPDF = async () => {
-    if (!journalContentRef.current) {
-      toast.error("שגיאה בהכנת הקובץ");
-      return;
-    }
-
     try {
       toast.info("מכין את הקובץ להורדה...");
       
-      const element = journalContentRef.current;
+      // Generate PDF blob
+      const blob = await pdf(<JournalPDF entries={filteredEntries.length > 0 ? filteredEntries : entries} />).toBlob();
       
-      // Expand all entries first
-      const buttons = element.querySelectorAll('button');
-      const expandButtons = Array.from(buttons).filter(button => 
-        button.textContent?.includes('הצג עוד')
-      );
-      
-      for (const button of expandButtons) {
-        button.click();
-      }
-
-      // Wait for content to be fully expanded
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Create canvas with simpler settings
-      const canvas = await html2canvas(element, {
-        scale: 1,
-        useCORS: true,
-        logging: true,
-        width: element.offsetWidth,
-        height: element.scrollHeight,
-        backgroundColor: '#ffffff'
-      });
-
-      // Convert to PDF with basic settings
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/jpeg', 0.7);
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
       const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
-      pdf.save(`יומן-למידה-${date}.pdf`);
+      link.download = `יומן-למידה-${date}.pdf`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Cleanup
+      URL.revokeObjectURL(url);
       
       toast.success("הקובץ הורד בהצלחה!");
-
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error("שגיאה בהכנת הקובץ");
-    } finally {
-      // Collapse entries back
-      if (journalContentRef.current) {
-        const buttons = journalContentRef.current.querySelectorAll('button');
-        const collapseButtons = Array.from(buttons).filter(button => 
-          button.textContent?.includes('הצג פחות')
-        );
-        
-        for (const button of collapseButtons) {
-          button.click();
-        }
-      }
     }
   };
 
@@ -252,7 +260,7 @@ export default function LearningJournal() {
       
       <JournalEntryForm onEntryAdded={loadEntries} />
 
-      <div className="mt-6 space-y-4" ref={journalContentRef} data-journal-content>
+      <div className="mt-6 space-y-4">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
         
         {allTags.length > 0 && (
