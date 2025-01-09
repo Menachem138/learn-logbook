@@ -44,12 +44,22 @@ export default function LearningJournal() {
       toast.info("מכין את הקובץ להורדה...");
       
       const element = journalContentRef.current;
-      // Add padding to the element before capturing to ensure margins
+      
+      // Store original styles
+      const originalStyles = {
+        padding: element.style.padding,
+        textAlign: element.style.textAlign,
+        maxWidth: element.style.maxWidth,
+        margin: element.style.margin,
+        direction: element.style.direction
+      };
+
+      // Apply styles for capture
       element.style.padding = '40px';
-      // Add text alignment to ensure content is centered
-      element.style.textAlign = 'center';
-      // Set max-width to ensure content doesn't overflow
+      element.style.textAlign = 'right';
       element.style.maxWidth = '100%';
+      element.style.margin = '0 auto';
+      element.style.direction = 'rtl';
       
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -63,10 +73,12 @@ export default function LearningJournal() {
         y: 0
       });
 
-      // Reset the styles
-      element.style.padding = '';
-      element.style.textAlign = '';
-      element.style.maxWidth = '';
+      // Reset to original styles
+      element.style.padding = originalStyles.padding;
+      element.style.textAlign = originalStyles.textAlign;
+      element.style.maxWidth = originalStyles.maxWidth;
+      element.style.margin = originalStyles.margin;
+      element.style.direction = originalStyles.direction;
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -80,7 +92,7 @@ export default function LearningJournal() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Calculate dimensions to center the content
+      // Calculate dimensions with larger margins
       const margin = 20; // 20mm margins
       const imgWidth = pageWidth - (2 * margin);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
