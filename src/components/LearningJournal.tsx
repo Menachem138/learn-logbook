@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,7 +10,7 @@ import { SearchBar } from "./LearningJournal/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { FileDown } from 'lucide-react';
-import { Document, Page, Text, View, StyleSheet, PDFViewer, pdf } from '@react-pdf/renderer';
+import jsPDF from 'jspdf';
 
 interface JournalEntry {
   id: string;
@@ -20,54 +20,6 @@ interface JournalEntry {
   user_id: string;
   tags?: string[];
 }
-
-// Create styles for PDF
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
-    padding: 30,
-  },
-  section: {
-    margin: 10,
-    padding: 10,
-    flexGrow: 1
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 10,
-    textAlign: 'right',
-  },
-  entry: {
-    marginBottom: 20,
-    padding: 10,
-    borderBottom: 1,
-  },
-  date: {
-    fontSize: 10,
-    color: '#666',
-    marginTop: 5,
-  }
-});
-
-// PDF Document Component
-const JournalPDF = ({ entries }: { entries: JournalEntry[] }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text style={styles.title}>יומן למידה</Text>
-        {entries.map((entry) => (
-          <View key={entry.id} style={styles.entry}>
-            <Text>{entry.content.replace(/<[^>]*>/g, '')}</Text>
-            <Text style={styles.date}>
-              {new Date(entry.created_at).toLocaleDateString()}
-            </Text>
-          </View>
-        ))}
-      </View>
-    </Page>
-  </Document>
-);
 
 export default function LearningJournal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -82,27 +34,64 @@ export default function LearningJournal() {
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
 
-  const exportToPDF = async () => {
+  const exportToPDF = () => {
     try {
       toast.info("מכין את הקובץ להורדה...");
       
-      // Generate PDF blob
-      const blob = await pdf(<JournalPDF entries={filteredEntries.length > 0 ? filteredEntries : entries} />).toBlob();
+      const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+      });
       
-      // Create download link
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
+      // Set RTL mode and font
+      doc.setR2L(true);
+      
+      // Add title
+      doc.setFontSize(24);
+      doc.text("יומן למידה", 200, 20, { align: 'right' });
+      
+      // Add entries
+      doc.setFontSize(12);
+      let yPosition = 40;
+      
+      const entriesToExport = filteredEntries.length > 0 ? filteredEntries : entries;
+      
+      entriesToExport.forEach((entry) => {
+        // Remove HTML tags from content
+        const cleanContent = entry.content.replace(/<[^>]*>/g, '');
+        
+        // Format date
+        const date = new Date(entry.created_at).toLocaleDateString('he-IL');
+        
+        // Add date
+        doc.setFontSize(10);
+        doc.text(date, 200, yPosition, { align: 'right' });
+        yPosition += 7;
+        
+        // Add content
+        doc.setFontSize(12);
+        const splitContent = doc.splitTextToSize(cleanContent, 180);
+        
+        // Check if we need a new page
+        if (yPosition + (splitContent.length * 7) > 280) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.text(splitContent, 200, yPosition, { align: 'right' });
+        yPosition += (splitContent.length * 7) + 10;
+        
+        // Add separator
+        if (yPosition < 280) {
+          doc.line(20, yPosition - 5, 190, yPosition - 5);
+          yPosition += 10;
+        }
+      });
+      
+      // Save the PDF
       const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
-      link.download = `יומן-למידה-${date}.pdf`;
-      
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Cleanup
-      URL.revokeObjectURL(url);
+      doc.save(`יומן-למידה-${date}.pdf`);
       
       toast.success("הקובץ הורד בהצלחה!");
     } catch (error) {
