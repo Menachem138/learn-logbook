@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,8 +9,9 @@ import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
 import { SearchBar } from "./LearningJournal/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { FileDown } from 'lucide-react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { FileDown } from 'lucide-react';
 
 interface JournalEntry {
   id: string;
@@ -34,114 +35,56 @@ export default function LearningJournal() {
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
 
-  const exportToPDF = () => {
+  const journalContentRef = useRef<HTMLDivElement>(null);
+
+  const exportToPDF = async () => {
+    if (!journalContentRef.current) return;
+
     try {
       toast.info("מכין את הקובץ להורדה...");
       
-      const doc = new jsPDF({
+      const element = journalContentRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        foreignObjectRendering: true,
+        scrollY: -window.scrollY,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-      });
-
-      // Add a custom font for Hebrew support
-      doc.addFont("https://fonts.gstatic.com/s/heebo/v21/NGSpv5_NC0k9P_v6ZUCbLRAHxK1EiSysdUmj.ttf", "Heebo", "normal");
-      doc.setFont("Heebo");
-      
-      // Enable right-to-left mode
-      doc.setR2L(true);
-      
-      // Add title
-      doc.setFontSize(24);
-      doc.text("יומן למידה", 190, 20);
-      
-      // Add entries
-      doc.setFontSize(12);
-      let yPosition = 40;
-      
-      const entriesToExport = filteredEntries.length > 0 ? filteredEntries : entries;
-      
-      entriesToExport.forEach((entry) => {
-        // Add metadata (date and tags)
-        const date = new Date(entry.created_at).toLocaleDateString('he-IL');
-        doc.setFontSize(10);
-        doc.text(date, 190, yPosition);
-        yPosition += 7;
-
-        if (entry.tags && entry.tags.length > 0) {
-          const tagsText = entry.tags.join(', ');
-          doc.setFontSize(8);
-          doc.text(tagsText, 190, yPosition);
-          yPosition += 7;
-        }
-
-        if (entry.is_important) {
-          doc.setFontSize(8);
-          doc.text("⭐ חשוב", 190, yPosition);
-          yPosition += 7;
-        }
-        
-        // Add content
-        doc.setFontSize(12);
-        const maxWidth = 170;
-
-        // Convert HTML to plain text while preserving structure
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = entry.content;
-        
-        // Process text nodes and add line breaks for block elements
-        const processNode = (node: Node): string => {
-          if (node.nodeType === Node.TEXT_NODE) {
-            return node.textContent || '';
-          }
-          
-          const children = Array.from(node.childNodes).map(processNode).join('');
-          
-          // Add line breaks for block elements
-          if (node.nodeName === 'P' || node.nodeName === 'DIV' || 
-              node.nodeName === 'BR' || node.nodeName === 'LI') {
-            return children + '\n';
-          }
-          
-          // Add bullet points for list items
-          if (node.nodeName === 'LI') {
-            return '• ' + children;
-          }
-          
-          return children;
-        };
-
-        const cleanContent = processNode(tempDiv)
-          .replace(/\n\s*\n/g, '\n') // Remove extra line breaks
-          .trim();
-        
-        const lines = doc.splitTextToSize(cleanContent, maxWidth);
-        
-        // Check if we need a new page
-        if (yPosition + (lines.length * 7) > 280) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        
-        // Add content lines
-        lines.forEach((line: string) => {
-          doc.text(line, 190, yPosition);
-          yPosition += 7;
-        });
-        
-        // Add separator
-        yPosition += 5;
-        if (yPosition < 280) {
-          doc.setDrawColor(200, 200, 200);
-          doc.line(20, yPosition, 190, yPosition);
-          yPosition += 15;
-        }
+        putOnlyUsedFonts: true
       });
       
-      // Save the PDF
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      // First page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      // Additional pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
-      doc.save(`יומן-למידה-${date}.pdf`);
-      
+      pdf.save(`יומן-למידה-${date}.pdf`);
       toast.success("הקובץ הורד בהצלחה!");
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -275,7 +218,6 @@ export default function LearningJournal() {
     } finally {
       setSummarizing(false);
     }
-
   };
 
   if (loading) {
@@ -298,7 +240,7 @@ export default function LearningJournal() {
       
       <JournalEntryForm onEntryAdded={loadEntries} />
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 space-y-4" ref={journalContentRef}>
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
         
         {allTags.length > 0 && (
