@@ -43,13 +43,17 @@ export default function LearningJournal() {
         unit: 'mm',
         format: 'a4',
       });
+
+      // Add a custom font for Hebrew support
+      doc.addFont("https://fonts.gstatic.com/s/heebo/v21/NGSpv5_NC0k9P_v6ZUCbLRAHxK1EiSysdUmj.ttf", "Heebo", "normal");
+      doc.setFont("Heebo");
       
-      // Set RTL mode and font
+      // Enable right-to-left mode
       doc.setR2L(true);
       
       // Add title
       doc.setFontSize(24);
-      doc.text("יומן למידה", 200, 20, { align: 'right' });
+      doc.text("יומן למידה", 190, 20);
       
       // Add entries
       doc.setFontSize(12);
@@ -58,33 +62,39 @@ export default function LearningJournal() {
       const entriesToExport = filteredEntries.length > 0 ? filteredEntries : entries;
       
       entriesToExport.forEach((entry) => {
-        // Remove HTML tags from content
-        const cleanContent = entry.content.replace(/<[^>]*>/g, '');
-        
-        // Format date
-        const date = new Date(entry.created_at).toLocaleDateString('he-IL');
+        // Clean content from HTML tags
+        const cleanContent = entry.content.replace(/<[^>]*>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>');
         
         // Add date
+        const date = new Date(entry.created_at).toLocaleDateString('he-IL');
         doc.setFontSize(10);
-        doc.text(date, 200, yPosition, { align: 'right' });
+        doc.text(date, 190, yPosition);
         yPosition += 7;
         
         // Add content
         doc.setFontSize(12);
-        const splitContent = doc.splitTextToSize(cleanContent, 180);
+        const maxWidth = 170;
+        const lines = doc.splitTextToSize(cleanContent, maxWidth);
         
         // Check if we need a new page
-        if (yPosition + (splitContent.length * 7) > 280) {
+        if (yPosition + (lines.length * 7) > 280) {
           doc.addPage();
           yPosition = 20;
         }
         
-        doc.text(splitContent, 200, yPosition, { align: 'right' });
-        yPosition += (splitContent.length * 7) + 10;
+        // Add content lines
+        lines.forEach((line: string) => {
+          doc.text(line, 190, yPosition);
+          yPosition += 7;
+        });
         
         // Add separator
         if (yPosition < 280) {
-          doc.line(20, yPosition - 5, 190, yPosition - 5);
+          doc.line(20, yPosition, 190, yPosition);
           yPosition += 10;
         }
       });
