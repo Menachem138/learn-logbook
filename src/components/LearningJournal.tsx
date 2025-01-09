@@ -51,40 +51,51 @@ export default function LearningJournal() {
       // Enable right-to-left mode
       doc.setR2L(true);
       
+      // Set initial position with margins
+      const pageWidth = 210; // A4 width in mm
+      const margin = 20; // margin in mm
+      const contentWidth = pageWidth - (2 * margin);
+      let yPosition = margin;
+      
       // Add title
       doc.setFontSize(24);
-      doc.text("יומן למידה", 190, 20);
+      doc.text("יומן למידה", pageWidth - margin, yPosition);
+      yPosition += 15;
       
       // Add entries
       doc.setFontSize(12);
-      let yPosition = 40;
       
       const entriesToExport = filteredEntries.length > 0 ? filteredEntries : entries;
       
       entriesToExport.forEach((entry) => {
+        // Check if we need a new page
+        if (yPosition > 270) { // Leave some space at bottom
+          doc.addPage();
+          yPosition = margin;
+        }
+        
         // Add metadata (date and tags)
         const date = new Date(entry.created_at).toLocaleDateString('he-IL');
         doc.setFontSize(10);
-        doc.text(date, 190, yPosition);
+        doc.text(date, pageWidth - margin, yPosition);
         yPosition += 7;
 
         if (entry.tags && entry.tags.length > 0) {
           const tagsText = entry.tags.join(', ');
           doc.setFontSize(8);
-          doc.text(tagsText, 190, yPosition);
+          doc.text(tagsText, pageWidth - margin, yPosition);
           yPosition += 7;
         }
 
         if (entry.is_important) {
           doc.setFontSize(8);
-          doc.text("⭐ חשוב", 190, yPosition);
+          doc.text("⭐ חשוב", pageWidth - margin, yPosition);
           yPosition += 7;
         }
         
         // Add content
         doc.setFontSize(12);
-        const maxWidth = 170;
-
+        
         // Convert HTML to plain text while preserving structure
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = entry.content;
@@ -115,25 +126,24 @@ export default function LearningJournal() {
           .replace(/\n\s*\n/g, '\n') // Remove extra line breaks
           .trim();
         
-        const lines = doc.splitTextToSize(cleanContent, maxWidth);
+        const lines = doc.splitTextToSize(cleanContent, contentWidth);
         
-        // Check if we need a new page
-        if (yPosition + (lines.length * 7) > 280) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        
-        // Add content lines
+        // Add content lines with proper right alignment
         lines.forEach((line: string) => {
-          doc.text(line, 190, yPosition);
+          // Check if we need a new page
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, pageWidth - margin, yPosition);
           yPosition += 7;
         });
         
-        // Add separator
+        // Add separator and spacing
         yPosition += 5;
-        if (yPosition < 280) {
+        if (yPosition < 270) {
           doc.setDrawColor(200, 200, 200);
-          doc.line(20, yPosition, 190, yPosition);
+          doc.line(margin, yPosition, pageWidth - margin, yPosition);
           yPosition += 15;
         }
       });
