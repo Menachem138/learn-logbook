@@ -49,8 +49,6 @@ export default function LearningJournal() {
       console.log('Starting PDF export process');
       
       const element = journalContentRef.current;
-      
-      // Save original styles
       const originalStyles = {
         width: element.style.width,
         height: element.style.height,
@@ -58,14 +56,14 @@ export default function LearningJournal() {
         position: element.style.position,
         background: element.style.background
       };
-      
+
       // Set temporary styles for capture
       element.style.width = '800px';
       element.style.height = 'auto';
       element.style.overflow = 'visible';
       element.style.position = 'relative';
       element.style.background = 'white';
-      
+
       // Find and expand all entries
       const buttons = element.querySelectorAll('button');
       const expandButtons = Array.from(buttons).filter(button => 
@@ -73,23 +71,22 @@ export default function LearningJournal() {
       );
       
       console.log(`Found ${expandButtons.length} expand buttons`);
-      
-      // Expand all entries
+
+      // Expand all entries with delay
       for (const button of expandButtons) {
         button.click();
         await new Promise(resolve => setTimeout(resolve, 500));
       }
-      
+
       // Wait for content to settle
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       console.log('Creating canvas');
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: true,
         width: 800,
         height: element.scrollHeight,
         onclone: (clonedDoc) => {
@@ -112,10 +109,9 @@ export default function LearningJournal() {
           }
         }
       });
-      
+
       console.log('Canvas created, creating PDF');
       
-      // Create PDF with specific dimensions
       const imgWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -125,7 +121,7 @@ export default function LearningJournal() {
         unit: 'mm',
         format: 'a4',
       });
-      
+
       // Add image to PDF
       pdf.addImage(
         canvas.toDataURL('image/jpeg', 1.0),
@@ -135,7 +131,7 @@ export default function LearningJournal() {
         imgWidth,
         imgHeight
       );
-      
+
       // Add more pages if needed
       let heightLeft = imgHeight - pageHeight;
       let position = -pageHeight;
@@ -153,26 +149,17 @@ export default function LearningJournal() {
         heightLeft -= pageHeight;
         position -= pageHeight;
       }
-      
+
       console.log('Saving PDF');
       const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
       pdf.save(`יומן-למידה-${date}.pdf`);
       
       toast.success("הקובץ הורד בהצלחה!");
-      
-      // Collapse entries back
-      for (const button of expandButtons) {
-        button.click();
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      // Restore original styles
-      Object.assign(element.style, originalStyles);
-      
+
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error("שגיאה בהכנת הקובץ");
-      
+    } finally {
       // Try to restore the UI state even if there was an error
       if (journalContentRef.current) {
         const buttons = journalContentRef.current.querySelectorAll('button');
@@ -183,6 +170,15 @@ export default function LearningJournal() {
         for (const button of expandButtons) {
           button.click();
         }
+
+        // Restore original styles
+        Object.assign(journalContentRef.current.style, {
+          width: '',
+          height: '',
+          overflow: '',
+          position: '',
+          background: ''
+        });
       }
     }
   };
