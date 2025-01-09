@@ -44,30 +44,31 @@ export default function LearningJournal() {
       toast.info("מכין את הקובץ להורדה...");
       
       const element = journalContentRef.current;
+      const htmlElement = element as HTMLDivElement;
       
       // Store original styles
       const originalStyles = {
-        padding: element.style.padding,
-        textAlign: element.style.textAlign,
-        maxWidth: element.style.maxWidth,
-        margin: element.style.margin,
-        direction: element.style.direction,
-        width: element.style.width,
-        position: element.style.position,
-        right: element.style.right,
-        left: element.style.left
+        padding: htmlElement.style.padding,
+        textAlign: htmlElement.style.textAlign,
+        maxWidth: htmlElement.style.maxWidth,
+        margin: htmlElement.style.margin,
+        direction: htmlElement.style.direction,
+        width: htmlElement.style.width,
+        position: htmlElement.style.position,
+        right: htmlElement.style.right,
+        left: htmlElement.style.left
       };
 
       // Apply styles for capture
-      element.style.padding = '40px';
-      element.style.textAlign = 'right';
-      element.style.maxWidth = '100%';
-      element.style.margin = '0';
-      element.style.direction = 'rtl';
-      element.style.width = '100%';
-      element.style.position = 'relative';
-      element.style.right = '0';
-      element.style.left = '0';
+      htmlElement.style.padding = '40px';
+      htmlElement.style.textAlign = 'right';
+      htmlElement.style.maxWidth = '100%';
+      htmlElement.style.margin = '0';
+      htmlElement.style.direction = 'rtl';
+      htmlElement.style.width = '100%';
+      htmlElement.style.position = 'relative';
+      htmlElement.style.right = '0';
+      htmlElement.style.left = '0';
       
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -80,7 +81,7 @@ export default function LearningJournal() {
         x: 0,
         y: 0,
         onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.body.querySelector('[data-pdf-content]');
+          const clonedElement = clonedDoc.body.querySelector('[data-pdf-content]') as HTMLElement;
           if (clonedElement) {
             clonedElement.style.direction = 'rtl';
             clonedElement.style.textAlign = 'right';
@@ -89,7 +90,7 @@ export default function LearningJournal() {
       });
 
       // Reset to original styles
-      Object.assign(element.style, originalStyles);
+      Object.assign(htmlElement.style, originalStyles);
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -97,8 +98,7 @@ export default function LearningJournal() {
         unit: 'mm',
         format: 'a4',
         putOnlyUsedFonts: true,
-        compress: true,
-        direction: 'rtl'
+        compress: true
       });
       
       const pageWidth = pdf.internal.pageSize.getWidth();
