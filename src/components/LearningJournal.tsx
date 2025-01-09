@@ -44,8 +44,12 @@ export default function LearningJournal() {
       toast.info("מכין את הקובץ להורדה...");
       
       const element = journalContentRef.current;
-      // Add padding to the element before capturing
+      // Add padding to the element before capturing to ensure margins
       element.style.padding = '40px';
+      // Add text alignment to ensure content is centered
+      element.style.textAlign = 'center';
+      // Set max-width to ensure content doesn't overflow
+      element.style.maxWidth = '100%';
       
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -59,8 +63,10 @@ export default function LearningJournal() {
         y: 0
       });
 
-      // Reset the padding
+      // Reset the styles
       element.style.padding = '';
+      element.style.textAlign = '';
+      element.style.maxWidth = '';
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -74,7 +80,8 @@ export default function LearningJournal() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      const margin = 10; // 10mm margins
+      // Calculate dimensions to center the content
+      const margin = 20; // 20mm margins
       const imgWidth = pageWidth - (2 * margin);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
