@@ -51,7 +51,10 @@ export default function LearningJournal() {
         foreignObjectRendering: true,
         scrollY: -window.scrollY,
         windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        windowHeight: element.scrollHeight,
+        x: 0,
+        y: 0,
+        margin: [40, 40, 40, 40]
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -59,28 +62,30 @@ export default function LearningJournal() {
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-        putOnlyUsedFonts: true
+        putOnlyUsedFonts: true,
+        compress: true
       });
       
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      const imgWidth = pageWidth;
+      const margin = 10; // 10mm margins
+      const imgWidth = pageWidth - (2 * margin);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       let heightLeft = imgHeight;
-      let position = 0;
+      let position = margin;
       
       // First page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - (2 * margin));
       
       // Additional pages if needed
       while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+        position = heightLeft - imgHeight + margin;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - (2 * margin));
       }
 
       const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
