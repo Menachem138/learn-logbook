@@ -43,16 +43,28 @@ export default function LearningJournal() {
     try {
       toast.info("מכין את הקובץ להורדה...");
       
-      // Temporarily expand all entries for PDF generation
-      const expandButtons = journalContentRef.current.querySelectorAll('button:contains("הצג עוד")');
-      expandButtons.forEach(button => (button as HTMLButtonElement).click());
+      // Find and click all "show more" buttons
+      const buttons = journalContentRef.current.querySelectorAll('button');
+      const expandButtons = Array.from(buttons).filter(button => 
+        button.textContent?.includes('הצג עוד')
+      );
+      expandButtons.forEach(button => button.click());
+      
+      // Wait a bit for content to expand
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       const element = journalContentRef.current;
-      const originalWidth = element.style.width;
-      const originalOverflow = element.style.overflow;
+      
+      // Save original styles
+      const originalStyles = {
+        width: element.style.width,
+        height: element.style.height,
+        overflow: element.style.overflow
+      };
       
       // Set temporary styles for capture
-      element.style.width = 'max-content';
+      element.style.width = 'fit-content';
+      element.style.height = 'auto';
       element.style.overflow = 'visible';
       
       const canvas = await html2canvas(element, {
@@ -63,56 +75,54 @@ export default function LearningJournal() {
         scrollY: -window.scrollY,
         width: element.scrollWidth,
         height: element.scrollHeight,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
         onclone: (clonedDoc) => {
           const clonedElement = clonedDoc.querySelector('[data-journal-content]') as HTMLElement;
           if (clonedElement) {
-            clonedElement.style.width = 'max-content';
+            clonedElement.style.width = 'fit-content';
+            clonedElement.style.height = 'auto';
             clonedElement.style.overflow = 'visible';
           }
         }
       });
 
       // Restore original styles
-      element.style.width = originalWidth;
-      element.style.overflow = originalOverflow;
-
+      Object.assign(element.style, originalStyles);
+      
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-        putOnlyUsedFonts: true,
         compress: true
       });
       
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      const imgWidth = pageWidth - 20; // Add 10mm margin on each side
+      const margin = 10; // 10mm margins
+      const imgWidth = pageWidth - (margin * 2);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       let heightLeft = imgHeight;
-      let position = 10; // Start with 10mm top margin
+      let position = margin;
       
       // First page
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= (pageHeight - 20); // Account for margins
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - (margin * 2));
       
       // Additional pages if needed
       while (heightLeft >= 0) {
-        position = heightLeft - imgHeight + 10; // Add top margin
+        position = heightLeft - imgHeight + margin;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= (pageHeight - 20);
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - (margin * 2));
       }
 
       const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
       pdf.save(`יומן-למידה-${date}.pdf`);
       
-      // Collapse entries back after PDF generation
-      expandButtons.forEach(button => (button as HTMLButtonElement).click());
+      // Collapse entries back
+      expandButtons.forEach(button => button.click());
       
       toast.success("הקובץ הורד בהצלחה!");
     } catch (error) {
