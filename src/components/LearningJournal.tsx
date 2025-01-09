@@ -43,48 +43,77 @@ export default function LearningJournal() {
     try {
       toast.info("מכין את הקובץ להורדה...");
       
+      // Temporarily expand all entries for PDF generation
+      const expandButtons = journalContentRef.current.querySelectorAll('button:contains("הצג עוד")');
+      expandButtons.forEach(button => (button as HTMLButtonElement).click());
+      
       const element = journalContentRef.current;
+      const originalWidth = element.style.width;
+      const originalOverflow = element.style.overflow;
+      
+      // Set temporary styles for capture
+      element.style.width = 'max-content';
+      element.style.overflow = 'visible';
+      
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         foreignObjectRendering: true,
         scrollY: -window.scrollY,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
         windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        windowHeight: element.scrollHeight,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.querySelector('[data-journal-content]') as HTMLElement;
+          if (clonedElement) {
+            clonedElement.style.width = 'max-content';
+            clonedElement.style.overflow = 'visible';
+          }
+        }
       });
+
+      // Restore original styles
+      element.style.width = originalWidth;
+      element.style.overflow = originalOverflow;
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-        putOnlyUsedFonts: true
+        putOnlyUsedFonts: true,
+        compress: true
       });
       
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      const imgWidth = pageWidth;
+      const imgWidth = pageWidth - 20; // Add 10mm margin on each side
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       let heightLeft = imgHeight;
-      let position = 0;
+      let position = 10; // Start with 10mm top margin
       
       // First page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20); // Account for margins
       
       // Additional pages if needed
       while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+        position = heightLeft - imgHeight + 10; // Add top margin
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
       }
 
       const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
       pdf.save(`יומן-למידה-${date}.pdf`);
+      
+      // Collapse entries back after PDF generation
+      expandButtons.forEach(button => (button as HTMLButtonElement).click());
+      
       toast.success("הקובץ הורד בהצלחה!");
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -240,7 +269,7 @@ export default function LearningJournal() {
       
       <JournalEntryForm onEntryAdded={loadEntries} />
 
-      <div className="mt-6 space-y-4" ref={journalContentRef}>
+      <div className="mt-6 space-y-4" ref={journalContentRef} data-journal-content>
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
         
         {allTags.length > 0 && (
