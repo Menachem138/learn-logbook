@@ -48,10 +48,16 @@ export default function LearningJournal() {
       const expandButtons = Array.from(buttons).filter(button => 
         button.textContent?.includes('הצג עוד')
       );
-      expandButtons.forEach(button => button.click());
       
-      // Wait a bit for content to expand
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Expand all entries
+      for (const button of expandButtons) {
+        button.click();
+        // Wait a bit between each expansion
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Wait for content to settle
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const element = journalContentRef.current;
       
@@ -59,72 +65,84 @@ export default function LearningJournal() {
       const originalStyles = {
         width: element.style.width,
         height: element.style.height,
-        overflow: element.style.overflow
+        overflow: element.style.overflow,
+        position: element.style.position
       };
       
       // Set temporary styles for capture
-      element.style.width = 'fit-content';
+      element.style.width = '800px'; // Fixed width for better rendering
       element.style.height = 'auto';
       element.style.overflow = 'visible';
+      element.style.position = 'relative';
       
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        foreignObjectRendering: true,
-        scrollY: -window.scrollY,
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-journal-content]') as HTMLElement;
-          if (clonedElement) {
-            clonedElement.style.width = 'fit-content';
-            clonedElement.style.height = 'auto';
-            clonedElement.style.overflow = 'visible';
+      try {
+        const canvas = await html2canvas(element, {
+          scale: 1.5, // Increased scale for better quality
+          useCORS: true,
+          allowTaint: true,
+          foreignObjectRendering: true,
+          scrollY: -window.scrollY,
+          width: 800, // Match the fixed width
+          height: element.scrollHeight,
+          onclone: (clonedDoc) => {
+            const clonedElement = clonedDoc.querySelector('[data-journal-content]') as HTMLElement;
+            if (clonedElement) {
+              clonedElement.style.width = '800px';
+              clonedElement.style.height = 'auto';
+              clonedElement.style.overflow = 'visible';
+              clonedElement.style.position = 'relative';
+            }
           }
-        }
-      });
+        });
 
-      // Restore original styles
-      Object.assign(element.style, originalStyles);
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'mm',
-        format: 'a4',
-        compress: true
-      });
-      
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      const margin = 10; // 10mm margins
-      const imgWidth = pageWidth - (margin * 2);
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = margin;
-      
-      // First page
-      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-      heightLeft -= (pageHeight - (margin * 2));
-      
-      // Additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        // Restore original styles immediately after canvas creation
+        Object.assign(element.style, originalStyles);
+        
+        const imgData = canvas.toDataURL('image/jpeg', 1.0); // Using JPEG instead of PNG
+        const pdf = new jsPDF({
+          orientation: 'p',
+          unit: 'mm',
+          format: 'a4',
+          compress: true
+        });
+        
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        const margin = 10; // 10mm margins
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        let heightLeft = imgHeight;
+        let position = margin;
+        
+        // First page
+        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
         heightLeft -= (pageHeight - (margin * 2));
-      }
+        
+        // Additional pages if needed
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight + margin;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+          heightLeft -= (pageHeight - (margin * 2));
+        }
 
-      const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
-      pdf.save(`יומן-למידה-${date}.pdf`);
+        const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
+        pdf.save(`יומן-למידה-${date}.pdf`);
+        
+        toast.success("הקובץ הורד בהצלחה!");
+      } finally {
+        // Ensure we restore styles even if there's an error
+        Object.assign(element.style, originalStyles);
+        
+        // Collapse entries back
+        for (const button of expandButtons) {
+          button.click();
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
       
-      // Collapse entries back
-      expandButtons.forEach(button => button.click());
-      
-      toast.success("הקובץ הורד בהצלחה!");
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error("שגיאה בהכנת הקובץ");
