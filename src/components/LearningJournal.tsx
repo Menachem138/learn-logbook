@@ -62,22 +62,59 @@ export default function LearningJournal() {
       const entriesToExport = filteredEntries.length > 0 ? filteredEntries : entries;
       
       entriesToExport.forEach((entry) => {
-        // Clean content from HTML tags
-        const cleanContent = entry.content.replace(/<[^>]*>/g, '')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>');
-        
-        // Add date
+        // Add metadata (date and tags)
         const date = new Date(entry.created_at).toLocaleDateString('he-IL');
         doc.setFontSize(10);
         doc.text(date, 190, yPosition);
         yPosition += 7;
+
+        if (entry.tags && entry.tags.length > 0) {
+          const tagsText = entry.tags.join(', ');
+          doc.setFontSize(8);
+          doc.text(tagsText, 190, yPosition);
+          yPosition += 7;
+        }
+
+        if (entry.is_important) {
+          doc.setFontSize(8);
+          doc.text("⭐ חשוב", 190, yPosition);
+          yPosition += 7;
+        }
         
         // Add content
         doc.setFontSize(12);
         const maxWidth = 170;
+
+        // Convert HTML to plain text while preserving structure
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = entry.content;
+        
+        // Process text nodes and add line breaks for block elements
+        const processNode = (node: Node): string => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent || '';
+          }
+          
+          const children = Array.from(node.childNodes).map(processNode).join('');
+          
+          // Add line breaks for block elements
+          if (node.nodeName === 'P' || node.nodeName === 'DIV' || 
+              node.nodeName === 'BR' || node.nodeName === 'LI') {
+            return children + '\n';
+          }
+          
+          // Add bullet points for list items
+          if (node.nodeName === 'LI') {
+            return '• ' + children;
+          }
+          
+          return children;
+        };
+
+        const cleanContent = processNode(tempDiv)
+          .replace(/\n\s*\n/g, '\n') // Remove extra line breaks
+          .trim();
+        
         const lines = doc.splitTextToSize(cleanContent, maxWidth);
         
         // Check if we need a new page
@@ -93,9 +130,11 @@ export default function LearningJournal() {
         });
         
         // Add separator
+        yPosition += 5;
         if (yPosition < 280) {
+          doc.setDrawColor(200, 200, 200);
           doc.line(20, yPosition, 190, yPosition);
-          yPosition += 10;
+          yPosition += 15;
         }
       });
       
