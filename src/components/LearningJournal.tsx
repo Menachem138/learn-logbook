@@ -44,6 +44,9 @@ export default function LearningJournal() {
       toast.info("מכין את הקובץ להורדה...");
       
       const element = journalContentRef.current;
+      // Add padding to the element before capturing
+      element.style.padding = '40px';
+      
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -53,9 +56,11 @@ export default function LearningJournal() {
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
         x: 0,
-        y: 0,
-        margin: [40, 40, 40, 40]
+        y: 0
       });
+
+      // Reset the padding
+      element.style.padding = '';
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
