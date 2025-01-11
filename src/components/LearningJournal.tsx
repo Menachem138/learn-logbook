@@ -74,17 +74,28 @@ export default function LearningJournal() {
 
       tempContainer.innerHTML = entriesHTML;
 
-      // Wait for images to load
+      // Process images
       const images = tempContainer.getElementsByTagName('img');
-      await Promise.all(Array.from(images).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve; // Handle failed image loads gracefully
-        });
-      }));
+      if (images.length > 0) {
+        await Promise.all(Array.from(images).map(img => {
+          return new Promise((resolve, reject) => {
+            const newImg = new Image();
+            newImg.crossOrigin = "anonymous";
+            newImg.onload = () => {
+              img.src = newImg.src;
+              resolve();
+            };
+            newImg.onerror = () => {
+              // If image fails to load, remove it
+              img.remove();
+              resolve();
+            };
+            newImg.src = img.src;
+          });
+        }));
+      }
 
-      // Generate PDF
+      // Generate PDF with better settings
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
@@ -93,7 +104,7 @@ export default function LearningJournal() {
         compress: true
       });
 
-      // Convert to canvas with better settings
+      // Convert to canvas with improved settings
       const canvas = await html2canvas(tempContainer, {
         scale: 2,
         useCORS: true,
@@ -101,13 +112,24 @@ export default function LearningJournal() {
         scrollY: -window.scrollY,
         windowWidth: tempContainer.scrollWidth,
         windowHeight: tempContainer.scrollHeight,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        logging: false,
+        removeContainer: true,
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          const clonedContainer = clonedDoc.querySelector('[data-pdf-content]');
+          if (clonedContainer) {
+            clonedContainer.style.transform = '';
+            clonedContainer.style.width = '100%';
+            clonedContainer.style.height = 'auto';
+          }
+        }
       });
 
       // Clean up
       document.body.removeChild(tempContainer);
 
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
       
       // Calculate dimensions
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -120,14 +142,14 @@ export default function LearningJournal() {
       let position = margin;
       
       // First page
-      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
       heightLeft -= (pageHeight - (2 * margin));
       
       // Additional pages if needed
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight + margin;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
         heightLeft -= (pageHeight - (2 * margin));
       }
 
