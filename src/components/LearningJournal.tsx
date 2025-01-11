@@ -43,50 +43,35 @@ export default function LearningJournal() {
     try {
       toast.info("מכין את הקובץ להורדה...");
       
-      // Create a temporary div for the PDF content
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.direction = 'rtl';
-      tempDiv.style.width = '800px'; // Fixed width for better control
-      tempDiv.style.padding = '40px';
-      document.body.appendChild(tempDiv);
+      // Create a temporary container for PDF content
+      const tempContainer = document.createElement('div');
+      tempContainer.style.width = '800px';
+      tempContainer.style.padding = '40px';
+      tempContainer.style.direction = 'rtl';
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      document.body.appendChild(tempContainer);
 
-      // Clone the content and modify it for PDF
-      const entriesForPDF = filteredEntries.map(entry => {
-        const entryDiv = document.createElement('div');
-        entryDiv.className = 'mb-6 p-6 bg-white rounded-lg';
-        entryDiv.style.marginBottom = '24px';
-        
-        // Add title and date
-        const header = document.createElement('div');
-        header.style.marginBottom = '16px';
+      // Prepare entries for PDF
+      const entriesHTML = filteredEntries.map(entry => {
         const date = new Date(entry.created_at).toLocaleDateString('he-IL');
-        header.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div style="display: flex; gap: 8px; align-items: center;">
-              ${entry.is_important ? '<span style="background: #fef9c3; padding: 4px 8px; border-radius: 4px;">חשוב</span>' : ''}
-              ${entry.tags?.map(tag => `<span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${tag}</span>`).join('') || ''}
+        return `
+          <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+              <div style="display: flex; gap: 8px;">
+                ${entry.is_important ? '<span style="background: #fef9c3; padding: 4px 8px; border-radius: 4px;">חשוב</span>' : ''}
+                ${entry.tags?.map(tag => 
+                  `<span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${tag}</span>`
+                ).join('') || ''}
+              </div>
+              <div style="color: #666;">${date}</div>
             </div>
-            <div style="color: #666;">${date}</div>
+            <div style="direction: rtl; text-align: right;">${entry.content}</div>
           </div>
         `;
-        entryDiv.appendChild(header);
+      }).join('');
 
-        // Add content (without truncation)
-        const content = document.createElement('div');
-        content.innerHTML = entry.content;
-        content.style.direction = 'rtl';
-        content.style.textAlign = 'right';
-        entryDiv.appendChild(content);
-
-        return entryDiv;
-      });
-
-      // Add all entries to temp div
-      entriesForPDF.forEach(entryDiv => {
-        tempDiv.appendChild(entryDiv);
-      });
+      tempContainer.innerHTML = entriesHTML;
 
       // Generate PDF
       const pdf = new jsPDF({
@@ -98,17 +83,17 @@ export default function LearningJournal() {
       });
 
       // Convert to canvas
-      const canvas = await html2canvas(tempDiv, {
+      const canvas = await html2canvas(tempContainer, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         scrollY: -window.scrollY,
-        windowWidth: tempDiv.scrollWidth,
-        windowHeight: tempDiv.scrollHeight
+        windowWidth: tempContainer.scrollWidth,
+        windowHeight: tempContainer.scrollHeight
       });
 
       // Clean up
-      document.body.removeChild(tempDiv);
+      document.body.removeChild(tempContainer);
 
       const imgData = canvas.toDataURL('image/png');
       
