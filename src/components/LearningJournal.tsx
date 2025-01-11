@@ -43,7 +43,6 @@ export default function LearningJournal() {
     try {
       toast.info("מכין את הקובץ להורדה...");
       
-      // Create a temporary container for PDF content
       const tempContainer = document.createElement('div');
       tempContainer.style.width = '800px';
       tempContainer.style.padding = '40px';
@@ -53,7 +52,6 @@ export default function LearningJournal() {
       tempContainer.style.backgroundColor = 'white';
       document.body.appendChild(tempContainer);
 
-      // Prepare entries for PDF with expanded content
       const entriesHTML = filteredEntries.map(entry => {
         const date = new Date(entry.created_at).toLocaleDateString('he-IL');
         return `
@@ -78,7 +76,7 @@ export default function LearningJournal() {
       const images = tempContainer.getElementsByTagName('img');
       if (images.length > 0) {
         await Promise.all(Array.from(images).map(img => {
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve) => {
             const newImg = new Image();
             newImg.crossOrigin = "anonymous";
             newImg.onload = () => {
@@ -118,7 +116,7 @@ export default function LearningJournal() {
         imageTimeout: 15000,
         onclone: (clonedDoc) => {
           const clonedContainer = clonedDoc.querySelector('[data-pdf-content]');
-          if (clonedContainer) {
+          if (clonedContainer instanceof HTMLElement) {
             clonedContainer.style.transform = '';
             clonedContainer.style.width = '100%';
             clonedContainer.style.height = 'auto';
