@@ -45,7 +45,7 @@ export default function LearningJournal() {
       
       const tempContainer = document.createElement('div');
       tempContainer.style.width = '800px';
-      tempContainer.style.padding = '40px';
+      tempContainer.style.padding = '20px';
       tempContainer.style.direction = 'rtl';
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
@@ -55,12 +55,12 @@ export default function LearningJournal() {
       const entriesHTML = filteredEntries.map(entry => {
         const date = new Date(entry.created_at).toLocaleDateString('he-IL');
         return `
-          <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: white;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-              <div style="display: flex; gap: 8px;">
-                ${entry.is_important ? '<span style="background: #fef9c3; padding: 4px 8px; border-radius: 4px;">חשוב</span>' : ''}
+          <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+              <div>
+                ${entry.is_important ? '<span style="background: #fef9c3; padding: 2px 6px; border-radius: 4px; margin-right: 5px;">חשוב</span>' : ''}
                 ${entry.tags?.map(tag => 
-                  `<span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${tag}</span>`
+                  `<span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; margin-right: 5px;">${tag}</span>`
                 ).join('') || ''}
               </div>
               <div style="color: #666;">${date}</div>
@@ -77,43 +77,45 @@ export default function LearningJournal() {
       if (images.length > 0) {
         await Promise.all(Array.from(images).map(img => {
           return new Promise<void>((resolve) => {
-            const newImg = new Image();
-            newImg.crossOrigin = "anonymous";
-            newImg.onload = () => {
-              img.src = newImg.src;
+            if (!img.src.startsWith('data:')) {
+              const newImg = new Image();
+              newImg.crossOrigin = "anonymous";
+              newImg.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = newImg.width;
+                canvas.height = newImg.height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  ctx.drawImage(newImg, 0, 0);
+                  img.src = canvas.toDataURL('image/jpeg', 0.75);
+                }
+                resolve();
+              };
+              newImg.onerror = () => {
+                img.remove();
+                resolve();
+              };
+              newImg.src = img.src;
+            } else {
               resolve();
-            };
-            newImg.onerror = () => {
-              // If image fails to load, remove it
-              img.remove();
-              resolve();
-            };
-            newImg.src = img.src;
+            }
           });
         }));
       }
 
-      // Generate PDF with better settings
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
-        putOnlyUsedFonts: true,
         compress: true
       });
 
-      // Convert to canvas with improved settings
       const canvas = await html2canvas(tempContainer, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        scrollY: -window.scrollY,
-        windowWidth: tempContainer.scrollWidth,
-        windowHeight: tempContainer.scrollHeight,
         backgroundColor: 'white',
         logging: false,
-        removeContainer: true,
-        imageTimeout: 15000,
         onclone: (clonedDoc) => {
           const clonedContainer = clonedDoc.querySelector('[data-pdf-content]');
           if (clonedContainer instanceof HTMLElement) {
@@ -124,26 +126,22 @@ export default function LearningJournal() {
         }
       });
 
-      // Clean up
       document.body.removeChild(tempContainer);
 
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       
-      // Calculate dimensions
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 25; // 25mm margins
+      const margin = 10;
       const imgWidth = pageWidth - (2 * margin);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       let heightLeft = imgHeight;
       let position = margin;
       
-      // First page
       pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
       heightLeft -= (pageHeight - (2 * margin));
       
-      // Additional pages if needed
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight + margin;
         pdf.addPage();
