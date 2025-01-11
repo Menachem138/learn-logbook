@@ -43,56 +43,52 @@ export default function LearningJournal() {
     try {
       toast.info("מכין את הקובץ להורדה...");
       
-      const element = journalContentRef.current;
-      const htmlElement = element as HTMLDivElement;
-      
-      // Store original styles
-      const originalStyles = {
-        padding: htmlElement.style.padding,
-        textAlign: htmlElement.style.textAlign,
-        maxWidth: htmlElement.style.maxWidth,
-        margin: htmlElement.style.margin,
-        direction: htmlElement.style.direction,
-        width: htmlElement.style.width,
-        position: htmlElement.style.position,
-        right: htmlElement.style.right,
-        left: htmlElement.style.left
-      };
+      // Create a temporary div for the PDF content
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.direction = 'rtl';
+      tempDiv.style.width = '800px'; // Fixed width for better control
+      tempDiv.style.padding = '40px';
+      document.body.appendChild(tempDiv);
 
-      // Apply styles for capture
-      htmlElement.style.padding = '40px';
-      htmlElement.style.textAlign = 'right';
-      htmlElement.style.maxWidth = '100%';
-      htmlElement.style.margin = '0';
-      htmlElement.style.direction = 'rtl';
-      htmlElement.style.width = '100%';
-      htmlElement.style.position = 'relative';
-      htmlElement.style.right = '0';
-      htmlElement.style.left = '0';
-      
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        foreignObjectRendering: true,
-        scrollY: -window.scrollY,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        x: 0,
-        y: 0,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.body.querySelector('[data-pdf-content]') as HTMLElement;
-          if (clonedElement) {
-            clonedElement.style.direction = 'rtl';
-            clonedElement.style.textAlign = 'right';
-          }
-        }
+      // Clone the content and modify it for PDF
+      const entriesForPDF = filteredEntries.map(entry => {
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'mb-6 p-6 bg-white rounded-lg';
+        entryDiv.style.marginBottom = '24px';
+        
+        // Add title and date
+        const header = document.createElement('div');
+        header.style.marginBottom = '16px';
+        const date = new Date(entry.created_at).toLocaleDateString('he-IL');
+        header.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              ${entry.is_important ? '<span style="background: #fef9c3; padding: 4px 8px; border-radius: 4px;">חשוב</span>' : ''}
+              ${entry.tags?.map(tag => `<span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${tag}</span>`).join('') || ''}
+            </div>
+            <div style="color: #666;">${date}</div>
+          </div>
+        `;
+        entryDiv.appendChild(header);
+
+        // Add content (without truncation)
+        const content = document.createElement('div');
+        content.innerHTML = entry.content;
+        content.style.direction = 'rtl';
+        content.style.textAlign = 'right';
+        entryDiv.appendChild(content);
+
+        return entryDiv;
       });
 
-      // Reset to original styles
-      Object.assign(htmlElement.style, originalStyles);
+      // Add all entries to temp div
+      entriesForPDF.forEach(entryDiv => {
+        tempDiv.appendChild(entryDiv);
+      });
 
-      const imgData = canvas.toDataURL('image/png');
+      // Generate PDF
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
@@ -100,12 +96,26 @@ export default function LearningJournal() {
         putOnlyUsedFonts: true,
         compress: true
       });
+
+      // Convert to canvas
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        scrollY: -window.scrollY,
+        windowWidth: tempDiv.scrollWidth,
+        windowHeight: tempDiv.scrollHeight
+      });
+
+      // Clean up
+      document.body.removeChild(tempDiv);
+
+      const imgData = canvas.toDataURL('image/png');
       
+      // Calculate dimensions
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      // Calculate dimensions with larger margins
-      const margin = 25; // 25mm margins for better readability
+      const margin = 25; // 25mm margins
       const imgWidth = pageWidth - (2 * margin);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
