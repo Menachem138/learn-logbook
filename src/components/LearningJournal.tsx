@@ -50,13 +50,14 @@ export default function LearningJournal() {
       tempContainer.style.direction = 'rtl';
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
+      tempContainer.style.backgroundColor = 'white';
       document.body.appendChild(tempContainer);
 
-      // Prepare entries for PDF
+      // Prepare entries for PDF with expanded content
       const entriesHTML = filteredEntries.map(entry => {
         const date = new Date(entry.created_at).toLocaleDateString('he-IL');
         return `
-          <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: white;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
               <div style="display: flex; gap: 8px;">
                 ${entry.is_important ? '<span style="background: #fef9c3; padding: 4px 8px; border-radius: 4px;">חשוב</span>' : ''}
@@ -73,6 +74,16 @@ export default function LearningJournal() {
 
       tempContainer.innerHTML = entriesHTML;
 
+      // Wait for images to load
+      const images = tempContainer.getElementsByTagName('img');
+      await Promise.all(Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve; // Handle failed image loads gracefully
+        });
+      }));
+
       // Generate PDF
       const pdf = new jsPDF({
         orientation: 'p',
@@ -82,14 +93,15 @@ export default function LearningJournal() {
         compress: true
       });
 
-      // Convert to canvas
+      // Convert to canvas with better settings
       const canvas = await html2canvas(tempContainer, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         scrollY: -window.scrollY,
         windowWidth: tempContainer.scrollWidth,
-        windowHeight: tempContainer.scrollHeight
+        windowHeight: tempContainer.scrollHeight,
+        backgroundColor: 'white'
       });
 
       // Clean up
