@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,9 +9,6 @@ import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
 import { SearchBar } from "./LearningJournal/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { FileDown } from 'lucide-react';
 
 interface JournalEntry {
   id: string;
@@ -34,129 +31,6 @@ export default function LearningJournal() {
   const [showSummary, setShowSummary] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
-
-  const journalContentRef = useRef<HTMLDivElement>(null);
-
-  const exportToPDF = async () => {
-    if (!journalContentRef.current) return;
-
-    try {
-      toast.info("מכין את הקובץ להורדה...");
-      
-      const tempContainer = document.createElement('div');
-      tempContainer.style.width = '800px';
-      tempContainer.style.padding = '20px';
-      tempContainer.style.direction = 'rtl';
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.backgroundColor = 'white';
-      document.body.appendChild(tempContainer);
-
-      const entriesHTML = filteredEntries.map(entry => {
-        const date = new Date(entry.created_at).toLocaleDateString('he-IL');
-        return `
-          <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <div>
-                ${entry.is_important ? '<span style="background: #fef9c3; padding: 2px 6px; border-radius: 4px; margin-right: 5px;">חשוב</span>' : ''}
-                ${entry.tags?.map(tag => 
-                  `<span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; margin-right: 5px;">${tag}</span>`
-                ).join('') || ''}
-              </div>
-              <div style="color: #666;">${date}</div>
-            </div>
-            <div style="direction: rtl; text-align: right;">${entry.content}</div>
-          </div>
-        `;
-      }).join('');
-
-      tempContainer.innerHTML = entriesHTML;
-
-      // Process images
-      const images = tempContainer.getElementsByTagName('img');
-      if (images.length > 0) {
-        await Promise.all(Array.from(images).map(img => {
-          return new Promise<void>((resolve) => {
-            if (!img.src.startsWith('data:')) {
-              const newImg = new Image();
-              newImg.crossOrigin = "anonymous";
-              newImg.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = newImg.width;
-                canvas.height = newImg.height;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                  ctx.drawImage(newImg, 0, 0);
-                  img.src = canvas.toDataURL('image/jpeg', 0.75);
-                }
-                resolve();
-              };
-              newImg.onerror = () => {
-                img.remove();
-                resolve();
-              };
-              newImg.src = img.src;
-            } else {
-              resolve();
-            }
-          });
-        }));
-      }
-
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'mm',
-        format: 'a4',
-        compress: true
-      });
-
-      const canvas = await html2canvas(tempContainer, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: 'white',
-        logging: false,
-        onclone: (clonedDoc) => {
-          const clonedContainer = clonedDoc.querySelector('[data-pdf-content]');
-          if (clonedContainer instanceof HTMLElement) {
-            clonedContainer.style.transform = '';
-            clonedContainer.style.width = '100%';
-            clonedContainer.style.height = 'auto';
-          }
-        }
-      });
-
-      document.body.removeChild(tempContainer);
-
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const imgWidth = pageWidth - (2 * margin);
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = margin;
-      
-      pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
-      heightLeft -= (pageHeight - (2 * margin));
-      
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
-        heightLeft -= (pageHeight - (2 * margin));
-      }
-
-      const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
-      pdf.save(`יומן-למידה-${date}.pdf`);
-      toast.success("הקובץ הורד בהצלחה!");
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error("שגיאה בהכנת הקובץ");
-    }
-  };
 
   useEffect(() => {
     loadEntries();
@@ -292,21 +166,11 @@ export default function LearningJournal() {
 
   return (
     <Card className="p-6 w-full bg-background text-foreground transition-colors duration-300">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">יומן למידה</h2>
-        <Button
-          onClick={exportToPDF}
-          className="flex items-center gap-2"
-          variant="outline"
-        >
-          <FileDown className="h-4 w-4" />
-          ייצא ל-PDF
-        </Button>
-      </div>
+      <h2 className="text-2xl font-bold mb-4">יומן למידה</h2>
       
       <JournalEntryForm onEntryAdded={loadEntries} />
 
-      <div className="mt-6 space-y-4" ref={journalContentRef} data-pdf-content>
+      <div className="mt-6 space-y-4">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
         
         {allTags.length > 0 && (
