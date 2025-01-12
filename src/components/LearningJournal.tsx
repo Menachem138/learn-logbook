@@ -182,9 +182,8 @@ export default function LearningJournal() {
         selectedEntries.includes(entry.id)
       );
 
-      // Create a temporary container with proper styling
       const container = document.createElement('div');
-      container.style.width = '800px';  // Fixed width for better rendering
+      container.style.width = '800px';
       container.style.backgroundColor = '#ffffff';
       container.style.direction = 'rtl';
       container.style.padding = '40px';
@@ -192,14 +191,13 @@ export default function LearningJournal() {
       container.style.left = '-9999px';
       document.body.appendChild(container);
 
-      // Add content with proper styling
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #000000; max-width: 100%; margin: 0 auto;">
+        <div style="font-family: Arial, sans-serif; color: #000000;">
           <h1 style="text-align: center; margin-bottom: 30px; font-size: 24px; color: #000000;">
             יומן למידה - רשומות נבחרות
           </h1>
           ${entriesToExport.map(entry => `
-            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid; width: 100%;">
+            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <div style="font-size: 14px; color: #666666;">
                   ${new Date(entry.created_at).toLocaleDateString('he-IL')}
@@ -217,11 +215,11 @@ export default function LearningJournal() {
                   `).join('')}
                 </div>
               ` : ''}
-              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; width: 100%;">
+              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; text-align: right; max-width: 100%; word-wrap: break-word;">
                 ${entry.content.replace(/\n/g, '<br>')}
               </div>
               ${entry.image_url ? `
-                <div style="margin-top: 15px; width: 100%;">
+                <div style="margin-top: 15px;">
                   <img src="${entry.image_url}" style="max-width: 100%; height: auto; border-radius: 4px;" />
                 </div>
               ` : ''}
@@ -230,7 +228,6 @@ export default function LearningJournal() {
         </div>
       `;
 
-      // Generate PDF with proper settings
       const pdf = new jsPDF('p', 'pt', 'a4');
       
       try {
@@ -239,8 +236,8 @@ export default function LearningJournal() {
           useCORS: true,
           logging: true,
           backgroundColor: '#ffffff',
-          windowWidth: container.scrollWidth,
-          windowHeight: container.scrollHeight,
+          width: container.scrollWidth,
+          height: container.scrollHeight,
         });
 
         const contentWidth = pdf.internal.pageSize.getWidth();
