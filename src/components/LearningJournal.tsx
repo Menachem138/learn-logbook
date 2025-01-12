@@ -104,6 +104,14 @@ export default function LearningJournal() {
     );
   };
 
+  const toggleEntrySelection = (entryId: string) => {
+    setSelectedEntries(prev => 
+      prev.includes(entryId)
+        ? prev.filter(id => id !== entryId)
+        : [...prev, entryId]
+    );
+  };
+
   const deleteEntry = async (id: string) => {
     try {
       const { error } = await supabase
