@@ -20,6 +20,7 @@ interface JournalEntry {
   is_important: boolean;
   user_id: string;
   tags?: string[];
+  image_url?: string | null;
 }
 
 export default function LearningJournal() {
@@ -371,3 +372,4 @@ export default function LearningJournal() {
     </Card>
   );
 }
+
