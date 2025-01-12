@@ -174,63 +174,97 @@ export default function LearningJournal() {
         return;
       }
 
+      // Create a temporary container with proper styling
       const container = document.createElement('div');
+      container.style.width = '800px';  // Fixed width for better rendering
+      container.style.backgroundColor = '#ffffff';
+      container.style.direction = 'rtl';
+      container.style.padding = '40px';
       container.style.position = 'absolute';
       container.style.left = '-9999px';
-      container.style.top = '-9999px';
       document.body.appendChild(container);
 
+      // Add content with proper styling
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h1 style="text-align: center; margin-bottom: 20px;">יומן למידה - רשומות מהשבוע האחרון</h1>
+        <div style="font-family: Arial, sans-serif; color: #000000;">
+          <h1 style="text-align: center; margin-bottom: 30px; font-size: 24px; color: #000000;">
+            יומן למידה - רשומות מהשבוע האחרון
+          </h1>
           ${weekEntries.map(entry => `
-            <div style="margin-bottom: 30px; page-break-inside: avoid;">
-              <div style="margin-bottom: 10px;">
-                ${new Date(entry.created_at).toLocaleDateString('he-IL')}
+            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <div style="font-size: 14px; color: #666666;">
+                  ${new Date(entry.created_at).toLocaleDateString('he-IL')}
+                </div>
+                ${entry.is_important ? 
+                  '<div style="color: #FFB800; font-weight: bold;">⭐ חשוב</div>' : 
+                  ''}
               </div>
-              ${entry.is_important ? '<div style="color: #FFB800; margin-bottom: 10px;">⭐ חשוב</div>' : ''}
               ${entry.tags?.length ? `
-                <div style="margin-bottom: 10px;">
+                <div style="margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
                   ${entry.tags.map(tag => `
-                    <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; margin-right: 4px;">
+                    <span style="background-color: #f3f4f6; color: #000000; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
                       ${tag}
                     </span>
                   `).join('')}
                 </div>
               ` : ''}
-              <div style="margin-top: 10px;">
-                ${entry.content}
+              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6;">
+                ${entry.content.replace(/\n/g, '<br>')}
               </div>
+              ${entry.image_url ? `
+                <div style="margin-top: 15px;">
+                  <img src="${entry.image_url}" style="max-width: 100%; height: auto; border-radius: 4px;" />
+                </div>
+              ` : ''}
             </div>
           `).join('')}
         </div>
       `;
 
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      // Generate PDF with proper settings
+      const pdf = new jsPDF('p', 'pt', 'a4');
       
       try {
         const canvas = await html2canvas(container, {
           scale: 2,
           useCORS: true,
-          logging: false,
-          allowTaint: true,
-          foreignObjectRendering: true
+          logging: true,
+          backgroundColor: '#ffffff',
+          windowWidth: container.scrollWidth,
+          windowHeight: container.scrollHeight,
         });
 
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('learning-journal.pdf');
+        const contentWidth = pdf.internal.pageSize.getWidth();
+        const contentHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(contentWidth / imgWidth, contentHeight / imgHeight);
         
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+        let pageHeight = contentHeight;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth * ratio, imgHeight * ratio);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth * ratio, imgHeight * ratio);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save('learning-journal.pdf');
         toast.success("הקובץ יוצא בהצלחה!");
       } catch (error) {
         console.error('Error generating PDF:', error);
         toast.error("שגיאה בייצוא הקובץ");
+      } finally {
+        document.body.removeChild(container);
       }
-
-      document.body.removeChild(container);
     } catch (error) {
       console.error('Error in PDF export:', error);
       toast.error("שגיאה בייצוא הקובץ");
