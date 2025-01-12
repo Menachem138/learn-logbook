@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,9 +9,6 @@ import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
 import { SearchBar } from "./LearningJournal/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { FileDown } from 'lucide-react';
 
 interface JournalEntry {
   id: string;
@@ -34,54 +31,6 @@ export default function LearningJournal() {
   const [showSummary, setShowSummary] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
-
-  const journalContentRef = useRef<HTMLDivElement>(null);
-
-  const exportToPDF = async () => {
-    if (!journalContentRef.current) return;
-
-    try {
-      toast.info("מכין את הקובץ להורדה...");
-      
-      const canvas = await html2canvas(journalContentRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        windowWidth: journalContentRef.current.scrollWidth,
-        windowHeight: journalContentRef.current.scrollHeight
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let position = 0;
-
-      // Add title
-      pdf.addFont("assets/fonts/arial-unicode-ms.ttf", "Arial", "normal");
-      pdf.setFont("Arial");
-      pdf.setFontSize(20);
-      pdf.text("יומן למידה", 105, 15, { align: "center" });
-      
-      position = 25;
-
-      while (position < imgHeight) {
-        pdf.addImage(imgData, 'PNG', 0, position > 0 ? -position : 0, imgWidth, imgHeight);
-        position += 297; // A4 height
-        if (position < imgHeight) {
-          pdf.addPage();
-        }
-      }
-
-      const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
-      pdf.save(`יומן-למידה-${date}.pdf`);
-      toast.success("הקובץ הורד בהצלחה!");
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error("שגיאה בהכנת הקובץ");
-    }
-  };
 
   useEffect(() => {
     loadEntries();
@@ -217,21 +166,11 @@ export default function LearningJournal() {
 
   return (
     <Card className="p-6 w-full bg-background text-foreground transition-colors duration-300">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">יומן למידה</h2>
-        <Button
-          onClick={exportToPDF}
-          className="flex items-center gap-2"
-          variant="outline"
-        >
-          <FileDown className="h-4 w-4" />
-          ייצא ל-PDF
-        </Button>
-      </div>
+      <h2 className="text-2xl font-bold mb-4">יומן למידה</h2>
       
       <JournalEntryForm onEntryAdded={loadEntries} />
 
-      <div className="mt-6 space-y-4" ref={journalContentRef}>
+      <div className="mt-6 space-y-4">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
         
         {allTags.length > 0 && (
