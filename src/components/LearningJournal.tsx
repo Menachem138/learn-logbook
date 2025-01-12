@@ -9,6 +9,9 @@ import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
 import { SearchBar } from "./LearningJournal/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { FileDown } from 'lucide-react';
 
 interface JournalEntry {
   id: string;
@@ -57,7 +60,6 @@ export default function LearningJournal() {
 
       setEntries(data || []);
       
-      // Extract all unique tags
       const tags = data?.reduce((acc: string[], entry: JournalEntry) => {
         if (entry.tags) {
           return [...new Set([...acc, ...entry.tags])];
@@ -76,14 +78,12 @@ export default function LearningJournal() {
   const filterEntries = () => {
     let filtered = entries;
 
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(entry =>
         entry.content.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Filter by selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(entry =>
         entry.tags?.some(tag => selectedTags.includes(tag))
@@ -160,13 +160,100 @@ export default function LearningJournal() {
     }
   };
 
+  const exportToPDF = async () => {
+    try {
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      
+      const weekEntries = entries.filter(entry => 
+        new Date(entry.created_at) > lastWeek
+      );
+
+      if (weekEntries.length === 0) {
+        toast.error("אין רשומות מהשבוע האחרון");
+        return;
+      }
+
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      document.body.appendChild(container);
+
+      container.innerHTML = `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h1 style="text-align: center; margin-bottom: 20px;">יומן למידה - רשומות מהשבוע האחרון</h1>
+          ${weekEntries.map(entry => `
+            <div style="margin-bottom: 30px; page-break-inside: avoid;">
+              <div style="margin-bottom: 10px;">
+                ${new Date(entry.created_at).toLocaleDateString('he-IL')}
+              </div>
+              ${entry.is_important ? '<div style="color: #FFB800; margin-bottom: 10px;">⭐ חשוב</div>' : ''}
+              ${entry.tags?.length ? `
+                <div style="margin-bottom: 10px;">
+                  ${entry.tags.map(tag => `
+                    <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; margin-right: 4px;">
+                      ${tag}
+                    </span>
+                  `).join('')}
+                </div>
+              ` : ''}
+              <div style="margin-top: 10px;">
+                ${entry.content}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      try {
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+          foreignObjectRendering: true
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('learning-journal.pdf');
+        
+        toast.success("הקובץ יוצא בהצלחה!");
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        toast.error("שגיאה בייצוא הקובץ");
+      }
+
+      document.body.removeChild(container);
+    } catch (error) {
+      console.error('Error in PDF export:', error);
+      toast.error("שגיאה בייצוא הקובץ");
+    }
+  };
+
   if (loading) {
     return <div>טוען...</div>;
   }
 
   return (
     <Card className="p-6 w-full bg-background text-foreground transition-colors duration-300">
-      <h2 className="text-2xl font-bold mb-4">יומן למידה</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">יומן למידה</h2>
+        <Button 
+          onClick={exportToPDF}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <FileDown className="h-4 w-4" />
+          ייצוא לPDF
+        </Button>
+      </div>
       
       <JournalEntryForm onEntryAdded={loadEntries} />
 
