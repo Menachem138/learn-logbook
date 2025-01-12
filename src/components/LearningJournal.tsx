@@ -183,7 +183,8 @@ export default function LearningJournal() {
       );
 
       const container = document.createElement('div');
-      container.style.width = '800px';
+      container.style.width = '100%';
+      container.style.maxWidth = '1200px'; // Wider container
       container.style.backgroundColor = '#ffffff';
       container.style.direction = 'rtl';
       container.style.padding = '40px';
@@ -192,12 +193,12 @@ export default function LearningJournal() {
       document.body.appendChild(container);
 
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #000000;">
+        <div style="font-family: Arial, sans-serif; color: #000000; width: 100%;">
           <h1 style="text-align: center; margin-bottom: 30px; font-size: 24px; color: #000000;">
             יומן למידה - רשומות נבחרות
           </h1>
           ${entriesToExport.map(entry => `
-            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid;">
+            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid; width: 100%;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <div style="font-size: 14px; color: #666666;">
                   ${new Date(entry.created_at).toLocaleDateString('he-IL')}
@@ -215,11 +216,11 @@ export default function LearningJournal() {
                   `).join('')}
                 </div>
               ` : ''}
-              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; text-align: right; max-width: 100%; word-wrap: break-word;">
+              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; text-align: right; width: 100%; word-wrap: break-word;">
                 ${entry.content.replace(/\n/g, '<br>')}
               </div>
               ${entry.image_url ? `
-                <div style="margin-top: 15px;">
+                <div style="margin-top: 15px; width: 100%;">
                   <img src="${entry.image_url}" style="max-width: 100%; height: auto; border-radius: 4px;" />
                 </div>
               ` : ''}
@@ -232,7 +233,7 @@ export default function LearningJournal() {
       
       try {
         const canvas = await html2canvas(container, {
-          scale: 2,
+          scale: 1.5, // Increased scale for better quality
           useCORS: true,
           logging: true,
           backgroundColor: '#ffffff',
