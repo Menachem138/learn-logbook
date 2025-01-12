@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 import Editor from "./LearningJournal/Editor";
 import { JournalEntryForm } from "./LearningJournal/JournalEntryForm";
 import { JournalEntryCard } from "./LearningJournal/JournalEntryCard";
@@ -35,6 +36,7 @@ export default function LearningJournal() {
   const [showSummary, setShowSummary] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
+  const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
 
   useEffect(() => {
     loadEntries();
@@ -163,17 +165,14 @@ export default function LearningJournal() {
 
   const exportToPDF = async () => {
     try {
-      const lastWeek = new Date();
-      lastWeek.setDate(lastWeek.getDate() - 7);
-      
-      const weekEntries = entries.filter(entry => 
-        new Date(entry.created_at) > lastWeek
-      );
-
-      if (weekEntries.length === 0) {
-        toast.error("אין רשומות מהשבוע האחרון");
+      if (selectedEntries.length === 0) {
+        toast.error("יש לבחור לפחות רשומה אחת לייצוא");
         return;
       }
+
+      const entriesToExport = entries.filter(entry => 
+        selectedEntries.includes(entry.id)
+      );
 
       // Create a temporary container with proper styling
       const container = document.createElement('div');
@@ -187,12 +186,12 @@ export default function LearningJournal() {
 
       // Add content with proper styling
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #000000;">
+        <div style="font-family: Arial, sans-serif; color: #000000; max-width: 100%; margin: 0 auto;">
           <h1 style="text-align: center; margin-bottom: 30px; font-size: 24px; color: #000000;">
-            יומן למידה - רשומות מהשבוע האחרון
+            יומן למידה - רשומות נבחרות
           </h1>
-          ${weekEntries.map(entry => `
-            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid;">
+          ${entriesToExport.map(entry => `
+            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid; width: 100%;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <div style="font-size: 14px; color: #666666;">
                   ${new Date(entry.created_at).toLocaleDateString('he-IL')}
@@ -210,11 +209,11 @@ export default function LearningJournal() {
                   `).join('')}
                 </div>
               ` : ''}
-              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6;">
+              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; width: 100%;">
                 ${entry.content.replace(/\n/g, '<br>')}
               </div>
               ${entry.image_url ? `
-                <div style="margin-top: 15px;">
+                <div style="margin-top: 15px; width: 100%;">
                   <img src="${entry.image_url}" style="max-width: 100%; height: auto; border-radius: 4px;" />
                 </div>
               ` : ''}
@@ -284,9 +283,10 @@ export default function LearningJournal() {
           onClick={exportToPDF}
           variant="outline"
           className="flex items-center gap-2"
+          disabled={selectedEntries.length === 0}
         >
           <FileDown className="h-4 w-4" />
-          ייצוא לPDF
+          ייצוא לPDF ({selectedEntries.length})
         </Button>
       </div>
       
@@ -316,16 +316,25 @@ export default function LearningJournal() {
           </div>
         ) : (
           filteredEntries.map((entry) => (
-            <JournalEntryCard
-              key={entry.id}
-              entry={entry}
-              onEdit={() => {
-                setEditingEntry(entry);
-                setIsEditing(true);
-              }}
-              onDelete={() => deleteEntry(entry.id)}
-              onGenerateSummary={() => generateSummary(entry)}
-            />
+            <div key={entry.id} className="flex items-start gap-4">
+              <Checkbox
+                id={`select-${entry.id}`}
+                checked={selectedEntries.includes(entry.id)}
+                onCheckedChange={() => toggleEntrySelection(entry.id)}
+                className="mt-4"
+              />
+              <div className="flex-1">
+                <JournalEntryCard
+                  entry={entry}
+                  onEdit={() => {
+                    setEditingEntry(entry);
+                    setIsEditing(true);
+                  }}
+                  onDelete={() => deleteEntry(entry.id)}
+                  onGenerateSummary={() => generateSummary(entry)}
+                />
+              </div>
+            </div>
           ))
         )}
       </div>
@@ -372,4 +381,3 @@ export default function LearningJournal() {
     </Card>
   );
 }
-
