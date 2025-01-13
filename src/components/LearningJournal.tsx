@@ -184,7 +184,8 @@ export default function LearningJournal() {
 
       const container = document.createElement('div');
       container.style.width = '100%';
-      container.style.maxWidth = '1200px'; // Wider container
+      container.style.maxWidth = '800px'; // Adjusted width
+      container.style.margin = '0 auto'; // Center the content
       container.style.backgroundColor = '#ffffff';
       container.style.direction = 'rtl';
       container.style.padding = '40px';
@@ -193,12 +194,12 @@ export default function LearningJournal() {
       document.body.appendChild(container);
 
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #000000; width: 100%;">
+        <div style="font-family: Arial, sans-serif; color: #000000; width: 100%; margin: 0 auto;">
           <h1 style="text-align: center; margin-bottom: 30px; font-size: 24px; color: #000000;">
             יומן למידה - רשומות נבחרות
           </h1>
           ${entriesToExport.map(entry => `
-            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid; width: 100%;">
+            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid; width: 100%; box-sizing: border-box;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <div style="font-size: 14px; color: #666666;">
                   ${new Date(entry.created_at).toLocaleDateString('he-IL')}
@@ -216,7 +217,7 @@ export default function LearningJournal() {
                   `).join('')}
                 </div>
               ` : ''}
-              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; text-align: right; width: 100%; word-wrap: break-word;">
+              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; text-align: right; width: 100%; box-sizing: border-box; padding: 0;">
                 ${entry.content.replace(/\n/g, '<br>')}
               </div>
               ${entry.image_url ? `
@@ -233,7 +234,7 @@ export default function LearningJournal() {
       
       try {
         const canvas = await html2canvas(container, {
-          scale: 1.5, // Increased scale for better quality
+          scale: 1.5,
           useCORS: true,
           logging: true,
           backgroundColor: '#ffffff',
