@@ -3,36 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { MessageCircle, Plus, MessageSquareQuote } from 'lucide-react';
+import { MessageCircle, Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QuestionDialog } from './QuestionDialog';
+import { QuestionList } from './QuestionList';
 
-interface Question {
-  id: string;
-  content: string;
-  answer: string | null;
-  is_answered: boolean;
-  created_at: string;
-  type: 'general' | 'trading';
-}
-
-const Questions = () => {
+export default function Questions() {
   const { session } = useAuth();
   const { toast } = useToast();
   const [newQuestion, setNewQuestion] = React.useState('');
@@ -60,11 +37,9 @@ const Questions = () => {
         throw error;
       }
 
-      return data as Question[];
+      return data;
     },
     enabled: !!session?.user?.id,
-    retry: 2,
-    staleTime: 30000,
   });
 
   const addQuestionMutation = useMutation({
@@ -134,6 +109,31 @@ const Questions = () => {
     },
   });
 
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (questionId: string) => {
+      const { error } = await supabase
+        .from('questions')
+        .delete()
+        .eq('id', questionId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['questions'] });
+      toast({
+        title: "השאלה נמחקה בהצלחה",
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting question:', error);
+      toast({
+        title: "שגיאה במחיקת השאלה",
+        description: "אנא נסה שוב מאוחר יותר",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!session) {
     return (
       <div className="text-center py-8">
@@ -159,62 +159,14 @@ const Questions = () => {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newQuestion.trim()) return;
-    addQuestionMutation.mutate(newQuestion);
+  const handleQuestionSubmit = (content: string) => {
+    if (!content.trim()) return;
+    addQuestionMutation.mutate(content);
   };
 
-  const handleAnswerSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAnswer.trim() || !selectedQuestionId) return;
-    addAnswerMutation.mutate({ questionId: selectedQuestionId, answer: newAnswer });
-  };
-
-  const renderQuestions = (type: 'general' | 'trading') => {
-    const filteredQuestions = questions?.filter(q => q.type === type) || [];
-    
-    if (filteredQuestions.length === 0) {
-      return (
-        <div className="text-center py-4 text-gray-500">
-          עדיין אין שאלות. אתה מוזמן להוסיף את השאלה הראשונה!
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-4">
-        {filteredQuestions.map((question) => (
-          <Card key={question.id} className="bg-background text-foreground transition-colors duration-300">
-            <CardHeader>
-              <CardTitle className="text-lg">{question.content}</CardTitle>
-              <CardDescription>
-                {new Date(question.created_at).toLocaleDateString('he-IL')}
-              </CardDescription>
-            </CardHeader>
-            {question.answer && (
-              <CardContent className="pt-4 border-t">
-                <p className="font-semibold mb-2">תשובה:</p>
-                <p>{question.answer}</p>
-              </CardContent>
-            )}
-            <CardFooter className="pt-4">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={() => {
-                  setSelectedQuestionId(question.id);
-                  setIsAnswerDialogOpen(true);
-                }}
-              >
-                <MessageSquareQuote className="h-4 w-4" />
-                {question.answer ? 'ערוך תשובה' : 'הוסף תשובה'}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    );
+  const handleAnswerSubmit = (answer: string) => {
+    if (!answer.trim() || !selectedQuestionId) return;
+    addAnswerMutation.mutate({ questionId: selectedQuestionId, answer });
   };
 
   return (
@@ -224,66 +176,14 @@ const Questions = () => {
           <MessageCircle className="h-6 w-6" />
           שאלות
         </h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              שאלה חדשה
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>הוספת שאלה חדשה</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex gap-4 mb-4">
-                <Button
-                  type="button"
-                  variant={questionType === 'general' ? 'default' : 'outline'}
-                  onClick={() => setQuestionType('general')}
-                >
-                  שאלה כללית
-                </Button>
-                <Button
-                  type="button"
-                  variant={questionType === 'trading' ? 'default' : 'outline'}
-                  onClick={() => setQuestionType('trading')}
-                >
-                  שאלה ליועץ המסחר
-                </Button>
-              </div>
-              <Textarea
-                value={newQuestion}
-                onChange={(e) => setNewQuestion(e.target.value)}
-                placeholder="מה תרצה לשאול?"
-                className="min-h-[100px]"
-              />
-              <Button type="submit" disabled={!newQuestion.trim() || addQuestionMutation.isPending}>
-                {addQuestionMutation.isPending ? 'שולח...' : 'שלח שאלה'}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          onClick={() => setIsDialogOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          שאלה חדשה
+        </Button>
       </div>
-
-      <Dialog open={isAnswerDialogOpen} onOpenChange={setIsAnswerDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>הוספת תשובה</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAnswerSubmit} className="space-y-4">
-            <Textarea
-              value={newAnswer}
-              onChange={(e) => setNewAnswer(e.target.value)}
-              placeholder="כתוב את התשובה כאן..."
-              className="min-h-[100px]"
-            />
-            <Button type="submit" disabled={!newAnswer.trim() || addAnswerMutation.isPending}>
-              {addAnswerMutation.isPending ? 'שומר...' : 'שמור תשובה'}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -291,92 +191,62 @@ const Questions = () => {
           <TabsTrigger value="trading">שאלות ליועץ המסחר</TabsTrigger>
         </TabsList>
         <TabsContent value="general" className="mt-6">
-          {questions?.filter(q => q.type === 'general').length === 0 ? (
-            <div className="text-center py-4 text-gray-500">
-              עדיין אין שאלות. אתה מוזמן להוסיף את השאלה הראשונה!
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {questions?.filter(q => q.type === 'general').map((question) => (
-                <Card key={question.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{question.content}</CardTitle>
-                    <CardDescription>
-                      {new Date(question.created_at).toLocaleDateString('he-IL')}
-                    </CardDescription>
-                  </CardHeader>
-                  {question.answer && (
-                    <CardContent className="pt-4 border-t">
-                      <p className="font-semibold mb-2">תשובה:</p>
-                      <p>{question.answer}</p>
-                    </CardContent>
-                  )}
-                  <CardFooter className="pt-4">
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2"
-                      onClick={() => {
-                        setSelectedQuestionId(question.id);
-                        setIsAnswerDialogOpen(true);
-                        if (question.answer) {
-                          setNewAnswer(question.answer);
-                        }
-                      }}
-                    >
-                      <MessageSquareQuote className="h-4 w-4" />
-                      {question.answer ? 'ערוך תשובה' : 'הוסף תשובה'}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
+          <QuestionList
+            questions={questions?.filter(q => q.type === 'general') || []}
+            onAnswerClick={(id) => {
+              setSelectedQuestionId(id);
+              setIsAnswerDialogOpen(true);
+              const question = questions?.find(q => q.id === id);
+              if (question?.answer) {
+                setNewAnswer(question.answer);
+              }
+            }}
+            onDelete={(id) => deleteQuestionMutation.mutate(id)}
+          />
         </TabsContent>
         <TabsContent value="trading" className="mt-6">
-          {questions?.filter(q => q.type === 'trading').length === 0 ? (
-            <div className="text-center py-4 text-gray-500">
-              עדיין אין שאלות. אתה מוזמן להוסיף את השאלה הראשונה!
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {questions?.filter(q => q.type === 'trading').map((question) => (
-                <Card key={question.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{question.content}</CardTitle>
-                    <CardDescription>
-                      {new Date(question.created_at).toLocaleDateString('he-IL')}
-                    </CardDescription>
-                  </CardHeader>
-                  {question.answer && (
-                    <CardContent className="pt-4 border-t">
-                      <p className="font-semibold mb-2">תשובה:</p>
-                      <p>{question.answer}</p>
-                    </CardContent>
-                  )}
-                  <CardFooter className="pt-4">
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2"
-                      onClick={() => {
-                        setSelectedQuestionId(question.id);
-                        setIsAnswerDialogOpen(true);
-                        if (question.answer) {
-                          setNewAnswer(question.answer);
-                        }
-                      }}
-                    >
-                      <MessageSquareQuote className="h-4 w-4" />
-                      {question.answer ? 'ערוך תשובה' : 'הוסף תשובה'}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
+          <QuestionList
+            questions={questions?.filter(q => q.type === 'trading') || []}
+            onAnswerClick={(id) => {
+              setSelectedQuestionId(id);
+              setIsAnswerDialogOpen(true);
+              const question = questions?.find(q => q.id === id);
+              if (question?.answer) {
+                setNewAnswer(question.answer);
+              }
+            }}
+            onDelete={(id) => deleteQuestionMutation.mutate(id)}
+          />
         </TabsContent>
       </Tabs>
+
+      <QuestionDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSubmit={handleQuestionSubmit}
+        title="הוספת שאלה חדשה"
+        value={newQuestion}
+        onChange={setNewQuestion}
+        submitLabel={addQuestionMutation.isPending ? 'שולח...' : 'שלח שאלה'}
+        questionType={questionType}
+        onQuestionTypeChange={setQuestionType}
+      />
+
+      <QuestionDialog
+        isOpen={isAnswerDialogOpen}
+        onClose={() => {
+          setIsAnswerDialogOpen(false);
+          setSelectedQuestionId(null);
+          setNewAnswer('');
+        }}
+        onSubmit={handleAnswerSubmit}
+        title="הוספת תשובה"
+        value={newAnswer}
+        onChange={setNewAnswer}
+        submitLabel={addAnswerMutation.isPending ? 'שומר...' : 'שמור תשובה'}
+        questionType={questionType}
+        onQuestionTypeChange={setQuestionType}
+      />
     </div>
   );
-};
-
-export default Questions;
+}
