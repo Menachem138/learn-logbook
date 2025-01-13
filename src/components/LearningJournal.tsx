@@ -190,7 +190,6 @@ export default function LearningJournal() {
       container.style.padding = '40px';
       container.style.backgroundColor = '#ffffff';
       container.style.direction = 'rtl';
-      container.style.visibility = 'hidden'; // Hide the container but keep it in the layout
       document.body.appendChild(container);
 
       container.innerHTML = `
@@ -237,7 +236,7 @@ export default function LearningJournal() {
       // Wait for images to load
       const images = container.getElementsByTagName('img');
       await Promise.all(Array.from(images).map(img => 
-        new Promise((resolve, reject) => {
+        new Promise((resolve) => {
           if (img.complete) {
             resolve(null);
           } else {
@@ -259,15 +258,7 @@ export default function LearningJournal() {
           logging: true,
           backgroundColor: '#ffffff',
           width: container.scrollWidth,
-          height: container.scrollHeight,
-          windowWidth: container.scrollWidth,
-          windowHeight: container.scrollHeight,
-          onclone: (clonedDoc) => {
-            const clonedContainer = clonedDoc.querySelector('div');
-            if (clonedContainer) {
-              clonedContainer.style.visibility = 'visible';
-            }
-          }
+          height: container.scrollHeight
         });
 
         const contentWidth = pdf.internal.pageSize.getWidth();
