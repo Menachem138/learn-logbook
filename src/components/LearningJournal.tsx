@@ -190,6 +190,7 @@ export default function LearningJournal() {
       container.style.padding = '40px';
       container.style.backgroundColor = '#ffffff';
       container.style.direction = 'rtl';
+      container.style.visibility = 'hidden'; // Hide the container but keep it in the layout
       document.body.appendChild(container);
 
       container.innerHTML = `
@@ -221,13 +222,33 @@ export default function LearningJournal() {
               </div>
               ${entry.image_url ? `
                 <div style="margin-top: 15px;">
-                  <img src="${entry.image_url}" style="max-width: 100%; height: auto; border-radius: 4px;" />
+                  <img 
+                    src="${entry.image_url}" 
+                    style="max-width: 100%; height: auto; border-radius: 4px;"
+                    onerror="this.style.display='none'"
+                  />
                 </div>
               ` : ''}
             </div>
           `).join('')}
         </div>
       `;
+
+      // Wait for images to load
+      const images = container.getElementsByTagName('img');
+      await Promise.all(Array.from(images).map(img => 
+        new Promise((resolve, reject) => {
+          if (img.complete) {
+            resolve(null);
+          } else {
+            img.onload = () => resolve(null);
+            img.onerror = () => {
+              img.style.display = 'none';
+              resolve(null);
+            };
+          }
+        })
+      ));
 
       const pdf = new jsPDF('p', 'pt', 'a4');
       
@@ -239,6 +260,14 @@ export default function LearningJournal() {
           backgroundColor: '#ffffff',
           width: container.scrollWidth,
           height: container.scrollHeight,
+          windowWidth: container.scrollWidth,
+          windowHeight: container.scrollHeight,
+          onclone: (clonedDoc) => {
+            const clonedContainer = clonedDoc.querySelector('div');
+            if (clonedContainer) {
+              clonedContainer.style.visibility = 'visible';
+            }
+          }
         });
 
         const contentWidth = pdf.internal.pageSize.getWidth();
@@ -246,7 +275,6 @@ export default function LearningJournal() {
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
         
-        // Calculate the scaling ratio to fit the content to the page width
         const ratio = contentWidth / imgWidth;
         const scaledHeight = imgHeight * ratio;
         
