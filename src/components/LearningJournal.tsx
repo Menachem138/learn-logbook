@@ -183,23 +183,22 @@ export default function LearningJournal() {
       );
 
       const container = document.createElement('div');
-      container.style.width = '100%';
-      container.style.maxWidth = '800px'; // Adjusted width
-      container.style.margin = '0 auto'; // Center the content
+      container.style.position = 'fixed';
+      container.style.top = '0';
+      container.style.left = '0';
+      container.style.width = '100vw';
+      container.style.padding = '40px';
       container.style.backgroundColor = '#ffffff';
       container.style.direction = 'rtl';
-      container.style.padding = '40px';
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
       document.body.appendChild(container);
 
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #000000; width: 100%; margin: 0 auto;">
+        <div style="font-family: Arial, sans-serif; color: #000000; max-width: 100%; padding: 20px;">
           <h1 style="text-align: center; margin-bottom: 30px; font-size: 24px; color: #000000;">
             יומן למידה - רשומות נבחרות
           </h1>
           ${entriesToExport.map(entry => `
-            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid; width: 100%; box-sizing: border-box;">
+            <div style="margin-bottom: 40px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; page-break-inside: avoid;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <div style="font-size: 14px; color: #666666;">
                   ${new Date(entry.created_at).toLocaleDateString('he-IL')}
@@ -217,11 +216,11 @@ export default function LearningJournal() {
                   `).join('')}
                 </div>
               ` : ''}
-              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; text-align: right; width: 100%; box-sizing: border-box; padding: 0;">
+              <div style="white-space: pre-wrap; color: #000000; font-size: 14px; line-height: 1.6; text-align: right;">
                 ${entry.content.replace(/\n/g, '<br>')}
               </div>
               ${entry.image_url ? `
-                <div style="margin-top: 15px; width: 100%;">
+                <div style="margin-top: 15px;">
                   <img src="${entry.image_url}" style="max-width: 100%; height: auto; border-radius: 4px;" />
                 </div>
               ` : ''}
@@ -234,7 +233,7 @@ export default function LearningJournal() {
       
       try {
         const canvas = await html2canvas(container, {
-          scale: 1.5,
+          scale: 2,
           useCORS: true,
           logging: true,
           backgroundColor: '#ffffff',
@@ -246,21 +245,38 @@ export default function LearningJournal() {
         const contentHeight = pdf.internal.pageSize.getHeight();
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
-        const ratio = Math.min(contentWidth / imgWidth, contentHeight / imgHeight);
         
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        // Calculate the scaling ratio to fit the content to the page width
+        const ratio = contentWidth / imgWidth;
+        const scaledHeight = imgHeight * ratio;
         
-        let heightLeft = imgHeight;
+        let heightLeft = scaledHeight;
         let position = 0;
         let pageHeight = contentHeight;
 
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth * ratio, imgHeight * ratio);
+        // Add first page
+        pdf.addImage(
+          canvas.toDataURL('image/jpeg', 1.0),
+          'JPEG',
+          0,
+          position,
+          contentWidth,
+          scaledHeight
+        );
         heightLeft -= pageHeight;
 
+        // Add subsequent pages if needed
         while (heightLeft >= 0) {
-          position = heightLeft - imgHeight;
+          position = heightLeft - scaledHeight;
           pdf.addPage();
-          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth * ratio, imgHeight * ratio);
+          pdf.addImage(
+            canvas.toDataURL('image/jpeg', 1.0),
+            'JPEG',
+            0,
+            position,
+            contentWidth,
+            scaledHeight
+          );
           heightLeft -= pageHeight;
         }
 
