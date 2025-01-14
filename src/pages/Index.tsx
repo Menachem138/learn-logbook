@@ -11,6 +11,7 @@ import { YouTubeLibrary } from "@/components/YouTubeLibrary";
 import { TwitterLibrary } from "@/components/TwitterLibrary";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Documents } from "@/components/Documents";
+import { Calendar } from "@/components/Calendar";
 
 export default function Index() {
   return (
@@ -26,6 +27,7 @@ export default function Index() {
       </div>
 
       <div className="space-y-6">
+        <Calendar />
         <MotivationalQuotes />
         <CourseContent />
         <CourseSchedule />

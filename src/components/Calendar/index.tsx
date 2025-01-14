@@ -20,6 +20,7 @@ type Event = {
   start_time: string;
   end_time: string;
   is_all_day: boolean;
+  user_id: string;
 };
 
 export function Calendar() {
@@ -49,10 +50,17 @@ export function Calendar() {
   });
 
   const addEventMutation = useMutation({
-    mutationFn: async (eventData: Omit<Event, 'id'>) => {
+    mutationFn: async (eventData: Omit<Event, 'id' | 'user_id' | 'is_all_day'>) => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      
       const { data, error } = await supabase
         .from('calendar_events')
-        .insert([eventData])
+        .insert({
+          ...eventData,
+          user_id: userData.user.id,
+          is_all_day: false,
+        })
         .select()
         .single();
 
@@ -89,10 +97,7 @@ export function Calendar() {
       return;
     }
 
-    addEventMutation.mutate({
-      ...newEvent,
-      is_all_day: false,
-    });
+    addEventMutation.mutate(newEvent);
   };
 
   const selectedDateEvents = events?.filter(event => {
