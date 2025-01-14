@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import WeeklySchedule from "./CourseSchedule/WeeklySchedule";
+import { WeeklySchedule } from "./CourseSchedule/WeeklySchedule";
 import { useToast } from "@/hooks/use-toast";
 import { initialWeeklySchedule, scheduleToJson, jsonToSchedule, DaySchedule } from "./CourseSchedule/scheduleData";
 import { supabase } from "@/integrations/supabase/client";
