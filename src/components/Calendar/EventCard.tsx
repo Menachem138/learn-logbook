@@ -10,6 +10,10 @@ type Event = {
   description: string | null;
   start_time: string;
   end_time: string;
+  is_all_day: boolean;
+  user_id: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type EventCardProps = {
