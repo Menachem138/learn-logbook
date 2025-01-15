@@ -19,9 +19,13 @@ type Event = {
   end_time: string;
   is_all_day: boolean;
   user_id: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type ViewMode = 'day' | 'week' | 'month';
+
+type NewEvent = Omit<Event, 'id' | 'user_id' | 'is_all_day' | 'created_at' | 'updated_at'>;
 
 export function Calendar() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -29,7 +33,7 @@ export function Calendar() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [newEvent, setNewEvent] = useState({
+  const [newEvent, setNewEvent] = useState<NewEvent>({
     title: '',
     description: '',
     start_time: '',
@@ -53,7 +57,7 @@ export function Calendar() {
   });
 
   const addEventMutation = useMutation({
-    mutationFn: async (eventData: Omit<Event, 'id' | 'user_id' | 'is_all_day'>) => {
+    mutationFn: async (eventData: NewEvent) => {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       
