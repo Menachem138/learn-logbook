@@ -181,6 +181,22 @@ export function Calendar() {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     console.log('Google Calendar login success:', credentialResponse);
+    const { data: { secrets }, error } = await supabase
+      .from('secrets')
+      .select('value')
+      .eq('name', 'GOOGLE_CLIENT_ID')
+      .single();
+
+    if (error) {
+      console.error('Error fetching Google Client ID:', error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו להתחבר ל-Google Calendar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "התחברות הצליחה",
       description: "התחברת בהצלחה לחשבון Google Calendar שלך",
