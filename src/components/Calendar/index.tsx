@@ -13,7 +13,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Trash2, Edit } from 'lucide-react';
-import { GoogleLogin } from '@react-oauth/google';
 
 type Event = {
   id: string;
@@ -179,22 +178,6 @@ export function Calendar() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    console.log('Google Calendar login success:', credentialResponse);
-    toast({
-      title: "התחברות הצליחה",
-      description: "התחברת בהצלחה לחשבון Google Calendar שלך",
-    });
-  };
-
-  const handleGoogleError = () => {
-    toast({
-      title: "שגיאה",
-      description: "ההתחברות ל-Google Calendar נכשלה",
-      variant: "destructive",
-    });
-  };
-
   const selectedDateEvents = events?.filter(event => {
     const eventDate = new Date(event.start_time);
     return date && 
@@ -207,62 +190,55 @@ export function Calendar() {
     <Card className="mb-8">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>לוח שנה</CardTitle>
-        <div className="flex gap-2">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            useOneTap
-          />
-          <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-            <DialogTrigger asChild>
-              <Button>הוסף אירוע</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>הוסף אירוע חדש</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddEvent} className="space-y-4">
-                <div>
-                  <Label htmlFor="title">כותרת</Label>
-                  <Input
-                    id="title"
-                    value={newEvent.title}
-                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">תיאור</Label>
-                  <Input
-                    id="description"
-                    value={newEvent.description}
-                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="start_time">זמן התחלה</Label>
-                  <Input
-                    id="start_time"
-                    type="datetime-local"
-                    value={newEvent.start_time}
-                    onChange={(e) => setNewEvent({ ...newEvent, start_time: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="end_time">זמן סיום</Label>
-                  <Input
-                    id="end_time"
-                    type="datetime-local"
-                    value={newEvent.end_time}
-                    onChange={(e) => setNewEvent({ ...newEvent, end_time: e.target.value })}
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  הוסף אירוע
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+          <DialogTrigger asChild>
+            <Button>הוסף אירוע</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>הוסף אירוע חדש</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddEvent} className="space-y-4">
+              <div>
+                <Label htmlFor="title">כותרת</Label>
+                <Input
+                  id="title"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">תיאור</Label>
+                <Input
+                  id="description"
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="start_time">זמן התחלה</Label>
+                <Input
+                  id="start_time"
+                  type="datetime-local"
+                  value={newEvent.start_time}
+                  onChange={(e) => setNewEvent({ ...newEvent, start_time: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="end_time">זמן סיום</Label>
+                <Input
+                  id="end_time"
+                  type="datetime-local"
+                  value={newEvent.end_time}
+                  onChange={(e) => setNewEvent({ ...newEvent, end_time: e.target.value })}
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                הוסף אירוע
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
           <DialogContent className="sm:max-w-[425px]">
