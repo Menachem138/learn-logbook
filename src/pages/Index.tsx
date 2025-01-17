@@ -12,7 +12,6 @@ import { TwitterLibrary } from "@/components/TwitterLibrary";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Documents } from "@/components/Documents";
 import { Calendar } from "@/components/Calendar";
-import { SMSNotifications } from "@/components/SMSNotifications";
 
 export default function Index() {
   return (
@@ -24,7 +23,7 @@ export default function Index() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <StudyTimer />
-        <SMSNotifications />
+        <ChatAssistant />
       </div>
 
       <div className="space-y-6">
@@ -38,7 +37,6 @@ export default function Index() {
         <TwitterLibrary />
         <Questions />
         <LearningJournal />
-        <ChatAssistant />
       </div>
     </div>
   );

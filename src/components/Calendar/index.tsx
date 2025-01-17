@@ -12,8 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { Trash2, Edit, Bell } from 'lucide-react';
-import { Switch } from "@/components/ui/switch";
+import { Trash2, Edit } from 'lucide-react';
 
 type Event = {
   id: string;
@@ -23,15 +22,6 @@ type Event = {
   end_time: string;
   is_all_day: boolean;
   user_id: string;
-};
-
-type Notification = {
-  event_id: string;
-  event_type: 'calendar';
-  phone_number: string;
-  message: string;
-  scheduled_for: string;
-  user_id: string;  // Added this field
 };
 
 export function Calendar() {
@@ -45,8 +35,6 @@ export function Calendar() {
     start_time: '',
     end_time: '',
   });
-  const [notificationEnabled, setNotificationEnabled] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -163,34 +151,7 @@ export function Calendar() {
     },
   });
 
-  const createNotificationMutation = useMutation({
-    mutationFn: async (notification: Notification) => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert(notification)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast({
-        title: "תזכורת נוספה בהצלחה",
-        description: "תקבל הודעת SMS לפני האירוע",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "שגיאה",
-        description: "לא הצלחנו להוסיף את התזכורת",
-        variant: "destructive",
-      });
-      console.error('Error creating notification:', error);
-    },
-  });
-
-  const handleAddEvent = async (e: React.FormEvent) => {
+  const handleAddEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEvent.title || !newEvent.start_time || !newEvent.end_time) {
       toast({
@@ -201,28 +162,7 @@ export function Calendar() {
       return;
     }
 
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      
-      const result = await addEventMutation.mutateAsync(newEvent);
-      
-      if (notificationEnabled && phoneNumber) {
-        const notificationTime = new Date(newEvent.start_time);
-        notificationTime.setMinutes(notificationTime.getMinutes() - 30); // Send notification 30 minutes before event
-
-        await createNotificationMutation.mutateAsync({
-          event_id: result.id,
-          event_type: 'calendar',
-          phone_number: phoneNumber,
-          message: `תזכורת: האירוע "${newEvent.title}" יתחיל בעוד 30 דקות`,
-          scheduled_for: notificationTime.toISOString(),
-          user_id: userData.user.id  // Added user_id from authenticated user
-        });
-      }
-    } catch (error) {
-      console.error('Error handling event creation:', error);
-    }
+    addEventMutation.mutate(newEvent);
   };
 
   const handleEditEvent = (e: React.FormEvent) => {
@@ -293,26 +233,6 @@ export function Calendar() {
                   onChange={(e) => setNewEvent({ ...newEvent, end_time: e.target.value })}
                 />
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="notification"
-                  checked={notificationEnabled}
-                  onCheckedChange={setNotificationEnabled}
-                />
-                <Label htmlFor="notification">הפעל תזכורת SMS</Label>
-              </div>
-              {notificationEnabled && (
-                <div>
-                  <Label htmlFor="phone">מספר טלפון</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="05X-XXXXXXX"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                  />
-                </div>
-              )}
               <Button type="submit" className="w-full">
                 הוסף אירוע
               </Button>

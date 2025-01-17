@@ -258,45 +258,6 @@ export type Database = {
         }
         Relationships: []
       }
-      notifications: {
-        Row: {
-          created_at: string | null
-          event_id: string
-          event_type: string
-          id: string
-          is_sent: boolean | null
-          message: string
-          phone_number: string
-          scheduled_for: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          event_id: string
-          event_type: string
-          id?: string
-          is_sent?: boolean | null
-          message: string
-          phone_number: string
-          scheduled_for: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          event_id?: string
-          event_type?: string
-          id?: string
-          is_sent?: boolean | null
-          message?: string
-          phone_number?: string
-          scheduled_for?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       progress_tracking: {
         Row: {
           completed_sections: string[] | null
@@ -599,10 +560,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_and_send_notifications: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       library_item_type:
