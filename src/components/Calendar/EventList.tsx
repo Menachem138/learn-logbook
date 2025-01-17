@@ -7,6 +7,8 @@ type Event = {
   description: string | null;
   start_time: string;
   end_time: string;
+  is_all_day: boolean;
+  user_id: string;
 };
 
 type EventListProps = {

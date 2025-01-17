@@ -9,6 +9,8 @@ type EventFormProps = {
     description: string;
     start_time: string;
     end_time: string;
+    is_all_day?: boolean;
+    user_id?: string;
   };
   onSubmit: (e: React.FormEvent) => void;
   onChange: (field: string, value: string) => void;
