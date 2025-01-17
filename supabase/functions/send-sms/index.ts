@@ -11,12 +11,13 @@ interface SMSRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    console.log('Starting SMS sending process...');
+    
     const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
     const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
     const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
@@ -35,7 +36,7 @@ serve(async (req) => {
       throw new Error('Missing required fields');
     }
 
-    // Format phone number to E.164 format if it's an Israeli number
+    // Format phone number for Israeli numbers if needed
     const formattedPhoneNumber = phoneNumber.startsWith('0') 
       ? `+972${phoneNumber.substring(1)}` 
       : phoneNumber;
@@ -47,8 +48,8 @@ serve(async (req) => {
     const response = await fetch(twilioUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': `Basic ${btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
         To: formattedPhoneNumber,
@@ -62,33 +63,19 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error('Twilio API error:', result);
-      throw new Error('Failed to send SMS');
+      throw new Error(`Twilio API error: ${result.message}`);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, data: result }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json' 
-        } 
-      }
-    );
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
 
   } catch (error) {
     console.error('Error sending SMS:', error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      { 
-        status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    });
   }
 });
