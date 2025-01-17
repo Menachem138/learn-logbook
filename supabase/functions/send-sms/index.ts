@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,13 +21,17 @@ serve(async (req) => {
     const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
     const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
 
+    console.log('Checking Twilio credentials...');
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+      console.error('Missing Twilio credentials');
       throw new Error('Missing Twilio credentials');
     }
 
     const { phoneNumber, message }: SMSRequest = await req.json();
+    console.log('Received request to send SMS:', { phoneNumber, message });
 
     if (!phoneNumber || !message) {
+      console.error('Missing required fields');
       throw new Error('Missing required fields');
     }
 
@@ -37,6 +40,8 @@ serve(async (req) => {
       ? `+972${phoneNumber.substring(1)}` 
       : phoneNumber;
 
+    console.log('Sending SMS to:', formattedPhoneNumber);
+    
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
     
     const response = await fetch(twilioUrl, {
@@ -53,6 +58,7 @@ serve(async (req) => {
     });
 
     const result = await response.json();
+    console.log('Twilio API response:', result);
 
     if (!response.ok) {
       console.error('Twilio API error:', result);
