@@ -31,6 +31,7 @@ type Notification = {
   phone_number: string;
   message: string;
   scheduled_for: string;
+  user_id: string;  // Added this field
 };
 
 export function Calendar() {
@@ -201,6 +202,9 @@ export function Calendar() {
     }
 
     try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      
       const result = await addEventMutation.mutateAsync(newEvent);
       
       if (notificationEnabled && phoneNumber) {
@@ -213,6 +217,7 @@ export function Calendar() {
           phone_number: phoneNumber,
           message: `תזכורת: האירוע "${newEvent.title}" יתחיל בעוד 30 דקות`,
           scheduled_for: notificationTime.toISOString(),
+          user_id: userData.user.id  // Added user_id from authenticated user
         });
       }
     } catch (error) {
