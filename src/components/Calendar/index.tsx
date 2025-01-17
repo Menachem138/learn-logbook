@@ -1,18 +1,15 @@
-'use client';
-
 import { useState } from 'react';
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { Trash2, Edit } from 'lucide-react';
+import { EventForm } from './EventForm';
+import { EventList } from './EventList';
+import { CalendarHeader } from './CalendarHeader';
 
 type Event = {
   id: string;
@@ -24,8 +21,11 @@ type Event = {
   user_id: string;
 };
 
+type ViewMode = 'day' | 'week' | 'month';
+
 export function Calendar() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>('day');
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -188,106 +188,13 @@ export function Calendar() {
 
   return (
     <Card className="mb-8">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle>לוח שנה</CardTitle>
-        <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-          <DialogTrigger asChild>
-            <Button>הוסף אירוע</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>הוסף אירוע חדש</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAddEvent} className="space-y-4">
-              <div>
-                <Label htmlFor="title">כותרת</Label>
-                <Input
-                  id="title"
-                  value={newEvent.title}
-                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">תיאור</Label>
-                <Input
-                  id="description"
-                  value={newEvent.description}
-                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="start_time">זמן התחלה</Label>
-                <Input
-                  id="start_time"
-                  type="datetime-local"
-                  value={newEvent.start_time}
-                  onChange={(e) => setNewEvent({ ...newEvent, start_time: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="end_time">זמן סיום</Label>
-                <Input
-                  id="end_time"
-                  type="datetime-local"
-                  value={newEvent.end_time}
-                  onChange={(e) => setNewEvent({ ...newEvent, end_time: e.target.value })}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                הוסף אירוע
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>ערוך אירוע</DialogTitle>
-            </DialogHeader>
-            {selectedEvent && (
-              <form onSubmit={handleEditEvent} className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-title">כותרת</Label>
-                  <Input
-                    id="edit-title"
-                    value={selectedEvent.title}
-                    onChange={(e) => setSelectedEvent({ ...selectedEvent, title: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-description">תיאור</Label>
-                  <Input
-                    id="edit-description"
-                    value={selectedEvent.description || ''}
-                    onChange={(e) => setSelectedEvent({ ...selectedEvent, description: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-start-time">זמן התחלה</Label>
-                  <Input
-                    id="edit-start-time"
-                    type="datetime-local"
-                    value={selectedEvent.start_time}
-                    onChange={(e) => setSelectedEvent({ ...selectedEvent, start_time: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-end-time">זמן סיום</Label>
-                  <Input
-                    id="edit-end-time"
-                    type="datetime-local"
-                    value={selectedEvent.end_time}
-                    onChange={(e) => setSelectedEvent({ ...selectedEvent, end_time: e.target.value })}
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  שמור שינויים
-                </Button>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
+        <CalendarHeader
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onAddEvent={() => setIsAddEventOpen(true)}
+        />
       </CardHeader>
       <CardContent className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">
@@ -304,48 +211,48 @@ export function Calendar() {
           </h3>
           {isLoading ? (
             <p>טוען אירועים...</p>
-          ) : selectedDateEvents && selectedDateEvents.length > 0 ? (
-            <div className="space-y-4">
-              {selectedDateEvents.map((event) => (
-                <Card key={event.id}>
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <p className="text-sm text-gray-500">{event.description}</p>
-                        <p className="text-sm text-gray-500">
-                          {format(new Date(event.start_time), 'HH:mm')} - {format(new Date(event.end_time), 'HH:mm')}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedEvent(event);
-                            setIsEditEventOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteEvent(event.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           ) : (
-            <p className="text-gray-500">אין אירועים ביום זה</p>
+            <EventList
+              events={selectedDateEvents || []}
+              onEdit={(event) => {
+                setSelectedEvent(event);
+                setIsEditEventOpen(true);
+              }}
+              onDelete={handleDeleteEvent}
+            />
           )}
         </div>
       </CardContent>
+
+      <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>הוסף אירוע חדש</DialogTitle>
+          </DialogHeader>
+          <EventForm
+            event={newEvent}
+            onSubmit={handleAddEvent}
+            onChange={(field, value) => setNewEvent({ ...newEvent, [field]: value })}
+            submitText="הוסף אירוע"
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ערוך אירוע</DialogTitle>
+          </DialogHeader>
+          {selectedEvent && (
+            <EventForm
+              event={selectedEvent}
+              onSubmit={handleEditEvent}
+              onChange={(field, value) => setSelectedEvent({ ...selectedEvent, [field]: value })}
+              submitText="שמור שינויים"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
