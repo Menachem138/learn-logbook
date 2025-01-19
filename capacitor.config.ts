@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.yourdomain.app',
-  appName: 'Your App Name',
+  appId: 'com.learnlogbook.app',
+  appName: 'Learn Logbook',
   webDir: 'dist',
   server: {
     androidScheme: 'https'
