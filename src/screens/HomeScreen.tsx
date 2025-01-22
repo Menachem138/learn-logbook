@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { registerForPushNotificationsAsync } from '../utils/notifications';
+import { useAuth } from '../hooks/useAuth';
 
 export function HomeScreen() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      registerForPushNotificationsAsync(user.id).catch(console.error);
+    }
+  }, [user]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
