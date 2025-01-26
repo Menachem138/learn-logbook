@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
+import { Card } from "./ui/card";
 
 const quotes = [
   {
