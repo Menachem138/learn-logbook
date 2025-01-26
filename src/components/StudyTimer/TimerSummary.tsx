@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { formatTime } from '@/utils/timeUtils';
+import { Button } from '../../components/ui/button';
+import { formatTime } from '../../utils/timeUtils';
 
 interface TimerSummaryProps {
   totalStudyTime: number;
