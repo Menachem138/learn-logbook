@@ -13,9 +13,11 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@capacitor/android": "^7.0.1",
     "@capacitor/cli": "^6.2.0",
-    "@capacitor/core": "^6.2.0",
-    "@capacitor/ios": "^6.2.0",
+    "@capacitor/core": "^7.0.1",
+    "@capacitor/ios": "^7.0.1",
+    "@capacitor/push-notifications": "^7.0.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -109,7 +111,7 @@
     "jest": "^29.7.0",
     "lovable-tagger": "^1.0.19",
     "postcss": "^8.4.47",
-    "supabase": "^2.0.0",
+    "supabase": "^2.6.8",
     "tailwindcss": "^3.4.11",
     "ts-jest": "^29.2.5",
     "typescript": "^5.5.3",
