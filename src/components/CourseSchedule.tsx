@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Badge } from "./ui/badge";
 import { WeeklySchedule } from "./CourseSchedule/WeeklySchedule";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "../hooks/use-toast";
 import { initialWeeklySchedule, scheduleToJson, jsonToSchedule, DaySchedule } from "./CourseSchedule/scheduleData";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "../integrations/supabase/client";
+import { useAuth } from "./auth/AuthProvider";
 
 const weeklyTopics = [
   {
