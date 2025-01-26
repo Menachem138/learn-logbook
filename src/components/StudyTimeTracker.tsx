@@ -1,15 +1,15 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Progress } from './ui/progress';
 import { BookOpen, Coffee, Pause, Play, StopCircle } from 'lucide-react';
-import { formatTime, formatTotalTime } from '@/utils/timeUtils';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { formatTime, formatTotalTime } from '../utils/timeUtils';
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from './ui/use-toast';
+import { useAuth } from './auth/AuthProvider';
 
 enum TimerState {
   STOPPED,

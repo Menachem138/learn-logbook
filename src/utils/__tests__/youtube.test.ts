@@ -1,9 +1,9 @@
 import { parseYouTubeUrl, isValidYouTubeUrl, getYouTubeVideoDetails } from '../youtube';
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../../integrations/supabase/client';
 
 // Mock Supabase client
-jest.mock('@/integrations/supabase/client', () => ({
+jest.mock('../../integrations/supabase/client', () => ({
   supabase: {
     functions: {
       invoke: jest.fn(),

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { JournalService, JournalEntry } from '@/services/JournalService';
-import { theme } from '@/theme';
-import { SafeAreaContainer } from '@/components/layout';
+import { useAuth } from '../components/auth/AuthProvider';
+import { JournalService, JournalEntry } from '../services/JournalService';
+import { theme } from '../theme';
+import { SafeAreaContainer } from '../components/layout';
 
 export default function JournalScreen() {
   const { user } = useAuth();

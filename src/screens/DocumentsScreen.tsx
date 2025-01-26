@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { DocumentService, Document } from '@/services/DocumentService';
-import { theme } from '@/theme';
-import { SafeAreaContainer } from '@/components/layout';
+import { useAuth } from '../components/auth/AuthProvider';
+import { DocumentService, Document } from '../services/DocumentService';
+import { theme } from '../theme';
+import { SafeAreaContainer } from '../components/layout';
 import { Capacitor } from '@capacitor/core';
 import { FilePicker } from '@capawesome/capacitor-file-picker';
-import { formatFileSize } from '@/utils/format';
+import { formatFileSize } from '../utils/format';
 
 export default function DocumentsScreen() {
   const { user } = useAuth();

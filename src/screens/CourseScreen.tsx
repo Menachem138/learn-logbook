@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { CourseService, CourseProgress } from '@/services/CourseService';
-import { theme } from '@/theme';
-import { SafeAreaContainer } from '@/components/layout';
+import { useAuth } from '../components/auth/AuthProvider';
+import { CourseService, CourseProgress } from '../services/CourseService';
+import { theme } from '../theme';
+import { SafeAreaContainer } from '../components/layout';
 
 export default function CourseScreen() {
   const { user } = useAuth();
