@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 export const uploadFileToStorage = async (file: File, userId: string) => {
   console.log('Uploading file to storage:', { fileName: file.name, userId });
