@@ -3,6 +3,8 @@ import { View, Switch, Text, StyleSheet, Platform } from 'react-native';
 import { PushNotificationService } from '@/services/PushNotificationService';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { theme } from '@/theme';
+import { supabase } from '@/config/supabase';
+import { useEffect } from 'react';
 
 interface NotificationPreference {
   id: string;
@@ -34,6 +36,47 @@ export function NotificationPreferences() {
     },
   ]);
 
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('notification_preferences')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+          throw error;
+        }
+
+        if (data) {
+          setPreferences(prev => prev.map(pref => ({
+            ...pref,
+            enabled: data[pref.id] ?? pref.enabled
+          })));
+        } else {
+          // Create default preferences
+          const { error: insertError } = await supabase
+            .from('notification_preferences')
+            .insert({
+              user_id: user.id,
+              course_progress: true,
+              journal_reminder: true,
+              study_timer: true
+            });
+
+          if (insertError) throw insertError;
+        }
+      } catch (error) {
+        console.error('Failed to load notification preferences:', error);
+      }
+    };
+
+    loadPreferences();
+  }, [user]);
+
   const handleTogglePreference = async (prefId: string) => {
     if (!user) return;
 
@@ -47,7 +90,22 @@ export function NotificationPreferences() {
 
       setPreferences(updatedPreferences);
 
-      // Update preferences in backend
+      // Update preferences in Supabase
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: user.id,
+          [prefId]: !preferences.find(p => p.id === prefId)?.enabled,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Update push notification service
       await PushNotificationService.updateNotificationPreferences({
         userId: user.id,
         preferences: updatedPreferences.reduce((acc, pref) => ({
