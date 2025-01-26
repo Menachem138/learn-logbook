@@ -36,18 +36,24 @@ export default defineConfig(({ mode, command }) => {
       componentTagger(),
     ].filter(Boolean),
     resolve: {
-      alias: [
-        { find: '@', replacement: path.resolve(__dirname, 'src') },
-        { find: '@/components', replacement: path.resolve(__dirname, 'src/components') },
-        { find: '@/theme', replacement: path.resolve(__dirname, 'src/theme') },
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+        '@/components': path.resolve(__dirname, './src/components'),
+        '@/theme': path.resolve(__dirname, './src/theme'),
+        '@/utils': path.resolve(__dirname, './src/utils'),
+        '@/services': path.resolve(__dirname, './src/services'),
+        '@/hooks': path.resolve(__dirname, './src/hooks'),
+        '@/pages': path.resolve(__dirname, './src/pages'),
+        '@/platform': path.resolve(__dirname, './src/platform'),
+        '@/integrations': path.resolve(__dirname, './src/integrations'),
+        '@/stores': path.resolve(__dirname, './src/stores'),
         ...(process.env.VITE_PLATFORM === 'web' 
-          ? Object.entries(platformSpecific.resolve?.alias || {}).map(([find, replacement]) => ({
-              find,
-              replacement: typeof replacement === 'string' ? replacement : replacement.toString(),
-            }))
-          : []
-        ),
-      ],
+          ? Object.entries(platformSpecific.resolve?.alias || {}).reduce((acc, [key, value]) => ({
+              ...acc,
+              [key]: typeof value === 'string' ? value : value.toString(),
+            }), {})
+          : {}),
+      },
       extensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js'],
     },
     build: {
