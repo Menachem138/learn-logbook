@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 import Editor from "./Editor";
-import { supabase } from "@/integrations/supabase/client";
-import { triggerConfetti } from "@/utils/confetti";
+import { supabase } from "../../integrations/supabase/client";
+import { triggerConfetti } from "../../utils/confetti";
 import { TagInput } from "./TagInput";
 
 interface JournalEntryFormProps {
