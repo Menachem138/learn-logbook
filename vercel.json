@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "buildCommand": "VITE_PLATFORM=web npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=1, stale-while-revalidate"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "VITE_PLATFORM": "web"
+  }
+}
