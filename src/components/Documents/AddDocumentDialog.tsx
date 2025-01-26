@@ -1,12 +1,12 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
 import { useForm } from "react-hook-form";
-import { DocumentInput, DocumentType } from '@/types/documents';
+import { DocumentInput, DocumentType } from '../../types/documents';
 import { useDropzone } from "react-dropzone";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "../../hooks/use-toast";
 import { FileText } from "lucide-react";
 
 interface AddDocumentDialogProps {
