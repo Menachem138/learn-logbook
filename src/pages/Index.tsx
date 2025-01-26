@@ -1,17 +1,17 @@
 import React from "react";
 import { View, Text, SafeAreaView, ScrollView, StyleSheet } from "react-native";
-import { StudyTimer } from "@/components/StudyTimer";
-import MotivationalQuotes from "@/components/MotivationalQuotes";
-import CourseContent from "@/components/CourseContent";
-import Library from "@/components/Library";
-import Questions from "@/components/Questions";
-import ChatAssistant from "@/components/ChatAssistant";
-import CourseSchedule from "@/components/CourseSchedule";
-import LearningJournal from "@/components/LearningJournal";
-import { YouTubeLibrary } from "@/components/YouTubeLibrary";
-import { TwitterLibrary } from "@/components/TwitterLibrary";
-import { Documents } from "@/components/Documents";
-import { Calendar } from "@/components/Calendar";
+import { StudyTimer } from "../components/StudyTimer";
+import MotivationalQuotes from "../components/MotivationalQuotes";
+import CourseContent from "../components/CourseContent";
+import Library from "../components/Library";
+import Questions from "../components/Questions";
+import ChatAssistant from "../components/ChatAssistant";
+import CourseSchedule from "../components/CourseSchedule";
+import LearningJournal from "../components/LearningJournal";
+import { YouTubeLibrary } from "../components/YouTubeLibrary";
+import { TwitterLibrary } from "../components/TwitterLibrary";
+import { Documents } from "../components/Documents";
+import { Calendar } from "../components/Calendar";
 
 export default function Index() {
   return (
