@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Badge } from "../../components/ui/badge";
+import { Input } from "../../components/ui/input";
 import { X } from "lucide-react";
 
 interface TagInputProps {
