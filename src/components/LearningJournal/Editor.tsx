@@ -4,13 +4,13 @@ import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
 import Image from '@tiptap/extension-image'
-import { Button } from "@/components/ui/button"
+import { Button } from "../../components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "../../components/ui/dropdown-menu"
 import {
   AlignLeft,
   AlignCenter,
@@ -24,7 +24,7 @@ import {
   ListOrdered,
   List
 } from 'lucide-react'
-import { supabase } from "@/integrations/supabase/client"
+import { supabase } from "../../integrations/supabase/client"
 import { toast } from "sonner"
 
 interface EditorProps {

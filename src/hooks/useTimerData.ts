@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from '../components/ui/use-toast';
+import { useAuth } from '../components/auth/AuthProvider';
 
 export const useTimerData = () => {
   const [totalStudyTime, setTotalStudyTime] = useState<number>(0);

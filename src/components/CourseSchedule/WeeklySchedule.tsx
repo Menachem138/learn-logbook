@@ -1,7 +1,7 @@
 import React from 'react';
 import { DaySchedule } from './scheduleData';
 import { DaySchedule as DayScheduleComponent } from './DaySchedule';
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import { Plus } from "lucide-react";
 
 export interface WeeklyScheduleProps {

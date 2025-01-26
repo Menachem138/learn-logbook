@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent, CardFooter } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { FileText, Download, Trash2, Edit } from "lucide-react";
-import { Document } from '@/types/documents';
+import { Document } from '../../types/documents';
 
 interface DocumentCardProps {
   document: Document;

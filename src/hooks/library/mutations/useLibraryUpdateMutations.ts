@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { LibraryItemType } from '@/types/library';
-import { cloudinaryResponseToJson, uploadToCloudinary, deleteFromCloudinary } from '@/utils/cloudinaryUtils';
-import { CloudinaryResponse, CloudinaryData } from '@/types/cloudinary';
+import { supabase } from '../../../integrations/supabase/client';
+import { useToast } from '../../../hooks/use-toast';
+import { LibraryItemType } from '../../../types/library';
+import { cloudinaryResponseToJson, uploadToCloudinary, deleteFromCloudinary } from '../../../utils/cloudinaryUtils';
+import { CloudinaryResponse, CloudinaryData } from '../../../types/cloudinary';
 
 // Helper function to validate CloudinaryData shape
 const isCloudinaryData = (data: any): data is CloudinaryData => {

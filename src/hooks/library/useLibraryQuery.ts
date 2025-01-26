@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { LibraryItem } from '@/types/library';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '../../integrations/supabase/client';
+import { LibraryItem } from '../../types/library';
+import { useToast } from '../../hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 export const useLibraryQuery = (filter: string) => {

@@ -1,11 +1,11 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { Button } from '@/components/ui/button';
+import { supabase } from '../../integrations/supabase/client';
+import { useAuth } from '../auth/AuthProvider';
+import { Button } from '../ui/button';
 import { MessageCircle, Plus } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from '../ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { QuestionDialog } from './QuestionDialog';
 import { QuestionList } from './QuestionList';
 

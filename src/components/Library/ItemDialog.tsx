@@ -1,19 +1,19 @@
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
 import { useForm } from "react-hook-form";
-import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library";
+import { LibraryItem, LibraryItemType, LibraryItemInput } from "../../types/library";
 import { useDropzone } from "react-dropzone";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "../../hooks/use-toast";
 import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "../../components/auth/AuthProvider";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "../../components/ui/collapsible";
 
 interface ItemDialogProps {
   isOpen: boolean;

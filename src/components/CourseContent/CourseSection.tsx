@@ -2,8 +2,8 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
+} from "../../components/ui/accordion";
+import { Badge } from "../../components/ui/badge";
 import { LessonItem } from "./LessonItem";
 
 interface Lesson {

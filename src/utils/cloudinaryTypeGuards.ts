@@ -1,4 +1,4 @@
-import { CloudinaryResponse } from '@/types/cloudinary';
+import { CloudinaryResponse } from '../types/cloudinary';
 
 export function isCloudinaryResponse(obj: unknown): obj is CloudinaryResponse {
   return (

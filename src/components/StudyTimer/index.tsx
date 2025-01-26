@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "../ui/card";
 import { toast } from "sonner";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "../auth/AuthProvider";
+import { supabase } from "../../integrations/supabase/client";
 import { TimerDisplay } from "./TimerDisplay";
 import { TimerControls } from "./TimerControls";
 import { TimerHistory } from "./TimerHistory";

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card } from "../../components/ui/card";
 import { MediaViewer } from "./MediaViewer";
 import { FileText } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { CLOUDINARY_CLOUD_NAME } from "@/integrations/cloudinary/client";
+import { supabase } from "../../integrations/supabase/client";
+import { CLOUDINARY_CLOUD_NAME } from "../../integrations/cloudinary/client";
 
 interface MediaCardProps {
   type: "image" | "video" | "image_gallery" | "pdf";

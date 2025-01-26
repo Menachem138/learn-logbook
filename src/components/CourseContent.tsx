@@ -1,10 +1,10 @@
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Accordion } from "@/components/ui/accordion";
+import { Card } from "./ui/card";
+import { Progress } from "./ui/progress";
+import { Accordion } from "./ui/accordion";
 import { initialCourseData } from "./CourseContent/courseData";
 import { CourseSection } from "./CourseContent/CourseSection";
-import { useCourseProgress } from "@/hooks/useCourseProgress";
-import { triggerConfetti } from "@/utils/confetti";
+import { useCourseProgress } from "../hooks/useCourseProgress";
+import { triggerConfetti } from "../utils/confetti";
 
 export default function CourseContent() {
   const { completedLessons, loading, toggleLesson } = useCourseProgress();

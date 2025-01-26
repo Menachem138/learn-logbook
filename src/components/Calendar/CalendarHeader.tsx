@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import { Calendar as CalendarIcon, Grid, List } from 'lucide-react';
 
 type ViewMode = 'day' | 'week' | 'month';

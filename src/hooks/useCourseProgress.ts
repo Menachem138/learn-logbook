@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { getTotalLessons } from '@/components/CourseContent/sections';
+import { useAuth } from '../components/auth/AuthProvider';
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from '../components/ui/use-toast';
+import { getTotalLessons } from '../components/CourseContent/sections';
 
 export function useCourseProgress() {
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());

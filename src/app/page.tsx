@@ -1,6 +1,6 @@
-import { StudyTimer } from '@/components/StudyTimer';
-import Library from '@/components/Library';
-import { Calendar } from '@/components/Calendar';
+import { StudyTimer } from '../components/StudyTimer';
+import Library from '../components/Library';
+import { Calendar } from '../components/Calendar';
 
 export default function Home() {
   return (
