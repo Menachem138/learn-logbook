@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '../../components/ui/button';
 import { Play, Pause, StopCircle } from 'lucide-react';
 
 interface TimerControlsProps {
