@@ -1,6 +1,7 @@
 import { useYouTubeStore } from '../youtube';
 import { supabase } from '../../integrations/supabase/client';
 import { parseYouTubeUrl, getYouTubeVideoDetails } from '../../utils/youtube';
+import { getHebrewError } from '../../utils/errors';
 
 jest.mock('../../integrations/supabase/client', () => {
   const createMockChainMethod = () => {
@@ -33,6 +34,17 @@ jest.mock('../../integrations/supabase/client', () => {
     supabase: {
       from: jest.fn().mockReturnValue(mockChain),
       mockChain, // Expose for test manipulation
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { 
+            user: {
+              id: 'test-user-id',
+              email: 'test@example.com',
+            }
+          },
+          error: null,
+        }),
+      },
     },
   };
 });
@@ -92,17 +104,14 @@ describe('YouTubeStore', () => {
       mockSupabase.mockChain.error = mockError;
 
       const store = useYouTubeStore.getState();
-      await store.fetchVideos();
-
-      // Wait for next tick to ensure state is updated
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await expect(store.fetchVideos()).rejects.toEqual(mockError);
 
       // Get fresh state after update
       const updatedState = useYouTubeStore.getState();
 
       expect(updatedState.videos).toEqual([]);
       expect(updatedState.isLoading).toBe(false);
-      expect(updatedState.error).toBe(mockError.message);
+      expect(updatedState.error).toBe(getHebrewError(mockError.message));
     });
   });
 
@@ -129,6 +138,7 @@ describe('YouTubeStore', () => {
         video_id: videoId,
         title: videoDetails.title,
         thumbnail_url: videoDetails.thumbnail,
+        user_id: 'test-user-id',
       });
     });
 

@@ -1,11 +1,19 @@
 import { parseYouTubeUrl, isValidYouTubeUrl, getYouTubeVideoDetails } from '../youtube';
 
-// Mock fetch for YouTube API calls
-global.fetch = jest.fn();
+import { supabase } from '@/integrations/supabase/client';
+
+// Mock Supabase client
+jest.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    functions: {
+      invoke: jest.fn(),
+    },
+  },
+}));
 
 describe('YouTube Utils', () => {
   beforeEach(() => {
-    (fetch as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   describe('parseYouTubeUrl', () => {
@@ -57,11 +65,13 @@ describe('YouTube Utils', () => {
         }]
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        Promise.resolve({
-          json: () => Promise.resolve(mockResponse)
-        })
-      );
+      (supabase.functions.invoke as jest.Mock).mockResolvedValueOnce({
+        data: {
+          title: 'Test Video',
+          thumbnail: 'https://example.com/thumbnail.jpg',
+        },
+        error: null,
+      });
 
       const result = await getYouTubeVideoDetails('dQw4w9WgXcQ');
       expect(result).toEqual({
@@ -71,13 +81,10 @@ describe('YouTube Utils', () => {
     });
 
     it('should throw error when video is not found', async () => {
-      const mockResponse = { items: [] };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        Promise.resolve({
-          json: () => Promise.resolve(mockResponse)
-        })
-      );
+      (supabase.functions.invoke as jest.Mock).mockResolvedValueOnce({
+        data: null,
+        error: new Error('Video not found'),
+      });
 
       await expect(getYouTubeVideoDetails('invalid-id')).rejects.toThrow('Video not found');
     });
