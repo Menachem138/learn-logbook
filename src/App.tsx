@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/components/auth/AuthProvider";
+import { ThemeProvider } from "./components/theme/ThemeProvider";
+import { Toaster } from "./components/ui/toaster";
+import { AuthProvider } from "./components/auth/AuthProvider";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform } from 'react-native';
