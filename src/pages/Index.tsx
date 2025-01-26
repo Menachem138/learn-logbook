@@ -1,5 +1,4 @@
 import React from "react";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { StudyTimer } from "@/components/StudyTimer";
 import MotivationalQuotes from "@/components/MotivationalQuotes";
 import CourseContent from "@/components/CourseContent";
@@ -15,52 +14,30 @@ import { Calendar } from "@/components/Calendar";
 
 export default function Index() {
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <View style={styles.content}>
-          <Text style={styles.title}>
-            ברוך הבא
-          </Text>
-          
-          <View style={styles.grid}>
-            <StudyTimer />
-            <ChatAssistant />
-          </View>
+    <div className="min-h-screen p-4">
+      <div className="container mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-right">
+          ברוך הבא
+        </h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StudyTimer />
+          <ChatAssistant />
+        </div>
 
-          <View style={styles.section}>
-            <Calendar />
-            <MotivationalQuotes />
-            <CourseContent />
-            <CourseSchedule />
-            <Library />
-            <Documents />
-            <YouTubeLibrary />
-            <TwitterLibrary />
-            <Questions />
-            <LearningJournal />
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        <div className="space-y-6">
+          <Calendar />
+          <MotivationalQuotes />
+          <CourseContent />
+          <CourseSchedule />
+          <Library />
+          <Documents />
+          <YouTubeLibrary />
+          <TwitterLibrary />
+          <Questions />
+          <LearningJournal />
+        </div>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "right",
-  },
-  grid: {
-    marginVertical: 20,
-  },
-  section: {
-    gap: 20,
-  }
-});
