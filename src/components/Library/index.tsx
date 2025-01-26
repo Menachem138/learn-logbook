@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { useLibrary } from "@/hooks/useLibrary";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useLibrary } from "../../hooks/useLibrary";
+import { Input } from "../ui/input";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
 import { Star, Trash2, Link, FileText, Image, Video, MessageCircle, Edit2, HelpCircle } from "lucide-react";
-import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } from "@/types/library";
+import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } from "../../types/library";
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useToast } from "../../hooks/use-toast";
+import { useAuth } from "../auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
 
 const getIcon = (type: LibraryItemType) => {
