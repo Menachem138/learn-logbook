@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useTwitterLibrary } from '@/hooks/useTwitterLibrary';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { useTwitterLibrary } from '../../hooks/useTwitterLibrary';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Card } from '../ui/card';
 import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '../ui/alert';
 
 // Add Twitter widgets script with error handling
 const loadTwitterScript = () => {
