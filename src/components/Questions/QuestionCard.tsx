@@ -1,6 +1,6 @@
 import React from 'react';
-import { Question } from '@/integrations/supabase/types/questions';
-import { Button } from '@/components/ui/button';
+import { Question } from '../../integrations/supabase/types/questions';
+import { Button } from '../../components/ui/button';
 import { MessageSquareQuote, Trash2 } from 'lucide-react';
 import {
   Card,
@@ -9,7 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "../../components/ui/card";
 
 interface QuestionCardProps {
   question: Question;
