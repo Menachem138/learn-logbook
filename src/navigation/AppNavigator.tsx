@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { I18nManager } from 'react-native';
+import { NotificationPreferences } from '../components/settings/NotificationPreferences';
 
 import TimerScreen from '../screens/TimerScreen';
 import WeeklyScheduleScreen from '../screens/WeeklyScheduleScreen';
@@ -39,6 +40,8 @@ const getTabIcon = (routeName: string) => {
       return 'book-open-variant';
     case 'Documents':
       return 'file-document-multiple';
+    case 'NotificationSettings':
+      return 'bell-outline';
     default:
       return 'help';
   }
@@ -54,6 +57,8 @@ const getTabLabel = (routeName: string) => {
       return 'קורס';
     case 'Documents':
       return 'מסמכים';
+    case 'NotificationSettings':
+      return 'התראות';
     default:
       return routeName;
   }
@@ -88,6 +93,16 @@ export default function AppNavigator() {
         <Tab.Screen name="WeeklySchedule" component={WeeklyScheduleScreen} />
         <Tab.Screen name="Course" component={CourseScreen} />
         <Tab.Screen name="Documents" component={DocumentsScreen} />
+        <Tab.Screen 
+          name="NotificationSettings" 
+          component={NotificationPreferences}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="bell-outline" size={size} color={color} />
+            ),
+            tabBarLabel: 'התראות',
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );

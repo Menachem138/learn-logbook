@@ -6,4 +6,5 @@ export type RootStackParamList = {
   Documents: undefined;
   Assistant: undefined;
   Journal: undefined;
+  NotificationSettings: undefined;
 };
