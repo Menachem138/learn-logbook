@@ -1,9 +1,9 @@
 import React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "../../components/ui/dialog";
 import { X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "../../components/ui/button";
+import { ScrollArea } from "../../components/ui/scroll-area";
+import { useToast } from "../../hooks/use-toast";
 
 interface MediaViewerProps {
   isOpen: boolean;
