@@ -16,6 +16,15 @@ const Stack = createNativeStackNavigator();
 function App() {
   const isWeb = Platform.OS === 'web';
 
+  React.useEffect(() => {
+    if (!isWeb) {
+      // Initialize push notifications
+      PushNotificationService.initialize().catch((error) => {
+        console.error('Failed to initialize push notifications:', error);
+      });
+    }
+  }, [isWeb]);
+
   if (isWeb) {
     return (
       <QueryClientProvider client={queryClient}>
