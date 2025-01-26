@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
+    "dev": "VITE_PLATFORM=web vite",
+    "build": "VITE_PLATFORM=web vite build",
+    "build:dev": "VITE_PLATFORM=web vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "jest",
@@ -98,6 +98,8 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.6.3",
@@ -105,8 +107,10 @@
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react-swc": "^3.5.0",
+    "@types/react-native": "^0.72.8",
+    "@vitejs/plugin-react-swc": "^3.7.2",
     "autoprefixer": "^10.4.20",
+    "babel-plugin-react-native-web": "^0.19.13",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
