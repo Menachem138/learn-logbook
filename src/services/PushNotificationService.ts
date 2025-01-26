@@ -1,6 +1,6 @@
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
-import { supabase } from '../config/supabase';
+import { supabase } from '../integrations/supabase/client';
 
 interface NotificationData {
   title: string;
