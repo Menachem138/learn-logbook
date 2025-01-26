@@ -1,14 +1,14 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Document, DocumentInput } from '@/types/documents';
+import { supabase } from '../../integrations/supabase/client';
+import { Document, DocumentInput } from '../../types/documents';
 import { DocumentCard } from './DocumentCard';
 import { AddDocumentDialog } from './AddDocumentDialog';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { uploadFileToStorage, deleteFileFromStorage } from '@/utils/fileStorage';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useToast } from '../../hooks/use-toast';
+import { uploadFileToStorage, deleteFileFromStorage } from '../../utils/fileStorage';
+import { useAuth } from '../auth/AuthProvider';
 
 export function Documents() {
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
