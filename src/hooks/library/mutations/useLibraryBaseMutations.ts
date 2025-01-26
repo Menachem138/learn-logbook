@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { LibraryItemType } from '@/types/library';
-import { cloudinaryResponseToJson, uploadToCloudinary } from '@/utils/cloudinaryUtils';
-import { CloudinaryResponse } from '@/types/cloudinary';
+import { supabase } from '../../../integrations/supabase/client';
+import { useToast } from '../../../hooks/use-toast';
+import { LibraryItemType } from '../../../types/library';
+import { cloudinaryResponseToJson, uploadToCloudinary } from '../../../utils/cloudinaryUtils';
+import { CloudinaryResponse } from '../../../types/cloudinary';
 
 export const useLibraryBaseMutations = () => {
   const { toast } = useToast();
