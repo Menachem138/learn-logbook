@@ -5,7 +5,7 @@ import { CourseScreen } from './web-components/CourseScreen';
 import { DocumentsScreen } from './web-components/DocumentsScreen';
 import { TimerScreen } from './web-components/TimerScreen';
 import { AssistantScreen } from './web-components/AssistantScreen';
-import { WelcomeHeader } from '@/components/layout/WelcomeHeader';
+import { WelcomeHeader } from '../components/layout/WelcomeHeader';
 
 export function AppRouter() {
   return (

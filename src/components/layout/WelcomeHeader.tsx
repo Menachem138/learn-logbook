@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '../auth/AuthProvider';
 
 export function WelcomeHeader() {
   const { user } = useAuth();
