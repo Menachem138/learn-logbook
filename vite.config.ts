@@ -9,7 +9,7 @@ const platformSpecific = process.env.VITE_PLATFORM === 'web' ? {
     alias: {
       'react-native': 'react-native-web',
       '@react-native-async-storage/async-storage': 'react-native-web/dist/exports/AsyncStorage',
-      'react-native-safe-area-context': 'react-native-web/dist/exports/SafeAreaContext',
+      'react-native-safe-area-context': path.resolve(__dirname, './src/platform/web/react-native-safe-area-context.ts'),
       '@capacitor/push-notifications': path.resolve(__dirname, './src/platform/web/push-notifications.ts'),
     },
   },
