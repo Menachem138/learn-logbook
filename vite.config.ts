@@ -88,9 +88,18 @@ export default defineConfig(({ mode, command }) => {
     },
     optimizeDeps: {
       exclude: ['react-native'],
-      include: ['react-native-web'],
+      include: [
+        'react-native-web',
+        '@supabase/supabase-js',
+        '@supabase/auth-js',
+        '@supabase/storage-js',
+        '@supabase/functions-js'
+      ],
       esbuildOptions: {
         resolveExtensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js'],
+        define: {
+          global: 'globalThis',
+        },
       },
     },
     build: {
@@ -100,10 +109,32 @@ export default defineConfig(({ mode, command }) => {
           if (warning.code === 'MISSING_EXPORT' && warning.message.includes('react-native')) {
             return;
           }
+          if (warning.code === 'THIS_IS_UNDEFINED') {
+            return;
+          }
           console.log('Rollup warning:', warning);
           defaultHandler(warning);
         },
+        output: {
+          manualChunks: {
+            'supabase': [
+              '@supabase/supabase-js',
+              '@supabase/auth-js',
+              '@supabase/storage-js',
+              '@supabase/functions-js'
+            ],
+            'react-vendor': [
+              'react',
+              'react-dom',
+              'react-native-web'
+            ]
+          }
+        }
       },
+      commonjsOptions: {
+        transformMixedEsModules: true,
+        include: [/node_modules/],
+      }
     },
     ...platformSpecific,
   };
