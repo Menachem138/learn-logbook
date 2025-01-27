@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
+import { realtimeSync } from '../services/RealtimeSyncService'
 
 interface AuthContextType {
   session: Session | null;
@@ -27,6 +28,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session);
       setSession(session);
+      if (session?.user) {
+        // Initialize real-time sync when user logs in
+        realtimeSync.subscribeToUserSpecificData(session.user.id);
+      }
       setLoading(false);
     });
 
@@ -36,10 +41,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed:', session);
       setSession(session);
+      if (session?.user) {
+        // Initialize real-time sync when user logs in
+        realtimeSync.subscribeToUserSpecificData(session.user.id);
+      } else {
+        // Cleanup real-time sync when user logs out
+        realtimeSync.unsubscribeFromAll();
+      }
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      // Cleanup real-time sync
+      realtimeSync.unsubscribeFromAll();
+    };
   }, []);
 
   return (
