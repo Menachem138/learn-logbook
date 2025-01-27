@@ -1,4 +1,4 @@
-import { supabase } from '@/config/supabase';
+import { supabase } from '../config/supabase';
 import { RealtimeSyncService } from './RealtimeSyncService';
 
 export interface JournalEntry {

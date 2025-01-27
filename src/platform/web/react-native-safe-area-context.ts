@@ -9,8 +9,24 @@ export const useSafeAreaInsets = () => ({
   left: 0,
 });
 
+export const useSafeAreaFrame = () => ({
+  x: 0,
+  y: 0,
+  width: typeof window !== 'undefined' ? window.innerWidth : 0,
+  height: typeof window !== 'undefined' ? window.innerHeight : 0,
+});
+
 export const SafeAreaInsetsContext = {
   Consumer: ({ children }) => children({ top: 0, right: 0, bottom: 0, left: 0 }),
+};
+
+export const SafeAreaFrameContext = {
+  Consumer: ({ children }) => children({ 
+    x: 0, 
+    y: 0, 
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0
+  }),
 };
 
 export const initialWindowMetrics = {
@@ -22,6 +38,8 @@ export default {
   SafeAreaProvider,
   SafeAreaView,
   useSafeAreaInsets,
+  useSafeAreaFrame,
   SafeAreaInsetsContext,
+  SafeAreaFrameContext,
   initialWindowMetrics,
 };

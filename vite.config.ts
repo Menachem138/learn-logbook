@@ -34,6 +34,24 @@ export default defineConfig(({ mode, command }) => {
       react(),
       mode === 'development' &&
       componentTagger(),
+      {
+        name: 'vite-plugin-react-native-web',
+        enforce: 'pre',
+        config() {
+          return {
+            optimizeDeps: {
+              include: ['react-native-web'],
+              exclude: ['react-native'],
+            },
+          };
+        },
+        resolveId(source) {
+          if (source === 'react-native') {
+            return require.resolve('react-native-web');
+          }
+          return null;
+        },
+      },
     ].filter(Boolean),
     resolve: {
       alias: {
@@ -56,10 +74,20 @@ export default defineConfig(({ mode, command }) => {
       },
       extensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js'],
     },
+    optimizeDeps: {
+      exclude: ['react-native'],
+      include: ['react-native-web'],
+      esbuildOptions: {
+        resolveExtensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js'],
+      },
+    },
     build: {
       sourcemap: true,
       rollupOptions: {
         onwarn(warning, defaultHandler) {
+          if (warning.code === 'MISSING_EXPORT' && warning.message.includes('react-native')) {
+            return;
+          }
           console.log('Rollup warning:', warning);
           defaultHandler(warning);
         },

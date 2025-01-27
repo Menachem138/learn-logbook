@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from "@/components/ui/card";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
+import { Card } from "../ui/card";
+import { useAuth } from "../auth/AuthProvider";
+import { supabase } from "../../integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import type { Database } from '@/integrations/supabase/types';
+import type { Database } from '../../integrations/supabase/types';
 
 type TimerSession = Database['public']['Tables']['timer_sessions']['Row'];
 type ProgressTracking = Database['public']['Tables']['progress_tracking']['Row'];

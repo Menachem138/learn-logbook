@@ -1,4 +1,4 @@
-import { supabase } from '@/config/supabase';
+import { supabase } from '../config/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface SyncConfig {
