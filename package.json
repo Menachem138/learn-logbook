@@ -9,14 +9,28 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@capacitor/android": "^7.0.1",
+    "@capacitor/core": "^7.0.1",
+    "@capacitor/ios": "^7.0.1",
+    "@capacitor/push-notifications": "^7.0.0",
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@react-navigation/native": "^7.0.14",
+    "@react-navigation/stack": "^7.1.1",
+    "@supabase/supabase-js": "^2.48.1",
     "expo": "~52.0.27",
+    "expo-notifications": "^0.29.12",
     "expo-status-bar": "~2.0.1",
     "react": "18.3.1",
-    "react-native": "0.76.6"
+    "react-native": "0.76.6",
+    "react-native-safe-area-context": "^5.1.0",
+    "react-native-screens": "^4.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
+    "nativewind": "^4.1.23",
+    "tailwindcss": "^3.4.17",
+    "tailwindcss-react-native": "^1.7.10",
     "typescript": "^5.3.3"
   },
   "private": true
