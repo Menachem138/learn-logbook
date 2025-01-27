@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, I18nManager } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, I18nManager, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as DocumentPicker from 'expo-document-picker';
+import { DocumentService, Document } from '../../services/DocumentService';
+import { useRealtimeSync } from '../../hooks/useRealtimeSync';
 
 // Force RTL
 I18nManager.forceRTL(true);
-
-type Document = {
-  id: string;
-  title: string;
-  type: string;
-  size: string;
-  lastModified: string;
-};
-
-const mockDocuments: Document[] = [
   {
     id: '1',
     title: 'סיכום שיעור ראשון',
@@ -38,7 +31,116 @@ const mockDocuments: Document[] = [
 ];
 
 export default function DocumentsScreen() {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+
+  // Initialize real-time sync
+  useRealtimeSync();
+
+  useEffect(() => {
+    loadDocuments();
+
+    // Listen for real-time updates
+    window.addEventListener('documentUpdate', handleDocumentUpdate);
+    window.addEventListener('documentCreate', handleDocumentCreate);
+    window.addEventListener('documentDelete', handleDocumentDelete);
+
+    return () => {
+      window.removeEventListener('documentUpdate', handleDocumentUpdate);
+      window.removeEventListener('documentCreate', handleDocumentCreate);
+      window.removeEventListener('documentDelete', handleDocumentDelete);
+    };
+  }, []);
+
+  const loadDocuments = async () => {
+    try {
+      setLoading(true);
+      const docs = await DocumentService.getDocuments();
+      setDocuments(docs);
+    } catch (err) {
+      console.error('Error loading documents:', err);
+      Alert.alert('שגיאה', 'אירעה שגיאה בטעינת המסמכים');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDocumentUpdate = (event: CustomEvent) => {
+    setDocuments(prevDocs => 
+      prevDocs.map(doc => 
+        doc.id === event.detail.id ? event.detail : doc
+      )
+    );
+  };
+
+  const handleDocumentCreate = (event: CustomEvent) => {
+    setDocuments(prevDocs => [event.detail, ...prevDocs]);
+  };
+
+  const handleDocumentDelete = (event: CustomEvent) => {
+    setDocuments(prevDocs => 
+      prevDocs.filter(doc => doc.id !== event.detail.id)
+    );
+  };
+
+  const handleAddDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const file = result.assets[0];
+      setLoading(true);
+
+      // Create a File object from the selected asset
+      const response = await fetch(file.uri);
+      const blob = await response.blob();
+      const documentFile = new File([blob], file.name, { type: file.mimeType });
+
+      await DocumentService.uploadDocument(documentFile);
+      Alert.alert('הצלחה', 'המסמך הועלה בהצלחה');
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      Alert.alert('שגיאה', 'אירעה שגיאה בהעלאת המסמך');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDocumentPress = async (doc: Document) => {
+    try {
+      const supported = await Linking.canOpenURL(doc.file_url);
+      
+      if (supported) {
+        await Linking.openURL(doc.file_url);
+      } else {
+        Alert.alert('שגיאה', 'לא ניתן לפתוח את המסמך במכשיר זה');
+      }
+    } catch (err) {
+      console.error('Error opening document:', err);
+      Alert.alert('שגיאה', 'אירעה שגיאה בפתיחת המסמך');
+    }
+  };
+
+  const handleDeleteDocument = async (docId: string) => {
+    try {
+      setLoading(true);
+      await DocumentService.deleteDocument(docId);
+      Alert.alert('הצלחה', 'המסמך נמחק בהצלחה');
+      await loadDocuments(); // Refresh the documents list
+    } catch (err) {
+      console.error('Error deleting document:', err);
+      Alert.alert('שגיאה', 'אירעה שגיאה במחיקת המסמך');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getDocumentIcon = (type: string) => {
     switch (type.toUpperCase()) {
@@ -53,24 +155,54 @@ export default function DocumentsScreen() {
     }
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>טוען מסמכים...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <Text style={styles.title}>מסמכים</Text>
         <View style={styles.documentList}>
-          {mockDocuments.map((doc) => (
+          {documents.length === 0 ? (
+            <Text style={styles.emptyText}>אין מסמכים עדיין</Text>
+          ) : (
+            documents.map((doc) => (
             <TouchableOpacity
               key={doc.id}
               style={[styles.documentItem, selectedDocument === doc.id && styles.selectedDocument]}
-              onPress={() => setSelectedDocument(doc.id)}
+              onPress={() => handleDocumentPress(doc)}
+              onLongPress={() => {
+                Alert.alert(
+                  'מחיקת מסמך',
+                  'האם אתה בטוח שברצונך למחוק מסמך זה?',
+                  [
+                    {
+                      text: 'ביטול',
+                      style: 'cancel',
+                    },
+                    {
+                      text: 'מחק',
+                      style: 'destructive',
+                      onPress: () => handleDeleteDocument(doc.id),
+                    },
+                  ]
+                );
+              }}
             >
               <View style={styles.documentIcon}>
-                <Text style={styles.iconText}>{getDocumentIcon(doc.type)}</Text>
+                <Text style={styles.iconText}>{getDocumentIcon(doc.file_type)}</Text>
               </View>
               <View style={styles.documentInfo}>
                 <Text style={styles.documentTitle}>{doc.title}</Text>
                 <Text style={styles.documentMeta}>
-                  {doc.type} • {doc.size} • {doc.lastModified}
+                  {doc.file_type} • {(doc.file_size / 1024 / 1024).toFixed(1)}MB • {new Date(doc.updated_at).toLocaleDateString('he-IL')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -85,6 +217,21 @@ export default function DocumentsScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    marginTop: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
