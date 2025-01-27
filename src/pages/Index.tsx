@@ -1,33 +1,20 @@
 import React from "react";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet } from "react-native";
-import { StudyTimer } from "@/components/StudyTimer";
-import MotivationalQuotes from "@/components/MotivationalQuotes";
-import CourseContent from "@/components/CourseContent";
-import Library from "@/components/Library";
-import Questions from "@/components/Questions";
-import ChatAssistant from "@/components/ChatAssistant";
-import CourseSchedule from "@/components/CourseSchedule";
-import LearningJournal from "@/components/LearningJournal";
-import { YouTubeLibrary } from "@/components/YouTubeLibrary";
-import { TwitterLibrary } from "@/components/TwitterLibrary";
-import { Documents } from "@/components/Documents";
-import { Calendar } from "@/components/Calendar";
+import { View, Text, SafeAreaView, ScrollView } from "react-native";
 
 export default function Index() {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
-        <View style={styles.content}>
-          <Text style={styles.title}>
+        <View style={{ padding: 20 }}>
+          <Text style={{ fontSize: 24, fontWeight: "bold", textAlign: "right" }}>
             ברוך הבא
           </Text>
-          
-          <View style={styles.grid}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <StudyTimer />
             <ChatAssistant />
-          </View>
+          </div>
 
-          <View style={styles.section}>
+          <div className="space-y-6">
             <Calendar />
             <MotivationalQuotes />
             <CourseContent />
@@ -38,29 +25,9 @@ export default function Index() {
             <TwitterLibrary />
             <Questions />
             <LearningJournal />
-          </View>
+          </div>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "right",
-  },
-  grid: {
-    marginVertical: 20,
-  },
-  section: {
-    gap: 20,
-  }
-});

@@ -12,10 +12,10 @@ const Stack = createNativeStackNavigator();
 
 function App() {
   return (
-    <NavigationContainer>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider>
+          <NavigationContainer>
             <Stack.Navigator>
               <Stack.Screen 
                 name="Home" 
@@ -33,10 +33,10 @@ function App() {
               />
             </Stack.Navigator>
             <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </NavigationContainer>
+          </NavigationContainer>
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
