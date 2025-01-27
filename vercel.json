@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "VITE_PLATFORM=web npm run build",
+  "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
@@ -21,6 +21,8 @@
     }
   ],
   "env": {
-    "VITE_PLATFORM": "web"
+    "VITE_PLATFORM": "web",
+    "VITE_SUPABASE_URL": "https://shjwvwhijgehquuteekv.supabase.co",
+    "NODE_VERSION": "18.x"
   }
 }
