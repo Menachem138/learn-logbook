@@ -16,13 +16,16 @@
         {
           "key": "Cache-Control",
           "value": "s-maxage=1, stale-while-revalidate"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         }
       ]
     }
   ],
   "env": {
     "VITE_PLATFORM": "web",
-    "VITE_SUPABASE_URL": "https://shjwvwhijgehquuteekv.supabase.co",
     "NODE_VERSION": "18.x"
   }
 }

@@ -52,6 +52,18 @@ export default defineConfig(({ mode, command }) => {
           return null;
         },
       },
+      {
+        name: 'vite-plugin-supabase',
+        enforce: 'pre',
+        config() {
+          return {
+            define: {
+              'process.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
+              'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY),
+            },
+          };
+        },
+      },
     ].filter(Boolean),
     resolve: {
       alias: {
