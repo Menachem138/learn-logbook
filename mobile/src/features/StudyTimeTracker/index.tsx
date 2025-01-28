@@ -1,47 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useAuth } from '../../contexts/AuthProvider';
-import { useTimer } from './useTimer';
-import { useRealtimeSync } from '../../hooks/useRealtimeSync';
-import { TimerDisplay } from './TimerDisplay';
-import { TimerControls } from './TimerControls';
-import { TimerStats } from './TimerStats';
 
-export const StudyTimeTracker: React.FC = () => {
-  const { session } = useAuth();
-  const timer = useTimer(session?.user?.id);
-
-  // Enable real-time sync for timer data
-  useRealtimeSync();
-
+const StudyTimeTracker = () => {
   return (
-    <View style={styles.container}>
+    <View testID="study-time-tracker" style={styles.container}>
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>מעקב זמן למידה</Text>
-        </View>
-        <View style={styles.content}>
-          <TimerDisplay 
-            time={timer.time} 
-            timerState={timer.timerState} 
-          />
-          <TimerControls
-            timerState={timer.timerState}
-            onStartStudy={() => timer.startTimer('STUDYING')}
-            onStartBreak={() => timer.startTimer('BREAK')}
-            onStop={timer.stopTimer}
-          />
-          <TimerStats
-            totalStudyTime={timer.totalStudyTime}
-            totalBreakTime={timer.totalBreakTime}
-            currentTime={timer.time}
-            timerState={timer.timerState}
-          />
         </View>
       </View>
     </View>
   );
 };
+
+export default StudyTimeTracker;
 
 const styles = StyleSheet.create({
   container: {

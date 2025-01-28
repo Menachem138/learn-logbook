@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StudyTimeTracker matches snapshot 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#f9fafb",
+      "flex": 1,
+      "padding": 16,
+    }
+  }
+  testID="study-time-tracker"
+>
+  <View
+    style={
+      {
+        "alignSelf": "center",
+        "backgroundColor": "rgba(255, 255, 255, 0.8)",
+        "borderColor": "#e5e7eb",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "elevation": 3,
+        "maxWidth": 480,
+        "shadowColor": "#000",
+        "shadowOffset": {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 0.1,
+        "shadowRadius": 3,
+        "width": "100%",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "paddingHorizontal": 24,
+          "paddingVertical": 16,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#111827",
+            "fontSize": 24,
+            "fontWeight": "bold",
+            "textAlign": "center",
+          }
+        }
+      >
+        מעקב זמן למידה
+      </Text>
+    </View>
+  </View>
+</View>
+`;

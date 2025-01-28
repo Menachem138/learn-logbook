@@ -1,68 +1,60 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabaseMobile } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthProvider';
 
 export const useRealtimeSync = () => {
   const { session } = useAuth();
+  const channelsRef = useRef([]);
 
   useEffect(() => {
     if (!session?.user) return;
 
-    const timerChannel = supabaseMobile
-      .channel('timer-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'timer_sessions',
-          filter: `user_id=eq.${session.user.id}`,
-        },
-        (payload) => {
-          console.log('Timer session update:', payload);
-          // Handle timer session updates
-        }
-      )
-      .subscribe();
+    const setupChannel = (name, table) => {
+      const channel = supabaseMobile.channel(name);
+      channelsRef.current.push(channel);
+      
+      return channel
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table,
+            filter: `user_id=eq.${session.user.id}`,
+          },
+          (payload) => {
+            console.log(`${name} update:`, payload);
+          }
+        )
+        .subscribe();
+    };
 
-    const summaryChannel = supabaseMobile
-      .channel('summary-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'timer_daily_summaries',
-          filter: `user_id=eq.${session.user.id}`,
-        },
-        (payload) => {
-          console.log('Daily summary update:', payload);
-          // Handle daily summary updates
+    try {
+      setupChannel('timer-updates', 'timer_sessions');
+      setupChannel('summary-updates', 'timer_daily_summaries');
+      setupChannel('journal-updates', 'learning_journal');
+    } catch (error) {
+      console.error('Error setting up realtime channels:', error);
+      channelsRef.current.forEach(channel => {
+        try {
+          supabaseMobile.removeChannel(channel);
+        } catch (e) {
+          console.error('Error removing channel during error cleanup:', e);
         }
-      )
-      .subscribe();
-
-    const journalChannel = supabaseMobile
-      .channel('journal-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'learning_journal',
-          filter: `user_id=eq.${session.user.id}`,
-        },
-        (payload) => {
-          console.log('Journal update:', payload);
-          // Handle learning journal updates
-        }
-      )
-      .subscribe();
+      });
+    }
 
     return () => {
-      supabaseMobile.removeChannel(timerChannel);
-      supabaseMobile.removeChannel(summaryChannel);
-      supabaseMobile.removeChannel(journalChannel);
+      const channels = channelsRef.current;
+      channelsRef.current = [];
+      
+      channels.forEach(channel => {
+        try {
+          supabaseMobile.removeChannel(channel);
+        } catch (error) {
+          console.error('Error removing channel during cleanup:', error);
+        }
+      });
     };
   }, [session?.user]);
 };
