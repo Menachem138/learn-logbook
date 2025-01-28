@@ -75,7 +75,6 @@ jest.mock('./src/integrations/supabase/client', () => {
     supabaseMobile: createClient(),
   };
 });
-});
 
 // Mock expo-font
 jest.mock('expo-font', () => ({
