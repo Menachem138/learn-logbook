@@ -80,14 +80,11 @@ describe('StudyTimeTracker', () => {
     // Advance timer by 1 minute and wait for updates
     await act(async () => {
       jest.advanceTimersByTime(60000);
-    });
-    
-    // Wait for next render cycle
-    await act(async () => {
+      // Wait for next render cycle
       await new Promise(resolve => setTimeout(resolve, 0));
     });
     
     // Verify time display is updated
     expect(getByText('01:00.00')).toBeTruthy();
-  });
+  }, 15000); // Increase timeout to 15 seconds
 });

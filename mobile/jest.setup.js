@@ -1,23 +1,19 @@
 // Mock Supabase client
 jest.mock('./src/integrations/supabase/client', () => {
   const createQueryBuilder = () => {
+    const mockData = { id: 'test-session-id' };
     const queryBuilder = {
       data: null,
       error: null,
       // Query methods
       select: jest.fn().mockReturnValue(queryBuilder),
       insert: jest.fn().mockImplementation(() => {
-        return {
-          select: jest.fn().mockImplementation(() => ({
-            single: jest.fn().mockResolvedValue({ 
-              data: { id: 'test-session-id' }, 
-              error: null 
-            })
-          }))
-        };
+        queryBuilder.data = mockData;
+        return queryBuilder;
       }),
       upsert: jest.fn().mockImplementation(() => {
-        return Promise.resolve({ data: null, error: null });
+        queryBuilder.data = mockData;
+        return queryBuilder;
       }),
       update: jest.fn().mockReturnValue(queryBuilder),
       delete: jest.fn().mockReturnValue(queryBuilder),
@@ -40,9 +36,12 @@ jest.mock('./src/integrations/supabase/client', () => {
       maybeSingle: jest.fn().mockReturnValue(queryBuilder),
       // Execution
       then: jest.fn().mockImplementation((onfulfilled) => 
-        Promise.resolve({ data: null, error: null }).then(onfulfilled)
+        Promise.resolve({ data: queryBuilder.data, error: null }).then(onfulfilled)
       ),
-      execute: jest.fn().mockResolvedValue({ data: null, error: null }),
+      single: jest.fn().mockImplementation(() => {
+        return Promise.resolve({ data: queryBuilder.data, error: null });
+      }),
+      execute: jest.fn().mockResolvedValue({ data: queryBuilder.data, error: null }),
     };
     return queryBuilder;
   };
