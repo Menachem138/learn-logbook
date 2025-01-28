@@ -29,21 +29,21 @@ jest.mock('./src/integrations/supabase/client', () => {
       error: null,
       currentTable: null,
       
-      from: jest.fn().mockImplementation((table) => {
-        client.currentTable = table;
-        return client;
-      }),
-      
-      select: jest.fn().mockImplementation(() => client),
-      
-      insert: jest.fn().mockImplementation((data) => {
-        client.data = {
-          ...mockData,
-          ...data,
-          created_at: new Date().toISOString(),
-        };
-        return client;
-      }),
+      from: jest.fn().mockImplementation((table) => ({
+        insert: jest.fn().mockImplementation((data) => ({
+          select: jest.fn().mockReturnThis(),
+          single: jest.fn().mockResolvedValue({
+            data: {
+              ...mockData,
+              ...data,
+              created_at: new Date().toISOString(),
+            },
+            error: null
+          })
+        })),
+        select: jest.fn().mockReturnThis(),
+        upsert: jest.fn().mockResolvedValue({ data: null, error: null })
+      })),
       
       update: jest.fn().mockImplementation((data) => {
         client.data = {
