@@ -13,6 +13,7 @@
     "@capacitor/core": "^7.0.1",
     "@capacitor/ios": "^7.0.1",
     "@supabase/supabase-js": "^2.48.1",
+    "@types/react-native": "^0.72.8",
     "expo": "~52.0.28",
     "expo-constants": "^17.0.5",
     "expo-status-bar": "~2.0.1",
