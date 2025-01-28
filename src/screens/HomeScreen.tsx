@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import Timer from '@/components/Timer';
-import CourseSchedule from '@/components/CourseSchedule';
+import { Timer } from '@/components/Timer';
+import { CourseSchedule } from '@/components/CourseSchedule';
 import { Documents } from '@/components/Documents';
-import LearningJournal from '@/components/LearningJournal';
+import { LearningJournal } from '@/components/LearningJournal';
 import { TwitterLibrary } from '@/components/TwitterLibrary';
 import { YouTubeLibrary } from '@/components/YouTubeLibrary';
 
