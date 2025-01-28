@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAuth } from '../../contexts/AuthProvider';
 import { useTimer } from './useTimer';
+import { useRealtimeSync } from '../../hooks/useRealtimeSync';
 import { TimerDisplay } from './TimerDisplay';
 import { TimerControls } from './TimerControls';
 import { TimerStats } from './TimerStats';
@@ -9,6 +10,9 @@ import { TimerStats } from './TimerStats';
 export const StudyTimeTracker: React.FC = () => {
   const { session } = useAuth();
   const timer = useTimer(session?.user?.id);
+
+  // Enable real-time sync for timer data
+  useRealtimeSync();
 
   return (
     <View style={styles.container}>
