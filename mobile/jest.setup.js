@@ -88,3 +88,15 @@ jest.mock('expo-font', () => ({
 jest.mock('@expo/vector-icons', () => ({
   Feather: 'Feather',
 }));
+
+// Mock AuthProvider context
+jest.mock('./src/contexts/AuthProvider', () => ({
+  useAuth: () => ({
+    session: {
+      user: {
+        id: 'test-user-id',
+      },
+    },
+  }),
+  AuthProvider: ({ children }) => children,
+}));
