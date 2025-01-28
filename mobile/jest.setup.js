@@ -7,12 +7,17 @@ jest.mock('./src/integrations/supabase/client', () => {
       error: null,
       // Query methods
       select: jest.fn().mockReturnValue(queryBuilder),
-      insert: jest.fn().mockImplementation(() => {
-        queryBuilder.data = mockData;
+      insert: jest.fn().mockImplementation((data) => {
+        queryBuilder.data = { ...mockData, ...data };
         return queryBuilder;
       }),
-      upsert: jest.fn().mockImplementation(() => {
-        queryBuilder.data = mockData;
+      update: jest.fn().mockImplementation((data) => {
+        queryBuilder.data = { ...mockData, ...data };
+        return queryBuilder;
+      }),
+      eq: jest.fn().mockReturnValue(queryBuilder),
+      upsert: jest.fn().mockImplementation((data) => {
+        queryBuilder.data = { ...mockData, ...data };
         return queryBuilder;
       }),
       update: jest.fn().mockReturnValue(queryBuilder),
@@ -41,14 +46,20 @@ jest.mock('./src/integrations/supabase/client', () => {
       single: jest.fn().mockImplementation(() => {
         return Promise.resolve({ data: queryBuilder.data, error: null });
       }),
-      execute: jest.fn().mockResolvedValue({ data: queryBuilder.data, error: null }),
+      execute: jest.fn().mockImplementation(() => {
+        return Promise.resolve({ data: queryBuilder.data, error: null });
+      }),
+      then: jest.fn().mockImplementation((onfulfilled) => {
+        return Promise.resolve({ data: queryBuilder.data, error: null }).then(onfulfilled);
+      }),
     };
     return queryBuilder;
   };
 
+  const queryBuilder = createQueryBuilder();
   return {
     supabaseMobile: {
-      from: jest.fn(() => createQueryBuilder()),
+      from: jest.fn().mockReturnValue(queryBuilder),
       channel: jest.fn(() => ({
         on: jest.fn().mockReturnThis(),
         subscribe: jest.fn(),
