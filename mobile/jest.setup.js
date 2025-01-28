@@ -1,10 +1,27 @@
 // Mock Supabase client
-jest.mock('../src/integrations/supabase/client', () => ({
+jest.mock('./src/integrations/supabase/client', () => ({
   supabaseMobile: {
     from: jest.fn(() => ({
-      insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-      upsert: jest.fn().mockResolvedValue({ data: null, error: null }),
-      select: jest.fn().mockResolvedValue({ data: [], error: null }),
+      insert: jest.fn(() => ({
+        select: jest.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+      upsert: jest.fn(() => ({
+        select: jest.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+      select: jest.fn(() => ({
+        single: jest.fn().mockResolvedValue({ data: null, error: null }),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+      })),
+      update: jest.fn(() => ({
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+      delete: jest.fn(() => ({
+        eq: jest.fn().mockReturnThis(),
+        match: jest.fn().mockReturnThis(),
+      })),
     })),
     channel: jest.fn(() => ({
       on: jest.fn().mockReturnThis(),
@@ -45,7 +62,7 @@ jest.mock('expo-device', () => ({
 }));
 
 // Mock AuthProvider context
-jest.mock('../src/contexts/AuthProvider', () => ({
+jest.mock('./src/contexts/AuthProvider', () => ({
   useAuth: () => ({
     session: {
       user: {

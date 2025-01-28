@@ -53,14 +53,16 @@ describe('StudyTimeTracker', () => {
     const startButton = getByText('למידה');
     fireEvent.press(startButton);
     
-    // Advance timer by 5 seconds
-    act(() => {
+    // Advance timer by 5 seconds and wait for updates
+    await act(async () => {
       jest.advanceTimersByTime(5000);
     });
     
-    // Stop timer
+    // Stop timer and wait for updates
     const stopButton = getByText('עצור');
-    fireEvent.press(stopButton);
+    await act(async () => {
+      fireEvent.press(stopButton);
+    });
     
     // Verify Supabase was called to save the session
     expect(supabaseMobile.from).toHaveBeenCalledWith('timer_sessions');
@@ -72,9 +74,14 @@ describe('StudyTimeTracker', () => {
     // Start study timer
     fireEvent.press(getByText('למידה'));
     
-    // Advance timer by 1 minute
-    act(() => {
+    // Advance timer by 1 minute and wait for updates
+    await act(async () => {
       jest.advanceTimersByTime(60000);
+    });
+    
+    // Wait for next render cycle
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
     
     // Verify time display is updated
