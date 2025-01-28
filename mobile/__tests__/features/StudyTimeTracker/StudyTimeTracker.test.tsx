@@ -78,6 +78,6 @@ describe('StudyTimeTracker', () => {
     });
     
     // Verify time display is updated
-    expect(getByText('1:00')).toBeTruthy();
+    expect(getByText('01:00.00')).toBeTruthy();
   });
 });
