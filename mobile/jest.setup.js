@@ -1,25 +1,70 @@
 // Mock Supabase client
 jest.mock('./src/integrations/supabase/client', () => {
-  const createQueryBuilder = () => {
-    const mockData = { id: 'test-session-id' };
+  const mockData = { id: 'test-session-id' };
+  const createClient = () => {
     const queryBuilder = {
       data: null,
       error: null,
-      // Query methods
-      select: jest.fn().mockReturnValue(queryBuilder),
-      insert: jest.fn().mockImplementation((data) => {
-        queryBuilder.data = { ...mockData, ...data };
+      currentTable: null,
+    };
+    
+    // Add methods that return the queryBuilder for chaining
+    queryBuilder.from = jest.fn().mockImplementation((table) => {
+      queryBuilder.currentTable = table;
+      return queryBuilder;
+    });
+    
+    queryBuilder.select = jest.fn().mockImplementation(() => {
+      return queryBuilder;
+    });
+    
+    queryBuilder.insert = jest.fn().mockImplementation((data) => {
+      queryBuilder.data = {
+        ...mockData,
+        ...data,
+        created_at: new Date().toISOString(),
+      };
+      return queryBuilder;
+    });
+    
+    queryBuilder.update = jest.fn().mockImplementation((data) => {
+      queryBuilder.data = {
+        ...queryBuilder.data,
+        ...data,
+        updated_at: new Date().toISOString(),
+      };
+      return queryBuilder;
+    });
+    
+    queryBuilder.eq = jest.fn().mockImplementation((column, value) => {
+      if (queryBuilder.data && queryBuilder.data[column] === value) {
         return queryBuilder;
-      }),
-      update: jest.fn().mockImplementation((data) => {
-        queryBuilder.data = { ...mockData, ...data };
-        return queryBuilder;
-      }),
-      eq: jest.fn().mockReturnValue(queryBuilder),
-      upsert: jest.fn().mockImplementation((data) => {
-        queryBuilder.data = { ...mockData, ...data };
-        return queryBuilder;
-      }),
+      }
+      return queryBuilder;
+    });
+    
+    queryBuilder.single = jest.fn().mockImplementation(() => {
+      return Promise.resolve({ data: queryBuilder.data, error: null });
+    });
+    
+    // Add promise-like behavior
+    queryBuilder.then = jest.fn().mockImplementation((onfulfilled) => {
+      return Promise.resolve({ data: queryBuilder.data, error: null }).then(onfulfilled);
+    });
+
+    return {
+      from: queryBuilder.from,
+      channel: jest.fn(() => ({
+        on: jest.fn().mockReturnThis(),
+        subscribe: jest.fn(),
+      })),
+      removeChannel: jest.fn(),
+    };
+  };
+
+  return {
+    supabaseMobile: createClient(),
+  };
       update: jest.fn().mockReturnValue(queryBuilder),
       delete: jest.fn().mockReturnValue(queryBuilder),
       // Filters
