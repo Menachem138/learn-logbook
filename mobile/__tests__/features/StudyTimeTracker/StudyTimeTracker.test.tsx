@@ -50,7 +50,7 @@ describe('StudyTimeTracker', () => {
     const { getByText } = render(<StudyTimeTracker />);
     
     // Start study timer
-    const startButton = getByText('התחל למידה');
+    const startButton = getByText('למידה');
     fireEvent.press(startButton);
     
     // Advance timer by 5 seconds
@@ -70,7 +70,7 @@ describe('StudyTimeTracker', () => {
     const { getByText } = render(<StudyTimeTracker />);
     
     // Start study timer
-    fireEvent.press(getByText('התחל למידה'));
+    fireEvent.press(getByText('למידה'));
     
     // Advance timer by 1 minute
     act(() => {
