@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -42,9 +42,27 @@ export default function LearningJournal() {
     loadEntries();
   }, []);
 
+  const filterEntries = useCallback(() => {
+    let filtered = entries;
+
+    if (searchQuery) {
+      filtered = filtered.filter(entry =>
+        entry.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(entry =>
+        entry.tags?.some(tag => selectedTags.includes(tag))
+      );
+    }
+
+    setFilteredEntries(filtered);
+  }, [entries, searchQuery, selectedTags]);
+
   useEffect(() => {
     filterEntries();
-  }, [searchQuery, selectedTags, entries]);
+  }, [filterEntries]);
 
   const loadEntries = async () => {
     try {
@@ -78,23 +96,7 @@ export default function LearningJournal() {
     }
   };
 
-  const filterEntries = () => {
-    let filtered = entries;
-
-    if (searchQuery) {
-      filtered = filtered.filter(entry =>
-        entry.content.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter(entry =>
-        entry.tags?.some(tag => selectedTags.includes(tag))
-      );
-    }
-
-    setFilteredEntries(filtered);
-  };
+  // filterEntries function moved to useCallback above
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -271,7 +273,7 @@ export default function LearningJournal() {
         
         let heightLeft = scaledHeight;
         let position = 0;
-        let pageHeight = contentHeight;
+        const pageHeight = contentHeight;
 
         // Add first page
         pdf.addImage(

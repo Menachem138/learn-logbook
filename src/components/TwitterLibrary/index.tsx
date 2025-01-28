@@ -6,9 +6,26 @@ import { Card } from '@/components/ui/card';
 import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+interface TwitterWidgets {
+  createTweet(
+    tweetId: string,
+    container: HTMLElement,
+    options?: {
+      align?: 'left' | 'center' | 'right';
+      conversation?: 'all' | 'none';
+    }
+  ): Promise<HTMLElement | null>;
+}
+
+interface TwitterWindow extends Window {
+  twttr?: {
+    widgets: TwitterWidgets;
+  };
+}
+
 // Add Twitter widgets script with error handling
 const loadTwitterScript = () => {
-  if ((window as any).twttr) return Promise.resolve(true);
+  if ((window as TwitterWindow).twttr) return Promise.resolve(true);
   
   return new Promise<boolean>((resolve) => {
     const script = document.createElement('script');
@@ -36,7 +53,7 @@ const TweetEmbed = ({ tweetId }: { tweetId: string }) => {
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
         try {
-          const tweet = await (window as any).twttr.widgets.createTweet(
+          const tweet = await (window as TwitterWindow).twttr?.widgets.createTweet(
             tweetId,
             containerRef.current,
             {

@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+
+interface TimerSession {
+  id: string;
+  user_id: string;
+  type: "study" | "break";
+  duration: number;
+  started_at: string;
+  ended_at?: string;
+}
 import { TimerDisplay } from "./TimerDisplay";
 import { TimerControls } from "./TimerControls";
 import { TimerHistory } from "./TimerHistory";
@@ -12,16 +21,34 @@ export default function Timer() {
   const [isPaused, setIsPaused] = useState(false);
   const [time, setTime] = useState(0);
   const [timerType, setTimerType] = useState<"study" | "break">("study");
-  const [timerLog, setTimerLog] = useState<any[]>([]);
+  const [timerLog, setTimerLog] = useState<TimerSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const { session } = useAuth();
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [totalStudyTime, setTotalStudyTime] = useState(0);
   const [totalBreakTime, setTotalBreakTime] = useState(0);
 
+  const loadTimerHistory = useCallback(async () => {
+    if (!session?.user?.id) return;
+
+    const { data, error } = await supabase
+      .from('timer_sessions')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('started_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading timer history:', error);
+      return;
+    }
+
+    setTimerLog(data || []);
+    calculateTotalTimes(data || []);
+  }, [session?.user?.id, calculateTotalTimes]);
+
   useEffect(() => {
     loadTimerHistory();
-  }, []);
+  }, [loadTimerHistory]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -51,7 +78,7 @@ export default function Timer() {
     calculateTotalTimes(data || []);
   };
 
-  const calculateTotalTimes = (sessions: any[]) => {
+  const calculateTotalTimes = useCallback((sessions: TimerSession[]) => {
     let studyTime = 0;
     let breakTime = 0;
 
@@ -67,7 +94,7 @@ export default function Timer() {
 
     setTotalStudyTime(studyTime);
     setTotalBreakTime(breakTime);
-  };
+  }, []);
 
   const startTimer = async (type: "study" | "break") => {
     if (!session?.user?.id) {

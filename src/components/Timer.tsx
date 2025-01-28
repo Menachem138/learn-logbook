@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
@@ -34,7 +34,7 @@ export default function Timer() {
 
   useEffect(() => {
     loadTimerHistory();
-  }, []);
+  }, [loadTimerHistory]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -46,7 +46,7 @@ export default function Timer() {
     return () => clearInterval(interval);
   }, [isRunning, isPaused]);
 
-  const loadTimerHistory = async () => {
+  const loadTimerHistory = useCallback(async () => {
     if (!session?.user?.id) return;
 
     const { data, error } = await supabase
@@ -62,9 +62,9 @@ export default function Timer() {
 
     setTimerLog(data || []);
     calculateTotalTimes(data || []);
-  };
+  }, [session?.user?.id, calculateTotalTimes]);
 
-  const calculateTotalTimes = (sessions: TimerSession[]) => {
+  const calculateTotalTimes = useCallback((sessions: TimerSession[]) => {
     let studyTime = 0;
     let breakTime = 0;
 
@@ -80,7 +80,7 @@ export default function Timer() {
 
     setTotalStudyTime(studyTime);
     setTotalBreakTime(breakTime);
-  };
+  }, []);
 
   const startTimer = async (type: "study" | "break") => {
     if (!session?.user?.id) {

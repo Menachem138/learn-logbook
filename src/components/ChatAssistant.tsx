@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Send } from 'lucide-react';
 
@@ -54,14 +54,15 @@ export default function ChatAssistant() {
       }
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error('Error sending message:', error);
       
       // Determine the error message based on the type of error
       let errorMessage = "אנא נסה שוב מאוחר יותר";
-      if (error.message?.includes('Rate limit exceeded') || 
-          error.status === 429 || 
-          error.message?.includes('RATE_LIMIT_EXCEEDED')) {
+      if (err.message?.includes('Rate limit exceeded') || 
+          (err as { status?: number }).status === 429 || 
+          err.message?.includes('RATE_LIMIT_EXCEEDED')) {
         errorMessage = "נא להמתין מעט לפני שליחת הודעה נוספת";
       }
       

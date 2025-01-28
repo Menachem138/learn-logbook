@@ -17,7 +17,20 @@ export function isContentItemType(type: string): type is ContentItemType {
   return ['link', 'image', 'whatsapp', 'video', 'note'].includes(type);
 }
 
-export function transformToContentItem(raw: any): ContentItem | null {
+interface RawContentItem {
+  id: string;
+  type: string;
+  content: string;
+  starred: boolean | null;
+  user_id: string;
+  created_at: string;
+  file_path: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  mime_type: string | null;
+}
+
+export function transformToContentItem(raw: RawContentItem): ContentItem | null {
   if (!isContentItemType(raw.type)) {
     console.error('Invalid content type:', raw.type);
     return null;

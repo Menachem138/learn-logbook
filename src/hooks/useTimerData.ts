@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useTimerData = () => {
   const [totalStudyTime, setTotalStudyTime] = useState<number>(0);
@@ -19,7 +19,7 @@ export const useTimerData = () => {
       const todayStr = today.toISOString().split('T')[0];
 
       // First, try to get today's summary
-      let { data: summary, error: summaryError } = await supabase
+      const { data: summary, error: summaryError } = await supabase
         .from('timer_daily_summaries')
         .select('*')
         .eq('user_id', session.user.id)
@@ -85,11 +85,12 @@ export const useTimerData = () => {
       setTotalStudyTime(studyTime);
       setTotalBreakTime(breakTime);
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading timer data:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "שגיאה בטעינת נתוני הטיימר",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     }

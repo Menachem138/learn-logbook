@@ -9,15 +9,27 @@ jest.mock('../../integrations/supabase/client', () => {
     return fn;
   };
 
-  const mockChain = {
-    data: null as any,
-    error: null as any,
+  interface MockChainData {
+    data: unknown | null;
+    error: Error | null;
+  }
+
+  const mockChain: MockChainData & {
+    select: jest.Mock;
+    insert: jest.Mock;
+    delete: jest.Mock;
+    order: jest.Mock;
+    eq: jest.Mock;
+    then: (resolve: (value: { data: unknown | null; error: Error | null }) => void) => Promise<unknown>;
+  } = {
+    data: null,
+    error: null,
     select: createMockChainMethod(),
     insert: createMockChainMethod(),
     delete: createMockChainMethod(),
     order: createMockChainMethod(),
     eq: createMockChainMethod(),
-    then: function(resolve: any) {
+    then: function(resolve) {
       return Promise.resolve(resolve({ data: this.data, error: this.error }));
     },
   };
@@ -43,12 +55,17 @@ jest.mock('../../utils/youtube', () => ({
 }));
 
 describe('YouTubeStore', () => {
-  let mockSupabase: any;
+  interface MockSupabase {
+    from: jest.Mock;
+    mockChain: typeof mockChain;
+  }
+
+  let mockSupabase: MockSupabase;
 
   beforeEach(() => {
     jest.clearAllMocks();
     useYouTubeStore.setState({ videos: [], isLoading: false, error: null });
-    mockSupabase = (supabase as any);
+    mockSupabase = (supabase as unknown as MockSupabase);
     mockSupabase.mockChain.data = null;
     mockSupabase.mockChain.error = null;
   });

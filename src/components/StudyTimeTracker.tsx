@@ -9,7 +9,7 @@ import { BookOpen, Coffee, Pause, Play, StopCircle } from 'lucide-react';
 import { formatTime, formatTotalTime } from '@/utils/timeUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 
 enum TimerState {
   STOPPED,

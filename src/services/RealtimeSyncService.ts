@@ -1,11 +1,11 @@
-import { supabase } from '../config/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 type TableSubscription = {
   table: string;
-  onUpdate?: (newData: any) => void;
-  onDelete?: (oldData: any) => void;
-  onInsert?: (newData: any) => void;
+  onUpdate?: (newData: Record<string, unknown>) => void;
+  onDelete?: (oldData: Record<string, unknown>) => void;
+  onInsert?: (newData: Record<string, unknown>) => void;
 };
 
 class RealtimeSyncService {

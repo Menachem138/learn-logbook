@@ -10,7 +10,7 @@ const CourseContent = () => {
   const [courseData, setCourseData] = useState<SectionType[]>(initialCourseData);
   const { toast } = useToast();
 
-  const calculateTotalDuration = useCallback((lessons: any[]) => {
+  const calculateTotalDuration = useCallback((lessons: { duration: string }[]) => {
     const totalSeconds = lessons.reduce((acc, lesson) => {
       const [hours, minutes, seconds] = lesson.duration.split(':').map(Number);
       return acc + hours * 3600 + minutes * 60 + seconds;

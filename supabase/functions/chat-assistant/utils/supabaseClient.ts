@@ -11,7 +11,9 @@ export const initSupabase = () => {
   return createClient(supabaseUrl, supabaseKey)
 }
 
-export const fetchUserData = async (supabase: any, userId: string) => {
+import { SupabaseClient } from '@supabase/supabase-js';
+
+export const fetchUserData = async (supabase: SupabaseClient, userId: string) => {
   console.log('Fetching user data from Supabase...')
   
   const [journalEntries, timerSessions, studyGoals, courseProgress, contentItems] = await Promise.all([

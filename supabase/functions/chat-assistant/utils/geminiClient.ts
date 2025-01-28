@@ -11,7 +11,16 @@ export const initGemini = () => {
   return genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
 }
 
-export const generatePrompt = (context: any, message: string) => {
+interface Context {
+  studyTime: string;
+  breakTime: string;
+  recentJournalEntries: Array<{ content: string; date: string }>;
+  activeGoals: Array<{ title: string; description: string; deadline: string }>;
+  completedLessons: number;
+  recentContent: Array<{ title: string; type: string; url: string; created: string }>;
+}
+
+export const generatePrompt = (context: Context, message: string) => {
   return `You are a helpful AI assistant that provides focused, direct answers based on the user's learning data.
 Here is the relevant context about their learning journey:
 
@@ -38,7 +47,11 @@ User Question: ${message}
 Remember: Stay focused on the exact question, avoid unnecessary details, and maintain a clean, readable format.`
 }
 
-export const fetchWithRetry = async (model: any, prompt: string, retries = 3, baseDelay = 1000) => {
+interface GenerativeModel {
+  generateContent(prompt: string): Promise<{ response: unknown }>;
+}
+
+export const fetchWithRetry = async (model: GenerativeModel, prompt: string, retries = 3, baseDelay = 1000) => {
   for (let i = 0; i < retries; i++) {
     try {
       const result = await model.generateContent(prompt)

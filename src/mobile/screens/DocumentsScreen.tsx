@@ -5,30 +5,10 @@ import * as DocumentPicker from 'expo-document-picker';
 import { DocumentService, Document } from '../../services/DocumentService';
 import { useRealtimeSync } from '../../hooks/useRealtimeSync';
 
+import { theme } from '../../theme';
+
 // Force RTL
 I18nManager.forceRTL(true);
-  {
-    id: '1',
-    title: 'סיכום שיעור ראשון',
-    type: 'PDF',
-    size: '2.5MB',
-    lastModified: '26/01/2024',
-  },
-  {
-    id: '2',
-    title: 'מטלת בית - שבוע 1',
-    type: 'DOCX',
-    size: '1.2MB',
-    lastModified: '25/01/2024',
-  },
-  {
-    id: '3',
-    title: 'מצגת מבוא',
-    type: 'PPTX',
-    size: '5.8MB',
-    lastModified: '24/01/2024',
-  },
-];
 
 export default function DocumentsScreen() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -66,7 +46,7 @@ export default function DocumentsScreen() {
     }
   };
 
-  const handleDocumentUpdate = (event: CustomEvent) => {
+  const handleDocumentUpdate = (event: CustomEvent<Document>) => {
     setDocuments(prevDocs => 
       prevDocs.map(doc => 
         doc.id === event.detail.id ? event.detail : doc
@@ -74,11 +54,11 @@ export default function DocumentsScreen() {
     );
   };
 
-  const handleDocumentCreate = (event: CustomEvent) => {
+  const handleDocumentCreate = (event: CustomEvent<Document>) => {
     setDocuments(prevDocs => [event.detail, ...prevDocs]);
   };
 
-  const handleDocumentDelete = (event: CustomEvent) => {
+  const handleDocumentDelete = (event: CustomEvent<Document>) => {
     setDocuments(prevDocs => 
       prevDocs.filter(doc => doc.id !== event.detail.id)
     );
@@ -174,49 +154,48 @@ export default function DocumentsScreen() {
             <Text style={styles.emptyText}>אין מסמכים עדיין</Text>
           ) : (
             documents.map((doc) => (
-            <TouchableOpacity
-              key={doc.id}
-              style={[styles.documentItem, selectedDocument === doc.id && styles.selectedDocument]}
-              onPress={() => handleDocumentPress(doc)}
-              onLongPress={() => {
-                Alert.alert(
-                  'מחיקת מסמך',
-                  'האם אתה בטוח שברצונך למחוק מסמך זה?',
-                  [
-                    {
-                      text: 'ביטול',
-                      style: 'cancel',
-                    },
-                    {
-                      text: 'מחק',
-                      style: 'destructive',
-                      onPress: () => handleDeleteDocument(doc.id),
-                    },
-                  ]
-                );
-              }}
-            >
-              <View style={styles.documentIcon}>
-                <Text style={styles.iconText}>{getDocumentIcon(doc.file_type)}</Text>
-              </View>
-              <View style={styles.documentInfo}>
-                <Text style={styles.documentTitle}>{doc.title}</Text>
-                <Text style={styles.documentMeta}>
-                  {doc.file_type} • {(doc.file_size / 1024 / 1024).toFixed(1)}MB • {new Date(doc.updated_at).toLocaleDateString('he-IL')}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+              <TouchableOpacity
+                key={doc.id}
+                style={[styles.documentItem, selectedDocument === doc.id && styles.selectedDocument]}
+                onPress={() => handleDocumentPress(doc)}
+                onLongPress={() => {
+                  Alert.alert(
+                    'מחיקת מסמך',
+                    'האם אתה בטוח שברצונך למחוק מסמך זה?',
+                    [
+                      {
+                        text: 'ביטול',
+                        style: 'cancel' as const,
+                      },
+                      {
+                        text: 'מחק',
+                        style: 'destructive' as const,
+                        onPress: () => handleDeleteDocument(doc.id),
+                      },
+                    ]
+                  );
+                }}
+              >
+                <View style={styles.documentIcon}>
+                  <Text style={styles.iconText}>{getDocumentIcon(doc.file_type)}</Text>
+                </View>
+                <View style={styles.documentInfo}>
+                  <Text style={styles.documentTitle}>{doc.title}</Text>
+                  <Text style={styles.documentMeta}>
+                    {doc.file_type} • {(doc.file_size / 1024 / 1024).toFixed(1)}MB • {new Date(doc.updated_at).toLocaleDateString('he-IL')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.uploadButton}>
+      <TouchableOpacity style={styles.uploadButton} onPress={handleAddDocument}>
         <Text style={styles.uploadButtonText}>+ העלה מסמך חדש</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
-
-import { theme } from '../../theme';
 
 const styles = StyleSheet.create({
   loadingContainer: {

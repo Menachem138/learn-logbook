@@ -1,9 +1,10 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { LibraryItem } from "@/types/library";
 
 interface DialogFooterProps {
   onClose: () => void;
-  initialData: any;
+  initialData?: LibraryItem | null;
 }
 
 export function DialogFooter({ onClose, initialData }: DialogFooterProps) {

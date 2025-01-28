@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Database } from '@/integrations/supabase/types';

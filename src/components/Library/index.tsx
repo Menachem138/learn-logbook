@@ -8,7 +8,7 @@ import { LibraryItem, LibraryItemType, LibraryItemInput, LibraryItemUpdate } fro
 import { MediaCard } from "./MediaCard";
 import { ItemDialog } from "./ItemDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const getIcon = (type: LibraryItemType) => {

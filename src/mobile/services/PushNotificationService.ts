@@ -70,7 +70,7 @@ export class PushNotificationService {
     }
   }
 
-  private static handleNotification(notification: any) {
+  private static handleNotification(notification: { title: string; body: string; data?: { type?: string; [key: string]: unknown } }) {
     // Handle different types of notifications
     const { title, body, data } = notification;
 
@@ -90,7 +90,7 @@ export class PushNotificationService {
     }
   }
 
-  private static handleNotificationAction(actionData: any) {
+  private static handleNotificationAction(actionData: { notification: { data?: { type?: string; [key: string]: unknown } } }) {
     const { notification } = actionData;
     const { data } = notification;
 

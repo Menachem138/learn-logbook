@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { getTotalLessons } from '@/components/CourseContent/sections';
@@ -10,13 +10,7 @@ export function useCourseProgress() {
   const { session } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      loadProgress();
-    }
-  }, [session?.user?.id]);
-
-  const loadProgress = async () => {
+  const loadProgress = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('course_progress')
@@ -37,7 +31,15 @@ export function useCourseProgress() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.id, toast]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadProgress();
+    }
+  }, [session?.user?.id, loadProgress]);
+
+  // loadProgress function moved to useCallback above
 
   const toggleLesson = async (lessonId: string) => {
     if (!session?.user?.id) return;

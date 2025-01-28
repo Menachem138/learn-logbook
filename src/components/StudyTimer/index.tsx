@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { TimerDisplay } from "./TimerDisplay";
 import { TimerControls } from "./TimerControls";
@@ -12,7 +12,16 @@ import { HistoryToggle } from "./HistoryToggle";
 export const StudyTimer = () => {
   const [timerState, setTimerState] = useState<'STOPPED' | 'STUDYING' | 'BREAK'>('STOPPED');
   const [time, setTime] = useState<number>(0);
-  const [sessions, setSessions] = useState<any[]>([]);
+  interface TimerSession {
+    id: string;
+    user_id: string;
+    type: 'study' | 'break';
+    duration: number;
+    started_at: string;
+    ended_at?: string;
+  }
+
+  const [sessions, setSessions] = useState<TimerSession[]>([]);
   const [totalStudyTime, setTotalStudyTime] = useState<number>(0);
   const [totalBreakTime, setTotalBreakTime] = useState<number>(0);
   const [showHistory, setShowHistory] = useState(false);
@@ -21,14 +30,7 @@ export const StudyTimer = () => {
   const { session } = useAuth();
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadSessions();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     if (!session?.user?.id) return;
 
     const { data, error } = await supabase
@@ -45,9 +47,18 @@ export const StudyTimer = () => {
 
     setSessions(data || []);
     calculateTotalTimes(data || []);
-  };
+  }, [session?.user?.id, calculateTotalTimes]);
 
-  const calculateTotalTimes = (sessionData: any[]) => {
+  useEffect(() => {
+    loadSessions();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [loadSessions]);
+
+  // loadSessions function moved to useCallback above
+
+  const calculateTotalTimes = useCallback((sessionData: TimerSession[]) => {
     let studyTime = 0;
     let breakTime = 0;
 
@@ -63,7 +74,7 @@ export const StudyTimer = () => {
 
     setTotalStudyTime(studyTime);
     setTotalBreakTime(breakTime);
-  };
+  }, []);
 
   const startTimer = async (type: 'study' | 'break') => {
     if (!session?.user?.id) {

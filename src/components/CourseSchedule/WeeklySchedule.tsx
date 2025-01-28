@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 
 export interface WeeklyScheduleProps {
   schedule: DaySchedule[];
-  onUpdateDay: (dayIndex: number, newSchedule: any[]) => void;
+  onUpdateDay: (dayIndex: number, newSchedule: { time: string; activity: string }[]) => void;
   onUpdateDayName: (dayIndex: number, newName: string) => void;
   onAddDay: () => void;
   onDeleteDay: (dayIndex: number) => void;

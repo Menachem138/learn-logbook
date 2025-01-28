@@ -8,7 +8,7 @@ import { LibraryItem, LibraryItemType, LibraryItemInput } from "@/types/library"
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Collapsible,
   CollapsibleContent,
@@ -54,7 +54,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     }
   }, [initialData, session, onClose, toast]);
 
-  const onSubmitForm = async (data: any) => {
+  const onSubmitForm = async (data: LibraryItemInput) => {
     try {
       if (!session) {
         toast({

@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/components/auth/AuthProvider";
+import { AuthProvider } from "@/providers/auth-provider";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 

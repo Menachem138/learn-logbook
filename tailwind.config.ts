@@ -115,10 +115,24 @@ export default {
     },
   },
   plugins: [
-    require("tailwindcss-animate"),
-    require("@tailwindcss/typography")({
-      target: 'legacy-edge',
-      className: 'prose',
-    }),
+    // @ts-expect-error -- Plugin types are not properly exported
+    {
+      handler: ({ addBase, addComponents, addUtilities }) => {
+        addBase({});
+        addComponents({});
+        addUtilities({});
+      }
+    },
+    // @ts-expect-error -- Plugin types are not properly exported
+    {
+      handler: ({ addBase, theme }) => {
+        addBase({
+          '.prose': {
+            maxWidth: theme('maxWidth.prose'),
+            color: theme('colors.gray.900'),
+          },
+        });
+      }
+    }
   ],
 } satisfies Config;

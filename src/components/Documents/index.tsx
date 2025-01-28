@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFileToStorage, deleteFileFromStorage } from '@/utils/fileStorage';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Documents() {
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);

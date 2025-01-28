@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useState } from 'react'
 import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
-import { realtimeSync } from '../services/RealtimeSyncService'
+import { realtimeSync } from '@/services/RealtimeSyncService'
 
 interface AuthContextType {
   session: Session | null;
@@ -14,10 +14,6 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
 });
-
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAuth } from '../components/auth/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { realtimeSync } from '../services/RealtimeSyncService';
 
 export function useRealtimeSync() {

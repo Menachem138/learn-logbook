@@ -6,7 +6,7 @@ import { cloudinaryResponseToJson, uploadToCloudinary, deleteFromCloudinary } fr
 import { CloudinaryResponse, CloudinaryData } from '@/types/cloudinary';
 
 // Helper function to validate CloudinaryData shape
-const isCloudinaryData = (data: any): data is CloudinaryData => {
+const isCloudinaryData = (data: unknown): data is CloudinaryData => {
   return (
     data &&
     typeof data === 'object' &&
@@ -81,7 +81,13 @@ export const useLibraryUpdateMutations = () => {
       }
 
       // Prepare update data
-      const updateData: any = {
+      const updateData: {
+        title: string;
+        content: string;
+        type: LibraryItemType;
+        file_details: typeof updatedFileDetails;
+        cloudinary_data?: CloudinaryData;
+      } = {
         title,
         content,
         type,

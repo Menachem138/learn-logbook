@@ -34,7 +34,7 @@ export function ItemDialog({ isOpen, onClose, onSubmit, initialData }: ItemDialo
     }
   }, [initialData]);
 
-  const onSubmitForm = async (data: any) => {
+  const onSubmitForm = async (data: LibraryItemInput & { files?: File[]; file_details?: { paths?: string[] } }) => {
     try {
       console.log("Submitting form with data:", { ...data, files: selectedFiles, existingPaths });
       

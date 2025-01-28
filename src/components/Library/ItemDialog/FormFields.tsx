@@ -1,10 +1,11 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { LibraryItem } from "@/types/library";
+import { LibraryItem, LibraryItemInput } from "@/types/library";
+import { UseFormRegister } from "react-hook-form";
 
 interface FormFieldsProps {
-  register: any;
+  register: UseFormRegister<LibraryItemInput>;
   selectedType: string;
   initialData?: LibraryItem | null;
 }

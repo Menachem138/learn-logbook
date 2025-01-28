@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,7 @@ import { WeeklySchedule } from "./CourseSchedule/WeeklySchedule";
 import { useToast } from "@/hooks/use-toast";
 import { initialWeeklySchedule, scheduleToJson, jsonToSchedule, DaySchedule } from "./CourseSchedule/scheduleData";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 
 const weeklyTopics = [
   {
@@ -79,13 +79,7 @@ export default function CourseSchedule() {
   const { toast } = useToast();
   const { session } = useAuth();
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      loadScheduleFromSupabase();
-    }
-  }, [session?.user?.id]);
-
-  const loadScheduleFromSupabase = async () => {
+  const loadScheduleFromSupabase = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('schedules')
@@ -112,9 +106,15 @@ export default function CourseSchedule() {
         variant: "destructive",
       });
     }
-  };
+  }, [session?.user?.id, toast, saveScheduleToSupabase]);
 
-  const saveScheduleToSupabase = async (scheduleToSave: DaySchedule[]) => {
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadScheduleFromSupabase();
+    }
+  }, [session?.user?.id, loadScheduleFromSupabase]);
+
+  const saveScheduleToSupabase = useCallback(async (scheduleToSave: DaySchedule[]) => {
     if (!session?.user?.id) return;
 
     try {
@@ -138,9 +138,9 @@ export default function CourseSchedule() {
       console.error('Error saving schedule:', error);
       throw error;
     }
-  };
+  }, [session?.user?.id]);
 
-  const handleUpdateDay = async (dayIndex: number, newSchedule: any[]) => {
+  const handleUpdateDay = async (dayIndex: number, newSchedule: { time: string; activity: string }[]) => {
     try {
       const updatedSchedule = [...weeklySchedule];
       updatedSchedule[dayIndex] = {
