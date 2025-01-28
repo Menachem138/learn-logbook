@@ -8,7 +8,7 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <ThemeProvider id="theme-provider">
+    <ThemeProvider>
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen 
