@@ -1,25 +1,55 @@
 // Mock Supabase client
 jest.mock('./src/integrations/supabase/client', () => {
-  const createChainedMock = () => {
-    const chain = {
-      insert: jest.fn().mockReturnValue(chain),
-      upsert: jest.fn().mockReturnValue(chain),
-      select: jest.fn().mockReturnValue(chain),
-      update: jest.fn().mockReturnValue(chain),
-      delete: jest.fn().mockReturnValue(chain),
-      eq: jest.fn().mockReturnValue(chain),
-      order: jest.fn().mockReturnValue(chain),
-      limit: jest.fn().mockReturnValue(chain),
-      single: jest.fn().mockReturnValue(chain),
-      match: jest.fn().mockReturnValue(chain),
-      then: jest.fn((resolve) => resolve({ data: null, error: null })),
+  const createQueryBuilder = () => {
+    const queryBuilder = {
+      data: null,
+      error: null,
+      // Query methods
+      select: jest.fn().mockReturnValue(queryBuilder),
+      insert: jest.fn().mockImplementation(() => {
+        return {
+          select: jest.fn().mockImplementation(() => ({
+            single: jest.fn().mockResolvedValue({ 
+              data: { id: 'test-session-id' }, 
+              error: null 
+            })
+          }))
+        };
+      }),
+      upsert: jest.fn().mockImplementation(() => {
+        return Promise.resolve({ data: null, error: null });
+      }),
+      update: jest.fn().mockReturnValue(queryBuilder),
+      delete: jest.fn().mockReturnValue(queryBuilder),
+      // Filters
+      eq: jest.fn().mockReturnValue(queryBuilder),
+      neq: jest.fn().mockReturnValue(queryBuilder),
+      gt: jest.fn().mockReturnValue(queryBuilder),
+      lt: jest.fn().mockReturnValue(queryBuilder),
+      gte: jest.fn().mockReturnValue(queryBuilder),
+      lte: jest.fn().mockReturnValue(queryBuilder),
+      like: jest.fn().mockReturnValue(queryBuilder),
+      ilike: jest.fn().mockReturnValue(queryBuilder),
+      is: jest.fn().mockReturnValue(queryBuilder),
+      in: jest.fn().mockReturnValue(queryBuilder),
+      // Modifiers
+      order: jest.fn().mockReturnValue(queryBuilder),
+      limit: jest.fn().mockReturnValue(queryBuilder),
+      range: jest.fn().mockReturnValue(queryBuilder),
+      single: jest.fn().mockReturnValue(queryBuilder),
+      maybeSingle: jest.fn().mockReturnValue(queryBuilder),
+      // Execution
+      then: jest.fn().mockImplementation((onfulfilled) => 
+        Promise.resolve({ data: null, error: null }).then(onfulfilled)
+      ),
+      execute: jest.fn().mockResolvedValue({ data: null, error: null }),
     };
-    return chain;
+    return queryBuilder;
   };
 
   return {
     supabaseMobile: {
-      from: jest.fn(() => createChainedMock()),
+      from: jest.fn(() => createQueryBuilder()),
       channel: jest.fn(() => ({
         on: jest.fn().mockReturnThis(),
         subscribe: jest.fn(),
