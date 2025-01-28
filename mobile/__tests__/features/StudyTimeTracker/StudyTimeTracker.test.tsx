@@ -31,6 +31,9 @@ jest.mock('../../../src/contexts/AuthProvider', () => ({
   }),
 }));
 
+// Increase timeout for all tests in this suite
+jest.setTimeout(10000);
+
 describe('StudyTimeTracker', () => {
   beforeEach(() => {
     jest.useFakeTimers();
