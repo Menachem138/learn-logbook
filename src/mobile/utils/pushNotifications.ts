@@ -48,7 +48,9 @@ export async function scheduleStudyReminder(minutes: number) {
       sound: true,
       priority: Notifications.AndroidNotificationPriority.HIGH,
     },
-    trigger,
+    trigger: {
+      seconds: minutes * 60,
+    },
   });
 }
 
@@ -71,7 +73,9 @@ export async function scheduleCalendarEventReminder(
       sound: true,
       priority: Notifications.AndroidNotificationPriority.HIGH,
     },
-    trigger,
+    trigger: {
+      date: trigger,
+    },
   });
 }
 

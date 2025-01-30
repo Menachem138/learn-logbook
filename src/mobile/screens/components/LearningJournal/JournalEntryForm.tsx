@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@mobile/services/supabase';
 
 interface JournalEntryFormProps {
   onEntryAdded: () => void;
@@ -67,7 +67,7 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
         placeholder="מה למדת היום?"
         multiline
         textAlignVertical="top"
-        writingDirection="rtl"
+        textAlign="right"
       />
       
       <View style={styles.tagsContainer}>
@@ -78,7 +78,7 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
             onChangeText={setCurrentTag}
             placeholder="הוסף תגית"
             onSubmitEditing={addTag}
-            writingDirection="rtl"
+            textAlign="right"
           />
           <TouchableOpacity onPress={addTag} style={styles.addTagButton}>
             <Ionicons name="add-circle" size={24} color="#000" />

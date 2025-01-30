@@ -21,7 +21,19 @@ export const spacing = {
   xxl: 48,
 };
 
-export const typography = {
+import { TextStyle } from 'react-native';
+
+type TypographyStyles = {
+  h1: Pick<TextStyle, 'fontSize' | 'fontWeight'>;
+  h2: Pick<TextStyle, 'fontSize' | 'fontWeight'>;
+  h3: Pick<TextStyle, 'fontSize' | 'fontWeight'>;
+  h4: Pick<TextStyle, 'fontSize' | 'fontWeight'>;
+  body: Pick<TextStyle, 'fontSize'>;
+  small: Pick<TextStyle, 'fontSize'>;
+  tiny: Pick<TextStyle, 'fontSize'>;
+};
+
+export const typography: TypographyStyles = {
   h1: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -61,24 +73,22 @@ export const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  button: {
-    primary: {
-      backgroundColor: colors.primary,
-      borderRadius: spacing.sm,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.lg,
-    },
-    secondary: {
-      backgroundColor: colors.secondary,
-      borderRadius: spacing.sm,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.lg,
-    },
-    text: {
-      color: colors.primaryForeground,
-      textAlign: 'center',
-      fontWeight: '600',
-    },
+  buttonPrimary: {
+    backgroundColor: colors.primary,
+    borderRadius: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  buttonSecondary: {
+    backgroundColor: colors.secondary,
+    borderRadius: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  buttonText: {
+    color: colors.primaryForeground,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   input: {
     backgroundColor: colors.background,

@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/env';
-import type { Database } from '@/integrations/supabase/types';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@mobile/config/env';
+import type { Database } from '../../types/supabase';
 
 export const supabase = createClient<Database>(
   SUPABASE_URL,
@@ -20,8 +20,8 @@ export const supabase = createClient<Database>(
 );
 
 // Helper functions for offline-first data handling
-export const syncData = async <T extends keyof Database['public']['Tables']>(
-  table: T,
+export const syncData = async (
+  table: string,
   userId: string,
   offlineData: any[]
 ) => {
@@ -52,8 +52,8 @@ export const syncData = async <T extends keyof Database['public']['Tables']>(
   }
 };
 
-export const getOfflineData = async <T extends keyof Database['public']['Tables']>(
-  table: T,
+export const getOfflineData = async (
+  table: string,
   userId: string
 ): Promise<any[]> => {
   try {
@@ -65,8 +65,8 @@ export const getOfflineData = async <T extends keyof Database['public']['Tables'
   }
 };
 
-export const saveOfflineData = async <T extends keyof Database['public']['Tables']>(
-  table: T,
+export const saveOfflineData = async (
+  table: string,
   userId: string,
   data: any
 ) => {

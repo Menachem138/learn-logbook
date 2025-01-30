@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@mobile/services/supabase';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { JournalEntryForm } from './components/LearningJournal/JournalEntryForm';
+import { JournalEntryForm as JournalEntryFormComponent } from './components/LearningJournal/JournalEntryForm';
+const JournalEntryForm = JournalEntryFormComponent;
 import { JournalEntry } from './components/LearningJournal/JournalEntry';
-import { Modal } from '@/components/ui/modal';
+import { Modal } from '../components/ui/Modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LearningJournal'>;
 
@@ -127,7 +128,7 @@ export default function LearningJournalScreen({ navigation }: Props) {
             }
             multiline
             textAlignVertical="top"
-            writingDirection="rtl"
+            textAlign="right"
           />
           <View style={styles.modalButtons}>
             <TouchableOpacity

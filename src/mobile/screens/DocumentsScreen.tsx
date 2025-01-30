@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Linking } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@mobile/services/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
+import { getDocumentAsync } from 'expo-document-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import type { FileObject } from '@supabase/storage-js';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Documents'>;
 
@@ -55,35 +56,50 @@ export default function DocumentsScreen({ navigation }: Props) {
   });
 
   const uploadDocumentMutation = useMutation({
-    mutationFn: async (file: { uri: string; type: string; name: string }) => {
+    mutationFn: async (fileInfo: { uri: string; type: string; name: string }) => {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user?.id) {
         throw new Error('יש להתחבר כדי להעלות מסמך');
       }
 
-      const fileExt = file.name.split('.').pop();
+      const fileExt = fileInfo.name.split('.').pop();
       const filePath = `${session.session.user.id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
+      try {
+        const response = await fetch(fileInfo.uri);
+        if (!response.ok) {
+          throw new Error('Failed to fetch file');
+        }
+        const blob = await response.blob();
 
-      if (uploadError) throw uploadError;
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(filePath, blob, {
+            contentType: fileInfo.type,
+            upsert: false
+          });
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
+        if (uploadError) throw uploadError;
 
-      const { error: dbError } = await supabase
-        .from('documents')
-        .insert([{
-          title: file.name,
-          file_url: publicUrl,
-          file_type: file.type,
-          user_id: session.session.user.id
-        }]);
+        const { data: { publicUrl } } = supabase.storage
+          .from('documents')
+          .getPublicUrl(filePath);
 
-      if (dbError) throw dbError;
+        const { error: dbError } = await supabase
+          .from('documents')
+          .insert([{
+            title: fileInfo.name,
+            file_url: publicUrl,
+            file_type: fileInfo.type,
+            user_id: session.session.user.id
+          }]);
+
+        if (dbError) throw dbError;
+      } catch (error) {
+        console.error('Error uploading document:', error);
+        throw error;
+      }
+
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
@@ -92,18 +108,23 @@ export default function DocumentsScreen({ navigation }: Props) {
 
   const handleUpload = async () => {
     try {
-      const result = await DocumentPicker.pick({
-        type: [DocumentPicker.types.allFiles],
+      const result = await getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true
       });
 
-      const file = result[0];
+      if (result.canceled) {
+        return;
+      }
+
+      const file = result.assets[0];
       await uploadDocumentMutation.mutateAsync({
         uri: file.uri,
-        type: file.type || 'application/octet-stream',
+        type: file.mimeType || 'application/octet-stream',
         name: file.name || 'unknown',
       });
     } catch (err) {
-      if (!DocumentPicker.isCancel(err)) {
+      if (err instanceof Error) {
         console.error('Error picking document:', err);
       }
     }

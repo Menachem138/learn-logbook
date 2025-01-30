@@ -1,26 +1,18 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@mobile/services/supabase';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import type { Database } from '@/types/supabase';
 import { CourseCard } from './components/CourseSchedule/CourseCard';
 import { CourseForm } from './components/CourseSchedule/CourseForm';
-import { Modal } from '@/components/ui/modal';
+import { Modal } from '../components/ui/Modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CourseSchedule'>;
-
-interface Course {
-  id: string;
-  title: string;
-  schedule: {
-    day: string;
-    time: string;
-  }[];
-  progress: number;
-  totalUnits: number;
-  user_id: string;
-}
+type Course = Database['public']['Tables']['courses']['Row'];
+type CourseInsert = Database['public']['Tables']['courses']['Insert'];
+type CourseUpdate = Database['public']['Tables']['courses']['Update'];
 
 export default function CourseScheduleScreen({ navigation }: Props) {
   const [showCourseForm, setShowCourseForm] = useState(false);
@@ -47,7 +39,7 @@ export default function CourseScheduleScreen({ navigation }: Props) {
   });
 
   const addCourseMutation = useMutation({
-    mutationFn: async (course: Omit<Course, 'id' | 'user_id' | 'progress'>) => {
+    mutationFn: async (course: Omit<CourseInsert, 'user_id' | 'progress'>) => {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user?.id) {
         throw new Error('יש להתחבר כדי ליצור קורס');
@@ -75,7 +67,7 @@ export default function CourseScheduleScreen({ navigation }: Props) {
         .update({
           title: course.title,
           schedule: course.schedule,
-          totalUnits: course.totalUnits,
+          total_units: course.total_units,
         })
         .eq('id', course.id)
         .eq('user_id', course.user_id);
@@ -89,7 +81,7 @@ export default function CourseScheduleScreen({ navigation }: Props) {
     },
   });
 
-  const handleCourseSubmit = (courseData: { title: string; schedule: { day: string; time: string; }[]; totalUnits: number; }) => {
+  const handleCourseSubmit = (courseData: { title: string; schedule: { day: string; time: string; }[]; total_units: number; }) => {
     if (selectedCourse) {
       updateCourseMutation.mutate({ ...selectedCourse, ...courseData });
     } else {

@@ -22,10 +22,30 @@
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
 
+    /* React Native */
+    "types": [
+      "react-native",
+      "jest",
+      "expo",
+      "@types/react-native"
+    ],
+
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@mobile/*": ["./src/mobile/*"]
     }
   },
-  "include": ["src", "capacitor.config.ts"]
+  "include": [
+    "src",
+    "capacitor.config.ts",
+    "src/types/**/*.ts",
+    "src/types/**/*.tsx",
+    "src/mobile/**/*.ts",
+    "src/mobile/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }

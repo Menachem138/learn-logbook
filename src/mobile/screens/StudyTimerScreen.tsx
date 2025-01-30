@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { useTimer } from '@/components/StudyTimeTracker/useTimer';
-import { scheduleStudyReminder, registerForPushNotificationsAsync } from '@/utils/pushNotifications';
-import { TimerDisplay } from './components/StudyTimer/TimerDisplay';
-import { TimerControls } from './components/StudyTimer/TimerControls';
-import { TimerStats } from './components/StudyTimer/TimerStats';
+import { useAuth } from '@mobile/providers/AuthProvider';
+import { useTimer } from '../hooks/useTimer';
+import { scheduleStudyReminder, registerForPushNotificationsAsync } from '../utils/pushNotifications';
+import { TimerDisplay } from '../components/StudyTimer/TimerDisplay';
+import { TimerControls } from '../components/StudyTimer/TimerControls';
+import { TimerStats } from '../components/StudyTimer/TimerStats';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'StudyTimer'>;
 

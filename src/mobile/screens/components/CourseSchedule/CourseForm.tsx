@@ -11,9 +11,9 @@ interface CourseFormProps {
       day: string;
       time: string;
     }[];
-    totalUnits: number;
+    total_units: number;
   };
-  onSubmit: (course: { title: string; schedule: { day: string; time: string; }[]; totalUnits: number; }) => void;
+  onSubmit: (course: { title: string; schedule: { day: string; time: string; }[]; total_units: number; }) => void;
   onCancel: () => void;
 }
 
@@ -24,7 +24,7 @@ export function CourseForm({ initialCourse, onSubmit, onCancel }: CourseFormProp
   const [schedule, setSchedule] = useState<{ day: string; time: string; }[]>(
     initialCourse?.schedule || []
   );
-  const [totalUnits, setTotalUnits] = useState(initialCourse?.totalUnits?.toString() || '');
+  const [totalUnits, setTotalUnits] = useState(initialCourse?.total_units?.toString() || '');
 
   const addScheduleSlot = () => {
     setSchedule([...schedule, { day: DAYS[0], time: '08:00' }]);
@@ -45,7 +45,7 @@ export function CourseForm({ initialCourse, onSubmit, onCancel }: CourseFormProp
     onSubmit({
       title: title.trim(),
       schedule,
-      totalUnits: parseInt(totalUnits, 10),
+      total_units: parseInt(totalUnits, 10),
     });
   };
 

@@ -11,13 +11,13 @@ interface CourseCardProps {
       time: string;
     }[];
     progress: number;
-    totalUnits: number;
+    total_units: number;
   };
   onPress: () => void;
 }
 
 export function CourseCard({ course, onPress }: CourseCardProps) {
-  const progressPercentage = (course.progress / course.totalUnits) * 100;
+  const progressPercentage = (course.progress / course.total_units) * 100;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -40,7 +40,7 @@ export function CourseCard({ course, onPress }: CourseCardProps) {
           <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
         </View>
         <Text style={styles.progressText}>
-          {course.progress} / {course.totalUnits} יחידות הושלמו
+          {course.progress} / {course.total_units} יחידות הושלמו
         </Text>
       </View>
     </TouchableOpacity>

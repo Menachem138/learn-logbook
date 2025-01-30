@@ -26,17 +26,14 @@ LocaleConfig.locales['he'] = {
 
 LocaleConfig.defaultLocale = 'he';
 
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  type: 'study' | 'exam' | 'assignment';
-}
+import type { CalendarEvent } from '../../../types';
+
+interface Event extends CalendarEvent {}
 
 interface CalendarViewProps {
-  events: Event[];
+  events: CalendarEvent[];
   onAddEvent: () => void;
-  onSelectEvent: (event: Event) => void;
+  onSelectEvent: (event: CalendarEvent) => void;
 }
 
 export function CalendarView({ events, onAddEvent, onSelectEvent }: CalendarViewProps) {

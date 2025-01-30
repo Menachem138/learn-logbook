@@ -1,23 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { scheduleCalendarEventReminder, registerForPushNotificationsAsync } from '@/utils/pushNotifications';
+import { supabase } from '@mobile/services/supabase';
+import { scheduleCalendarEventReminder, registerForPushNotificationsAsync } from '@mobile/utils/pushNotifications';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import type { Database } from '@/types/supabase';
 import { CalendarView } from './components/Calendar/CalendarView';
 import { EventForm } from './components/Calendar/EventForm';
-import { Modal } from '@/components/ui/modal';
+import { Modal } from '../components/ui/Modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Calendar'>;
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  date: string;
+type CalendarEvent = Database['public']['Tables']['calendar_events']['Row'] & {
   type: 'study' | 'exam' | 'assignment';
-  user_id: string;
-}
+  date: string;
+};
 
 export default function CalendarScreen({ navigation }: Props) {
   const [showEventForm, setShowEventForm] = useState(false);
@@ -39,7 +36,12 @@ export default function CalendarScreen({ navigation }: Props) {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      return data as CalendarEvent[];
+      return data.map(item => ({
+        ...item,
+        date: item.start_time.split('T')[0],
+        type: item.description?.includes('exam') ? 'exam' : 
+              item.description?.includes('assignment') ? 'assignment' : 'study'
+      }));
     },
   });
 
@@ -52,7 +54,14 @@ export default function CalendarScreen({ navigation }: Props) {
 
       const { data, error } = await supabase
         .from('calendar_events')
-        .insert([{ ...event, user_id: session.session.user.id }])
+        .insert([{
+          title: event.title,
+          start_time: event.date,
+          end_time: new Date(new Date(event.date).getTime() + 60 * 60 * 1000).toISOString(), // 1 hour duration
+          description: event.type,
+          is_all_day: false,
+          user_id: session.session.user.id
+        }])
         .select()
         .single();
 
@@ -98,11 +107,23 @@ export default function CalendarScreen({ navigation }: Props) {
   });
 
   const handleEventSubmit = async (eventData: { title: string; date: string; type: 'study' | 'exam' | 'assignment' }) => {
+    const newEvent: Omit<CalendarEvent, 'id' | 'user_id'> = {
+      title: eventData.title,
+      date: eventData.date,
+      type: eventData.type,
+      start_time: eventData.date,
+      end_time: new Date(new Date(eventData.date).getTime() + 60 * 60 * 1000).toISOString(),
+      description: eventData.type,
+      is_all_day: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
     if (selectedEvent) {
-      await updateEventMutation.mutateAsync({ ...selectedEvent, ...eventData });
+      await updateEventMutation.mutateAsync({ ...selectedEvent, ...newEvent });
       await scheduleCalendarEventReminder(eventData.title, new Date(eventData.date));
     } else {
-      await addEventMutation.mutateAsync(eventData);
+      await addEventMutation.mutateAsync(newEvent);
       await scheduleCalendarEventReminder(eventData.title, new Date(eventData.date));
     }
   };
@@ -119,7 +140,7 @@ export default function CalendarScreen({ navigation }: Props) {
           setSelectedEvent(null);
           setShowEventForm(true);
         }}
-        onSelectEvent={(event) => {
+        onSelectEvent={(event: CalendarEvent) => {
           setSelectedEvent(event);
           setShowEventForm(true);
         }}
