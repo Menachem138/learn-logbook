@@ -5,10 +5,9 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
 
     /* Bundler mode */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
@@ -22,30 +21,10 @@
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
 
-    /* React Native */
-    "types": [
-      "react-native",
-      "jest",
-      "expo",
-      "@types/react-native"
-    ],
-
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@mobile/*": ["./src/mobile/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src",
-    "capacitor.config.ts",
-    "src/types/**/*.ts",
-    "src/types/**/*.tsx",
-    "src/mobile/**/*.ts",
-    "src/mobile/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "extends": "expo/tsconfig.base"
+  "include": ["src"]
 }

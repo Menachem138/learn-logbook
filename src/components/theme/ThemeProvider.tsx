@@ -9,15 +9,12 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-interface ThemeProviderProps {
-  children: React.ReactNode;
-}
-
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
 
+  // Load theme from user profile on mount
   useEffect(() => {
     async function loadTheme() {
       const { data: { session } } = await supabase.auth.getSession();
