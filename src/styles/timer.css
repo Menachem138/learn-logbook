@@ -21,7 +21,7 @@
 
 /* Timer component styles */
 .timer-container {
-  @apply bg-background text-foreground transition-colors duration-300;
+  @apply bg-background text-text transition-colors duration-300;
   background-color: hsl(var(--timer-background));
   color: hsl(var(--timer-text));
 }
