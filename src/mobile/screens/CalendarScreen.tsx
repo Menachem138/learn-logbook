@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { scheduleCalendarEventReminder, registerForPushNotificationsAsync } from '@/utils/pushNotifications';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { CalendarView } from './components/Calendar/CalendarView';
@@ -96,13 +97,19 @@ export default function CalendarScreen({ navigation }: Props) {
     },
   });
 
-  const handleEventSubmit = (eventData: { title: string; date: string; type: 'study' | 'exam' | 'assignment' }) => {
+  const handleEventSubmit = async (eventData: { title: string; date: string; type: 'study' | 'exam' | 'assignment' }) => {
     if (selectedEvent) {
-      updateEventMutation.mutate({ ...selectedEvent, ...eventData });
+      await updateEventMutation.mutateAsync({ ...selectedEvent, ...eventData });
+      await scheduleCalendarEventReminder(eventData.title, new Date(eventData.date));
     } else {
-      addEventMutation.mutate(eventData);
+      await addEventMutation.mutateAsync(eventData);
+      await scheduleCalendarEventReminder(eventData.title, new Date(eventData.date));
     }
   };
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>

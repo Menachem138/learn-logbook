@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useTimer } from '@/components/StudyTimeTracker/useTimer';
+import { scheduleStudyReminder, registerForPushNotificationsAsync } from '@/utils/pushNotifications';
 import { TimerDisplay } from './components/StudyTimer/TimerDisplay';
 import { TimerControls } from './components/StudyTimer/TimerControls';
 import { TimerStats } from './components/StudyTimer/TimerStats';
@@ -13,6 +14,16 @@ type Props = NativeStackScreenProps<RootStackParamList, 'StudyTimer'>;
 export default function StudyTimerScreen({ navigation }: Props) {
   const { session } = useAuth();
   const timer = useTimer(session?.user?.id);
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
+
+  useEffect(() => {
+    if (timer.timerState === 'BREAK') {
+      scheduleStudyReminder(timer.time / 60000); // Convert milliseconds to minutes
+    }
+  }, [timer.timerState]);
 
   return (
     <SafeAreaView style={styles.container}>
