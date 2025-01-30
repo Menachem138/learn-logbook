@@ -19,6 +19,10 @@ module.exports = {
           DEFAULT: '#FFFFFF',
           secondary: '#f3f4f6',
         },
+        text: {
+          DEFAULT: '#000000',
+          foreground: '#000000',
+        },
         border: '#e5e7eb',
         input: '#e5e7eb',
         ring: '#000000',
