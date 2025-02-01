@@ -566,6 +566,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.setAttribute('data-section', matchedSection.id);
             }
             
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-button';
+            editButton.innerHTML = '<span class="edit-icon">✎</span> Éditer';
+            editButton.onclick = (e) => {
+                e.stopPropagation();
+                openEditModal(index);
+            };
+            
             div.innerHTML = `
                 <div class="hebrew-text">${hebrewText}</div>
                 <div class="french-text">${segment.french}</div>
@@ -579,6 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 highlightSegment(index);
             });
             
+            div.appendChild(editButton);
             textContainer.appendChild(div);
         });
     }
@@ -1208,6 +1217,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Vérifier les segments édités
+        const editedSegments = localStorage.getItem('editedSegments');
+        if (editedSegments) {
+            const edited = JSON.parse(editedSegments);
+            if (Array.isArray(edited) && edited.length === textContent.length) {
+                let hasChanges = false;
+                edited.forEach((segment, index) => {
+                    if (segment.hebrew !== textContent[index].hebrew || 
+                        segment.french !== textContent[index].french) {
+                        textContent[index] = segment;
+                        hasChanges = true;
+                    }
+                });
+                if (hasChanges) {
+                    displayText(textContent);
+                    localStorage.removeItem('editedSegments'); // Clear after applying
+                }
+            }
+        }
+        
         // Réinitialisation progressive des erreurs
         const now = Date.now();
         if (now - lastValidSync > 10000) { // 10 secondes sans synchronisation valide
@@ -1720,6 +1749,101 @@ document.addEventListener('DOMContentLoaded', () => {
             rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
             rect.right <= (window.innerWidth || document.documentElement.clientWidth)
         );
+    }
+
+    function openEditModal(segmentIndex) {
+        const segment = textContent[segmentIndex];
+        
+        // Create modal container if it doesn't exist
+        let modalContainer = document.getElementById('edit-modal-container');
+        if (!modalContainer) {
+            modalContainer = document.createElement('div');
+            modalContainer.id = 'edit-modal-container';
+            document.body.appendChild(modalContainer);
+        }
+        
+        modalContainer.innerHTML = `
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <h3>Modifier le segment</h3>
+                <div class="edit-form">
+                    <div class="form-group">
+                        <label for="hebrew-text">Texte hébreu :</label>
+                        <textarea id="hebrew-text" dir="rtl" lang="he">${segment.hebrew}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="french-text">Traduction française :</label>
+                        <textarea id="french-text" lang="fr">${segment.french}</textarea>
+                    </div>
+                    <div class="button-group">
+                        <button class="save-button" onclick="saveEdits(${segmentIndex})">
+                            Enregistrer
+                        </button>
+                        <button class="cancel-button" onclick="closeEditModal()">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modalContainer.style.display = 'block';
+        
+        // Focus on Hebrew text by default
+        document.getElementById('hebrew-text').focus();
+    }
+    
+    function closeEditModal() {
+        const modalContainer = document.getElementById('edit-modal-container');
+        if (modalContainer) {
+            modalContainer.style.display = 'none';
+        }
+    }
+    
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+        const modalContainer = document.getElementById('edit-modal-container');
+        const modalContent = document.querySelector('.modal-content');
+        if (modalContainer && e.target === modalContainer) {
+            closeEditModal();
+        }
+    });
+
+    function saveEdits(segmentIndex) {
+        const hebrewText = document.getElementById('hebrew-text').value;
+        const frenchText = document.getElementById('french-text').value;
+        
+        if (!hebrewText.trim() || !frenchText.trim()) {
+            alert('Les deux champs de texte doivent être remplis.');
+            return;
+        }
+        
+        // Update the segment in memory
+        textContent[segmentIndex].hebrew = hebrewText;
+        textContent[segmentIndex].french = frenchText;
+        
+        // Save to localStorage for persistence
+        try {
+            localStorage.setItem('editedSegments', JSON.stringify(textContent));
+        } catch (e) {
+            console.warn('Impossible de sauvegarder les modifications dans le localStorage:', e);
+        }
+        
+        // Re-render the text content
+        displayText(textContent);
+        
+        // Close the modal
+        closeEditModal();
+        
+        // Update the cache
+        cacheSegments(textContent);
+        
+        // Show success message
+        const statusContainer = document.getElementById('status-container');
+        statusContainer.innerHTML = '<div class="success">Modifications enregistrées avec succès</div>';
+        setTimeout(() => {
+            if (!appState.hasError) statusContainer.innerHTML = '';
+        }, 3000);
     }
     
     // Fin de l'initialisation
