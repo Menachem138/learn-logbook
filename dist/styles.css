@@ -1,0 +1,508 @@
+:root {
+    --primary-color: #1a237e;
+    --secondary-color: #37474f;
+    --background-light: #f8f9fa;
+    --border-color: #e0e0e0;
+    --highlight-color: #2196f3;
+}
+
+:root {
+    --primary-color: #1a237e;
+    --secondary-color: #37474f;
+    --background-light: #f8f9fa;
+    --border-color: #e0e0e0;
+    --highlight-color: #2196f3;
+    --section-title-color: #0d47a1;
+    --section-background: #e3f2fd;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    direction: ltr;
+    background-color: var(--background-light);
+}
+
+.section-wrapper {
+    position: relative;
+    margin: 2.5rem 0;
+}
+
+.section-title {
+    font-family: 'Frank Ruhl Libre', serif;
+    padding: 30px;
+    margin: 0;
+    background: linear-gradient(to right, var(--section-background), #ffffff);
+    border-right: 6px solid var(--primary-color);
+    border-radius: 0 15px 15px 0;
+    text-align: right;
+    direction: rtl;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    position: sticky;
+    top: 220px;
+    z-index: 90;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.92;
+    transform-origin: right center;
+    will-change: transform, opacity, box-shadow;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.section-title.active-section {
+    background: linear-gradient(to right, #e3f2fd, #bbdefb);
+    border-right-color: #1565c0;
+    transform: translateX(-8px) scale(1.03);
+    box-shadow: 0 10px 30px rgba(21, 101, 192, 0.2);
+    opacity: 1;
+    border-right-width: 8px;
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+}
+
+.section-title.section-visible {
+    opacity: 0.98;
+    transform: translateX(-3px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-title.section-visible.active-section {
+    opacity: 1;
+    transform: translateX(-5px) scale(1.02);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-right-width: 8px;
+    background: linear-gradient(to right, #e3f2fd, #bbdefb);
+}
+
+.section-title .section-hebrew {
+    font-size: 1.6em;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.5;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.section-title .section-french {
+    font-size: 1.1em;
+    color: var(--secondary-color);
+    opacity: 0.9;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-top: 4px;
+}
+
+.section-title.active-section {
+    background: linear-gradient(to right, #e3f2fd, #bbdefb);
+    border-right-color: #1565c0;
+    transform: translateX(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.section-hebrew {
+    font-size: 2em;
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.section-french {
+    font-size: 1.4em;
+    color: var(--secondary-color);
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.section-title:hover {
+    transform: translateX(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.source-reference {
+    font-size: 0.9em;
+    color: #666;
+    text-align: right;
+    direction: rtl;
+    margin: 10px 0;
+    padding: 8px 15px;
+    background: #f8f9fa;
+    border-right: 3px solid var(--primary-color);
+    border-radius: 0 8px 8px 0;
+    font-family: 'Frank Ruhl Libre', serif;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.source-reference:hover {
+    opacity: 1;
+}
+
+.source-reference {
+    font-size: 0.9em;
+    color: #666;
+    text-align: right;
+    direction: rtl;
+    margin-top: 10px;
+    padding: 5px 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    font-family: 'Frank Ruhl Libre', serif;
+}
+
+.controls {
+    position: sticky;
+    top: 0;
+    margin: 0 0 30px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+.keyboard-shortcuts {
+    margin: 10px 0;
+    padding: 15px;
+    background: #f3f8ff;
+    border-radius: 8px;
+    font-size: 0.9em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 600px) {
+    .keyboard-shortcuts {
+        background: #e3f2fd;
+        margin: 5px -10px;
+        border-radius: 0;
+        padding: 10px;
+    }
+    
+    .keyboard-shortcuts ul {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .keyboard-shortcuts li {
+        padding: 8px;
+        text-align: center;
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .keyboard-shortcuts li::before {
+        content: '👆';
+        margin-right: 8px;
+    }
+}
+
+.keyboard-shortcuts ul {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.keyboard-shortcuts li {
+    padding: 4px 8px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.text-container {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.segment {
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.segment:hover {
+    border-color: var(--highlight-color);
+    box-shadow: 0 2px 8px rgba(33,150,243,0.1);
+}
+
+.hebrew-text {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 2em;
+    direction: rtl;
+    margin-bottom: 20px;
+    line-height: 2;
+    color: var(--primary-color);
+    text-align: right;
+    padding: 20px;
+    background-color: #f3f8ff;
+    border-radius: 8px;
+    letter-spacing: 0.03em;
+    font-weight: 500;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+.hebrew-text .torah-term {
+    font-weight: 700;
+    color: #1a237e;
+    letter-spacing: 0.04em;
+    position: relative;
+    cursor: help;
+    font-feature-settings: "nikud" 1;
+    font-variant-ligatures: common-ligatures;
+}
+
+.hebrew-text .nikud {
+    font-size: 1.1em;
+    letter-spacing: 0.05em;
+    color: #283593;
+    font-feature-settings: "nikud" 1;
+}
+
+.hebrew-text .mourning-term {
+    color: #303f9f;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.hebrew-text .torah-term::after {
+    content: attr(data-translation);
+    position: absolute;
+    bottom: 120%;
+    right: 50%;
+    transform: translateX(50%) translateY(10px);
+    padding: 8px 12px;
+    background: rgba(26, 35, 126, 0.95);
+    color: white;
+    border-radius: 6px;
+    font-size: 0.6em;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-family: Arial, sans-serif;
+    direction: ltr;
+    font-weight: normal;
+    letter-spacing: normal;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease-in-out;
+    pointer-events: none;
+}
+
+.hebrew-text .torah-term:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(50%) translateY(0);
+}
+
+.hebrew-text .torah-term::before {
+    content: '';
+    position: absolute;
+    bottom: 120%;
+    right: 50%;
+    transform: translateX(50%) translateY(10px);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(26, 35, 126, 0.95);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease-in-out;
+}
+
+.hebrew-text .torah-term:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(50%) translateY(0);
+}
+
+.french-text {
+    color: var(--secondary-color);
+    margin: 15px 0 5px;
+    line-height: 1.7;
+    font-size: 1.3em;
+    padding: 15px;
+    border-top: 2px solid #e3f2fd;
+    background-color: #fafafa;
+    border-radius: 0 0 8px 8px;
+}
+
+.active {
+    background-color: #e3f2fd;
+    border: 2px solid #1976d2;
+    box-shadow: 0 4px 12px rgba(25,118,210,0.15);
+    transform: translateY(-2px);
+}
+
+.audio-player {
+    width: 100%;
+    margin: 0;
+    height: 44px;
+    border-radius: 8px;
+}
+
+.control-panel {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.time-display, .status-display {
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+    flex: 1;
+}
+
+.status-display {
+    background: #f3f8ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+.progress {
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #1a237e;
+    transition: width 0.6s ease;
+    border-radius: 10px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.control-button {
+    padding: 8px 16px;
+    background: var(--highlight-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    min-width: 180px;
+}
+
+.control-button:hover {
+    background: #1565c0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.control-button:hover {
+    background: #1976d2;
+}
+
+.control-button.disabled {
+    background: #9e9e9e;
+}
+
+#status-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    text-align: center;
+    padding: 0 20px;
+    pointer-events: none;
+}
+
+#status-container > div {
+    display: inline-block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    max-width: 600px;
+    pointer-events: auto;
+}
+
+.loading {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+    animation: pulse 1.5s infinite;
+}
+
+.error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.warning {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffe0b2;
+}
+
+.info {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+    animation: fadeOut 3s ease-in-out forwards;
+}
+
+.success {
+    background: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #a5d6a7;
+    animation: fadeOut 3s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .hebrew-text {
+        font-size: 1.5em;
+    }
+    
+    .french-text {
+        font-size: 1.1em;
+    }
+}
