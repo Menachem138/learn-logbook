@@ -1,0 +1,44 @@
+/* Timer specific variables */
+:root {
+  --timer-background: 0 0% 100%;
+  --timer-text: 222.2 84% 4.9%;
+  --timer-card-background: 0 0% 98%;
+  --timer-button-background: 210 40% 96.1%;
+  --timer-button-text: 222.2 47.4% 11.2%;
+  --timer-stats-background: 210 40% 96.1%;
+  --timer-stats-text: 215.4 16.3% 46.9%;
+}
+
+.dark {
+  --timer-background: 222.2 84% 4.9%;
+  --timer-text: 210 40% 98%;
+  --timer-card-background: 217.2 32.6% 17.5%;
+  --timer-button-background: 217.2 32.6% 17.5%;
+  --timer-button-text: 210 40% 98%;
+  --timer-stats-background: 217.2 32.6% 17.5%;
+  --timer-stats-text: 215 20.2% 65.1%;
+}
+
+/* Timer component styles */
+.timer-container {
+  @apply bg-background text-foreground transition-colors duration-300;
+  background-color: hsl(var(--timer-background));
+  color: hsl(var(--timer-text));
+}
+
+.timer-button {
+  @apply transition-colors duration-300;
+  background-color: hsl(var(--timer-button-background));
+  color: hsl(var(--timer-button-text));
+}
+
+.timer-display {
+  @apply transition-colors duration-300;
+  color: hsl(var(--timer-text));
+}
+
+.timer-stats {
+  @apply transition-colors duration-300;
+  background-color: hsl(var(--timer-stats-background));
+  color: hsl(var(--timer-stats-text));
+}
