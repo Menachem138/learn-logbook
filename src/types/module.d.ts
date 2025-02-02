@@ -58,21 +58,23 @@ declare module '@/integrations/supabase/client' {
 }
 
 declare module '@/types/journal' {
+  import type { JournalEntry, JournalEntryUpdate } from '@/types/supabase.generated';
+
   export interface JournalEntryFormProps {
     onEntryAdded: () => void;
   }
 
   export interface JournalEntryCardProps {
-    entry: import('@/types/supabase').JournalEntry;
-    onEdit: (entry: import('@/types/supabase').JournalEntry) => void;
+    entry: JournalEntry;
+    onEdit: (entry: JournalEntry) => void;
     onDelete: (id: string) => void;
   }
 
   export interface EditEntryModalProps {
     visible: boolean;
-    entry: import('@/types/supabase').JournalEntry | null;
+    entry: JournalEntry | null;
     onClose: () => void;
-    onSave: (data: import('@/types/supabase').JournalEntryUpdate) => Promise<void>;
+    onSave: (data: JournalEntryUpdate) => Promise<void>;
   }
 
   export interface TagInputProps {
@@ -81,30 +83,21 @@ declare module '@/types/journal' {
   }
 }
 
-declare module '@/types/supabase' {
-  export interface JournalEntry {
+declare module '@/types/calendar' {
+  export interface CalendarEvent {
     id: string;
     title: string;
-    content: string;
-    tags: string[];
+    description?: string;
+    start_time: string;
+    end_time: string;
+    category: 'לימודים' | 'עבודה' | 'אישי' | 'אחר';
+    is_backup: boolean;
+    completed: boolean;
+    user_id: string;
     created_at: string;
     updated_at: string;
-    user_id: string;
   }
 
-  export type JournalEntryUpdate = Partial<Omit<JournalEntry, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
-}
-
-declare module '@/types/supabase.generated' {
-  export interface Database {
-    public: {
-      Tables: {
-        journal_entries: {
-          Row: import('@/types/supabase').JournalEntry;
-          Insert: Omit<import('@/types/supabase').JournalEntry, 'id' | 'created_at' | 'updated_at'>;
-          Update: Partial<Omit<import('@/types/supabase').JournalEntry, 'id'>>;
-        };
-      };
-    };
-  }
+  export type CalendarEventInsert = Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>;
+  export type CalendarEventUpdate = Partial<Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 }
