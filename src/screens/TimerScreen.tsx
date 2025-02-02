@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../components/theme/ThemeProvider';
 import { supabase } from '../integrations/supabase/client';
@@ -41,11 +41,11 @@ const TimerScreen = ({ navigation }: Props): React.ReactElement => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id) {
-          const duration = time.split(':').reduce((acc, time) => (60 * parseInt(acc)) + parseInt(time), '0');
+          const duration = time.split(':').reduce((acc, time) => (60 * Number(acc)) + Number(time), 0);
           await supabase.from('timer_sessions').insert({
             user_id: session.user.id,
             type: timerState.toLowerCase(),
-            duration: parseInt(duration),
+            duration: duration,
             started_at: new Date().toISOString(),
           });
         }
@@ -132,7 +132,7 @@ export default TimerScreen;
 
 
 
-const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
+const getStyles = (theme: 'light' | 'dark', timerState: TimerState): ReturnType<typeof StyleSheet.create> => {
   const getTimerBgColor = () => {
     switch (timerState) {
       case 'STUDYING':
