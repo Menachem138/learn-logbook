@@ -1,17 +1,26 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
+import { useBiometricAuth } from '@/hooks/useBiometricAuth'
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  isBiometricAvailable: boolean;
+  isBiometricEnabled: boolean;
+  toggleBiometric: () => Promise<void>;
+  authenticateWithBiometric: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   loading: true,
+  isBiometricAvailable: false,
+  isBiometricEnabled: false,
+  toggleBiometric: async () => {},
+  authenticateWithBiometric: async () => false,
 });
 
 export const useAuth = () => {
@@ -21,8 +30,16 @@ export const useAuth = () => {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { 
+    isAvailable: isBiometricAvailable,
+    isBiometricEnabled,
+    toggleBiometric,
+    authenticateWithBiometric,
+    checkBiometricAvailability
+  } = useBiometricAuth();
 
   useEffect(() => {
+    checkBiometricAvailability();
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session);
@@ -46,7 +63,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{ 
       session, 
       user: session?.user ?? null,
-      loading 
+      loading,
+      isBiometricAvailable,
+      isBiometricEnabled,
+      toggleBiometric,
+      authenticateWithBiometric
     }}>
       {children}
     </AuthContext.Provider>
