@@ -6,6 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import HomeScreen from '../screens/HomeScreen';
 import JournalScreen from '../screens/JournalScreen';
 import SummaryScreen from '../screens/SummaryScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 // Enable RTL
 I18nManager.allowRTL(true);
@@ -57,6 +58,16 @@ export default function TabNavigator() {
           tabBarLabel: 'סיכום',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: 'הגדרות',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />

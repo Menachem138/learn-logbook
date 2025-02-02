@@ -11,6 +11,7 @@ export type TabParamList = {
   Home: undefined;
   Journal: undefined;
   Summary: undefined;
+  Settings: undefined;
 };
 
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
