@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { I18nManager } from 'react-native';
 import { useTheme } from '../components/theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import HomeScreen from '../screens/HomeScreen';
+import TimerScreen from '../screens/TimerScreen';
 import JournalScreen from '../screens/JournalScreen';
 import SummaryScreen from '../screens/SummaryScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -32,12 +32,12 @@ export default function TabNavigator() {
       })}
     >
       <Tab.Screen
-        name="Home"
-        component={HomeScreen}
+        name="Timer"
+        component={TimerScreen}
         options={{
-          tabBarLabel: 'בית',
+          tabBarLabel: 'טיימר',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="timer-outline" size={size} color={color} />
           ),
         }}
       />

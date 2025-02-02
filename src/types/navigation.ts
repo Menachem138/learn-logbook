@@ -4,18 +4,18 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 export type RootStackParamList = {
   Login: undefined;
-  Home: undefined;
+  Main: undefined;
 };
 
 export type TabParamList = {
-  Home: undefined;
+  Timer: undefined;
   Journal: undefined;
   Summary: undefined;
   Settings: undefined;
 };
 
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
-export type HomeScreenProps = BottomTabScreenProps<TabParamList, 'Home'>;
+export type TimerScreenProps = BottomTabScreenProps<TabParamList, 'Timer'>;
 export type JournalScreenProps = BottomTabScreenProps<TabParamList, 'Journal'>;
 export type SummaryScreenProps = BottomTabScreenProps<TabParamList, 'Summary'>;
 
