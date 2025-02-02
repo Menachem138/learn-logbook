@@ -7,6 +7,7 @@ import { supabase } from '../integrations/supabase/client';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { AddDocumentModal } from '../components/Documents/AddDocumentModal.native';
+import { EditDocumentModal } from '../components/Documents/EditDocumentModal.native';
 
 interface Document {
   id: string;
@@ -22,6 +23,7 @@ export default function DocumentsScreen() {
   const queryClient = useQueryClient();
   const styles = getStyles(theme);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents'],
@@ -42,8 +44,39 @@ export default function DocumentsScreen() {
     },
   });
 
+  const deleteDocument = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      Toast.show({
+        type: 'success',
+        text1: 'הצלחה',
+        text2: 'המסמך נמחק בהצלחה',
+        position: 'bottom',
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'שגיאה',
+        text2: 'שגיאה במחיקת המסמך',
+        position: 'bottom',
+      });
+    }
+  };
+
   const renderItem = ({ item }: { item: Document }) => (
-    <TouchableOpacity style={styles.documentCard}>
+    <TouchableOpacity 
+      style={styles.documentCard}
+      onPress={() => setSelectedDocument(item)}
+    >
       <View style={styles.documentHeader}>
         <Text style={styles.documentTitle}>{item.title}</Text>
         <Text style={styles.documentCategory}>{item.category}</Text>
@@ -51,9 +84,17 @@ export default function DocumentsScreen() {
       <Text style={styles.documentPreview} numberOfLines={2}>
         {item.content}
       </Text>
-      <Text style={styles.documentDate}>
-        {new Date(item.created_at).toLocaleDateString('he-IL')}
-      </Text>
+      <View style={styles.documentFooter}>
+        <Text style={styles.documentDate}>
+          {new Date(item.created_at).toLocaleDateString('he-IL')}
+        </Text>
+        <TouchableOpacity 
+          style={styles.deleteButton}
+          onPress={() => deleteDocument(item.id)}
+        >
+          <Ionicons name="trash-outline" size={20} color={theme === 'dark' ? '#ef4444' : '#dc2626'} />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -101,6 +142,13 @@ export default function DocumentsScreen() {
           visible={isAddModalVisible}
           onClose={() => setIsAddModalVisible(false)}
           onDocumentAdded={() => queryClient.invalidateQueries({ queryKey: ['documents'] })}
+        />
+
+        <EditDocumentModal
+          visible={!!selectedDocument}
+          document={selectedDocument}
+          onClose={() => setSelectedDocument(null)}
+          onDocumentUpdated={() => queryClient.invalidateQueries({ queryKey: ['documents'] })}
         />
       </View>
     </SafeAreaView>
@@ -173,11 +221,19 @@ const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
     textAlign: 'right',
     fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
   },
+  documentFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   documentDate: {
     fontSize: 12,
     color: theme === 'dark' ? '#9ca3af' : '#6b7280',
     textAlign: 'right',
     fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  deleteButton: {
+    padding: 4,
   },
   loadingText: {
     fontSize: 16,
