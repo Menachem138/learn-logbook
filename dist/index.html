@@ -2,55 +2,113 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cours de Torah - Audio Synchronisé</title>
-    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <title>Cours de Torah - Test</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        .segment { padding: 15px; border-bottom: 1px solid #eee; position: relative; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px; }
+        .segment:hover .edit-button { opacity: 1; }
+        .edit-button { position: absolute; top: 10px; right: 10px; opacity: 0; padding: 5px 10px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.3s ease; }
+        .hebrew { direction: rtl; font-size: 1.2em; margin-bottom: 10px; line-height: 1.5; }
+        .french { color: #666; line-height: 1.4; }
+        .edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 80%; max-width: 600px; }
+        .edit-form { display: flex; flex-direction: column; gap: 15px; }
+        textarea { width: 100%; min-height: 100px; padding: 10px; font-family: inherit; }
+        .button-group { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+    </style>
 </head>
 <body>
-    <h1>Cours de Torah</h1>
-    <div id="status-container"></div>
-    <div class="controls">
-        <div class="keyboard-shortcuts">
-            <p>Raccourcis clavier :</p>
-            <ul>
-                <li>↑/↓ ou Boutons Volume : Navigation entre les segments</li>
-                <li>Espace ou Bouton Casque : Lecture/Pause</li>
-                <li>R ou Double-tap : Réécouter le segment actuel</li>
-            </ul>
-        </div>
-        <audio id="audio-player" class="audio-player" controls preload="auto" crossorigin="anonymous">
-            <source src="audio.mp3" type="audio/mpeg" crossorigin="anonymous">
-            <source src="audio.mp3" type="audio/mp3" crossorigin="anonymous">
-            Votre navigateur ne supporte pas l'élément audio.
-        </audio>
-        <div class="control-panel">
-            <div class="time-display">
-                Temps: <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
-            </div>
-            <div class="status-display">
-                <div class="progress">
-                    <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%" 
-                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div id="content"></div>
+    <script>
+        let segments = [];
+        let activeModal = null;
+
+        function createEditModal(segment, index) {
+            if (activeModal) activeModal.remove();
+            
+            const modal = document.createElement('div');
+            modal.className = 'edit-modal';
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="edit-form">
+                        <label>Texte hébreu:</label>
+                        <textarea dir="rtl">${segment.hebrew}</textarea>
+                        <label>Traduction française:</label>
+                        <textarea>${segment.french}</textarea>
+                        <div class="button-group">
+                            <button onclick="saveEdit(${index})">Sauvegarder</button>
+                            <button onclick="closeModal()">Annuler</button>
+                        </div>
+                    </div>
                 </div>
-                Progression: <span id="translation-progress">0.0</span>% traduit
-                (<span id="segments-count">0</span>/<span id="total-segments">0</span> segments)
-                <br>
-                Dernière mise à jour: <span id="last-update">-</span>
-            </div>
-            <div class="button-group">
-                <button id="toggle-scroll" class="control-button">
-                    Défilement automatique: Activé
-                </button>
-                <button id="toggle-refresh" class="control-button">
-                    Actualisation: Activée
-                </button>
-            </div>
-        </div>
-    </div>
-    <div id="text-content" class="text-container">
-        <p>Chargement du contenu...</p>
-    </div>
-    <script src="script.js"></script>
+            `;
+            
+            document.body.appendChild(modal);
+            activeModal = modal;
+        }
+
+        function saveEdit(index) {
+            const modal = activeModal;
+            if (!modal) return;
+            
+            const [hebrewInput, frenchInput] = modal.querySelectorAll('textarea');
+            segments[index].hebrew = hebrewInput.value;
+            segments[index].french = frenchInput.value;
+            
+            localStorage.setItem('edited_segments', JSON.stringify(segments));
+            updateDisplay();
+            closeModal();
+        }
+
+        function closeModal() {
+            if (activeModal) {
+                activeModal.remove();
+                activeModal = null;
+            }
+        }
+
+        function updateDisplay() {
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+            
+            segments.forEach((segment, index) => {
+                const div = document.createElement('div');
+                div.className = 'segment';
+                
+                const button = document.createElement('button');
+                button.className = 'edit-button';
+                button.textContent = 'Éditer';
+                button.onclick = () => createEditModal(segment, index);
+                
+                const hebrew = document.createElement('p');
+                hebrew.className = 'hebrew';
+                hebrew.textContent = segment.hebrew;
+                
+                const french = document.createElement('p');
+                french.className = 'french';
+                french.textContent = segment.french;
+                
+                div.appendChild(button);
+                div.appendChild(hebrew);
+                div.appendChild(french);
+                content.appendChild(div);
+            });
+        }
+
+        const savedSegments = localStorage.getItem('edited_segments');
+        if (savedSegments) {
+            segments = JSON.parse(savedSegments);
+            updateDisplay();
+        } else {
+            fetch('translated_segments.json')
+                .then(response => response.json())
+                .then(data => {
+                    segments = data;
+                    updateDisplay();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
