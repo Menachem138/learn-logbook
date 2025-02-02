@@ -62,12 +62,12 @@ export const useLibraryMutations = () => {
   });
 
   const toggleStar = useMutation({
-    mutationFn: async ({ id, is_starred, type }: { id: string; is_starred: boolean; type: LibraryItemUpdate['type'] }) => {
+    mutationFn: async ({ id, is_starred }: { id: string; is_starred: boolean }) => {
       console.log("Toggling star for item:", id, "to:", is_starred);
       
       const { error } = await supabase
         .from('library_items')
-        .update({ is_starred, type })
+        .update({ is_starred })
         .eq('id', id);
 
       if (error) throw error;
