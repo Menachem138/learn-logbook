@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { useTheme } from '../../components/theme/ThemeProvider';
+import { useTheme } from '../theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface TagInputProps {

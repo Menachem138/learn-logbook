@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Modal, TouchableOpacity, Text, Platform } from 'react-native';
-import { useTheme } from '../../components/theme/ThemeProvider';
+import { useTheme } from '../theme/ThemeProvider';
 import Toast from 'react-native-toast-message';
 
 interface EditEntryModalProps {
@@ -15,11 +15,11 @@ interface EditEntryModalProps {
 
 export function EditEntryModal({ visible, entry, onClose, onSave }: EditEntryModalProps) {
   const { theme } = useTheme();
-  const [content, setContent] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const styles = getStyles(theme);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (entry) {
       setContent(entry.content);
     }

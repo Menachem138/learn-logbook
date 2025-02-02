@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../components/theme/ThemeProvider';
@@ -68,7 +68,7 @@ export default function JournalScreen() {
     }
   };
 
-  const [editingEntry, setEditingEntry] = React.useState<JournalEntry | null>(null);
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
 
   const updateEntry = async (content: string) => {
     if (!editingEntry) return;
