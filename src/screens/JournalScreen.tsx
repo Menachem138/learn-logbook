@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@components/theme/ThemeProvider';
+import { useTheme } from '@/components/theme/ThemeProvider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import Toast from 'react-native-toast-message';
-import { JournalEntryForm } from '@components/LearningJournal/JournalEntryForm.native';
-import { JournalEntryCard } from '@components/LearningJournal/JournalEntryCard.native';
-import { EditEntryModal } from '@components/LearningJournal/EditEntryModal.native';
+import { JournalEntryForm } from '@/components/LearningJournal/JournalEntryForm.native';
+import { JournalEntryCard } from '@/components/LearningJournal/JournalEntryCard.native';
+import { EditEntryModal } from '@/components/LearningJournal/EditEntryModal.native';
 
 interface JournalEntry {
   id: string;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
-import { useTheme } from '@components/theme/ThemeProvider';
-import { supabase } from '@integrations/supabase/client';
+import { useTheme } from '@/components/theme/ThemeProvider';
+import { supabase } from '@/integrations/supabase/client';
 import TagInput from './TagInput.native';
 import Toast from 'react-native-toast-message';
 

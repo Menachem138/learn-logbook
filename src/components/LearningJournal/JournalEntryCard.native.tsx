@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { useTheme } from '@components/theme/ThemeProvider';
+import { useTheme } from '@/components/theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface JournalEntryCardProps {
