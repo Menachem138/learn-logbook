@@ -9,5 +9,5 @@ export type DocumentUpdate = Tables['documents']['Update'];
 
 // Journal entry types
 export type JournalEntry = Tables['journal_entries']['Row'];
-export type JournalEntryInsert = Tables['journal_entries']['Insert'];
-export type JournalEntryUpdate = Tables['journal_entries']['Update'];
+export type JournalEntryInsert = Omit<Tables['journal_entries']['Insert'], 'created_at' | 'updated_at'>;
+export type JournalEntryUpdate = Partial<Omit<Tables['journal_entries']['Insert'], 'created_at' | 'updated_at'>>;
