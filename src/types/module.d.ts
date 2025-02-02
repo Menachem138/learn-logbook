@@ -1,6 +1,53 @@
 declare module '@/components/theme/ThemeProvider' {
-  export function useTheme(): { theme: 'light' | 'dark' };
+  export function useTheme(): { theme: 'light' | 'dark'; toggleTheme: () => void };
   export function ThemeProvider({ children }: { children: React.ReactNode }): React.ReactElement;
+}
+
+declare module '@react-native-community/datetimepicker' {
+  import { ViewStyle } from 'react-native';
+  
+  export interface DateTimePickerEvent {
+    type: 'set' | 'dismissed' | 'neutralButtonPressed';
+    nativeEvent: {
+      timestamp?: number;
+      utcOffset?: number;
+    };
+  }
+
+  interface DateTimePickerProps {
+    value: Date;
+    mode?: 'date' | 'time' | 'datetime' | 'countdown';
+    display?: 'default' | 'spinner' | 'calendar' | 'clock';
+    onChange?: (event: DateTimePickerEvent, date?: Date) => void;
+    minimumDate?: Date;
+    maximumDate?: Date;
+    is24Hour?: boolean;
+    textColor?: string;
+    accentColor?: string;
+    style?: ViewStyle;
+  }
+
+  export default function DateTimePicker(props: DateTimePickerProps): JSX.Element;
+}
+
+declare module 'react-native-toast-message' {
+  interface ToastProps {
+    type?: 'success' | 'error' | 'info';
+    position?: 'top' | 'bottom';
+    text1?: string;
+    text2?: string;
+    visibilityTime?: number;
+    autoHide?: boolean;
+    topOffset?: number;
+    bottomOffset?: number;
+  }
+
+  const Toast: {
+    show: (options: ToastProps) => void;
+    hide: () => void;
+  };
+
+  export default Toast;
 }
 
 declare module '@/integrations/supabase/client' {

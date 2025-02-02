@@ -4,7 +4,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { supabase } from '@/integrations/supabase/client';
 import Toast from 'react-native-toast-message';
-import type { CalendarEventInsert } from '@/types/calendar';
+import type { CalendarEventInsert, CategoryType } from '@/types/calendar';
+import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 interface AddEventModalProps {
   visible: boolean;
@@ -17,7 +18,7 @@ export function AddEventModal({ visible, onClose, onEventAdded }: AddEventModalP
   const styles = getStyles(theme);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('לימודים');
+  const [category, setCategory] = useState<CategoryType>('לימודים');
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date(Date.now() + 3600000));
   const [isBackup, setIsBackup] = useState(false);
@@ -132,9 +133,14 @@ export function AddEventModal({ visible, onClose, onEventAdded }: AddEventModalP
               <DateTimePicker
                 value={startTime}
                 mode="datetime"
+                display="default"
                 is24Hour={true}
-                onChange={(event, date) => date && setStartTime(date)}
-                textColor={theme === 'dark' ? '#fff' : '#000'}
+                onChange={(event: DateTimePickerEvent, date?: Date) => {
+                  if (event.type === 'set' && date) {
+                    setStartTime(date);
+                  }
+                }}
+                style={styles.dateTimePicker}
               />
             </View>
 
@@ -143,15 +149,20 @@ export function AddEventModal({ visible, onClose, onEventAdded }: AddEventModalP
               <DateTimePicker
                 value={endTime}
                 mode="datetime"
+                display="default"
                 is24Hour={true}
-                onChange={(event, date) => date && setEndTime(date)}
-                textColor={theme === 'dark' ? '#fff' : '#000'}
+                onChange={(event: DateTimePickerEvent, date?: Date) => {
+                  if (event.type === 'set' && date) {
+                    setEndTime(date);
+                  }
+                }}
+                style={styles.dateTimePicker}
               />
             </View>
           </View>
 
           <View style={styles.categoryContainer}>
-            {['לימודים', 'עבודה', 'אישי', 'אחר'].map((cat) => (
+            {(['לימודים', 'עבודה', 'אישי', 'אחר'] as const).map((cat) => (
               <TouchableOpacity
                 key={cat}
                 style={[
@@ -198,8 +209,8 @@ export function AddEventModal({ visible, onClose, onEventAdded }: AddEventModalP
   );
 }
 
-const getCategoryColor = (category: string) => {
-  const colors: { [key: string]: string } = {
+const getCategoryColor = (category: CategoryType) => {
+  const colors: Record<CategoryType, string> = {
     'לימודים': '#3b82f6',
     'עבודה': '#ef4444',
     'אישי': '#10b981',
@@ -209,6 +220,10 @@ const getCategoryColor = (category: string) => {
 };
 
 const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
+  dateTimePicker: {
+    width: 120,
+    height: 40,
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
