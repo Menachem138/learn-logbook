@@ -1,6 +1,18 @@
 export interface Database {
   public: {
     Tables: {
+      course_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          completed_lessons: number;
+          total_lessons: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<CourseProgress, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<CourseProgress, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
+      };
       library_items: {
         Row: {
           id: string;
@@ -73,3 +85,4 @@ export type LibraryItem = Database['public']['Tables']['library_items']['Row'];
 export type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
 export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row'];
 export type NotificationToken = Database['public']['Tables']['notification_tokens']['Row'];
+export type CourseProgress = Database['public']['Tables']['course_progress']['Row'];

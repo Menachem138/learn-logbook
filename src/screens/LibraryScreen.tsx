@@ -9,6 +9,7 @@ import Toast from 'react-native-toast-message';
 import { AddLibraryItemModal } from '@/components/Library/AddLibraryItemModal.native';
 import { EditLibraryItemModal } from '@/components/Library/EditLibraryItemModal.native';
 import { PDFViewer } from '@/components/Library/PDFViewer.native';
+import LinearGradient from 'expo-linear-gradient';
 
 import type { LibraryItem } from '@/types/supabase.generated';
 
@@ -74,9 +75,54 @@ export default function LibraryScreen() {
     );
   }
 
+  const { data: courseProgress } = useQuery({
+    queryKey: ['course-progress'],
+    queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user?.id) {
+        throw new Error('יש להתחבר כדי לצפות בתוכן');
+      }
+
+      const { data, error } = await supabase
+        .from('course_progress')
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        <LinearGradient
+          colors={['#6366f1', '#a855f7']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.quoteContainer}
+        >
+          <Text style={styles.quote}>ההצלחה היא סך כל המאמצים הקטנים שחוזרים על עצמם יום אחר יום</Text>
+          <Text style={styles.quoteAuthor}>רוברט קולייר</Text>
+        </LinearGradient>
+
+        {courseProgress && (
+          <View style={styles.progressContainer}>
+            <Text style={styles.progressTitle}>התקדמות בקורס</Text>
+            <Text style={styles.progressText}>
+              {courseProgress.completed_lessons} מתוך {courseProgress.total_lessons} שיעורים הושלמו ({((courseProgress.completed_lessons / courseProgress.total_lessons) * 100).toFixed(1)}%)
+            </Text>
+            <View style={styles.progressBarContainer}>
+              <View 
+                style={[
+                  styles.progressBar,
+                  { width: `${(courseProgress.completed_lessons / courseProgress.total_lessons) * 100}%` }
+                ]} 
+              />
+            </View>
+          </View>
+        )}
+
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.addButton}
@@ -166,6 +212,62 @@ export default function LibraryScreen() {
 }
 
 const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
+  quoteContainer: {
+    padding: 24,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  quote: {
+    fontSize: 18,
+    color: '#fff',
+    textAlign: 'right',
+    marginBottom: 8,
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  quoteAuthor: {
+    fontSize: 14,
+    color: '#fff',
+    textAlign: 'right',
+    opacity: 0.8,
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  progressContainer: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: theme === 'dark' ? '#1f2937' : '#fff',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  progressTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: theme === 'dark' ? '#fff' : '#000',
+    textAlign: 'right',
+    marginBottom: 8,
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  progressText: {
+    fontSize: 16,
+    color: theme === 'dark' ? '#d1d5db' : '#4b5563',
+    textAlign: 'right',
+    marginBottom: 12,
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: theme === 'dark' ? '#374151' : '#f3f4f6',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#6366f1',
+    borderRadius: 4,
+  },
   container: {
     flex: 1,
     backgroundColor: theme === 'dark' ? '#1a1a1a' : '#fff',
