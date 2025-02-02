@@ -1,0 +1,112 @@
+.segment {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    background-color: white;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.segment:hover .edit-button {
+    opacity: 1;
+}
+
+.edit-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.hebrew {
+    direction: rtl;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.french {
+    color: #666;
+    line-height: 1.4;
+}
+
+.edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.edit-form textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    font-family: inherit;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+.edit-form label {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+#save-edit {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#cancel-edit {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#save-edit:hover, #cancel-edit:hover {
+    filter: brightness(1.1);
+}
