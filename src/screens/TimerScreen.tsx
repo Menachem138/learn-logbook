@@ -17,34 +17,39 @@ export default function TimerScreen({ navigation }: BottomTabScreenProps<TabPara
 
   const styles = getStyles(theme, timerState);
 
-  const handleStartStudy = useCallback(async () => {
+  const handleStartStudy = useCallback(() => {
     if (timerState !== 'STUDYING') {
       setTimerState('STUDYING');
       startTimer();
-    } else if (isPaused) {
+    } else {
       pauseTimer();
     }
-  }, [timerState, startTimer, isPaused, pauseTimer]);
+  }, [timerState, startTimer, pauseTimer]);
 
-  const handleStartBreak = useCallback(async () => {
+  const handleStartBreak = useCallback(() => {
     if (timerState !== 'BREAK') {
       setTimerState('BREAK');
       startTimer();
-    } else if (isPaused) {
+    } else {
       pauseTimer();
     }
-  }, [timerState, startTimer, isPaused, pauseTimer]);
+  }, [timerState, startTimer, pauseTimer]);
 
   const handleStop = useCallback(async () => {
     if (timerState !== 'STOPPED') {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        await supabase.from('timer_sessions').insert({
-          user_id: session.user.id,
-          type: timerState.toLowerCase(),
-          duration: parseInt(time.split(':').reduce((acc, time) => (60 * acc) + parseInt(time), 0)),
-          started_at: new Date().toISOString(),
-        });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const duration = time.split(':').reduce((acc, time) => (60 * parseInt(acc)) + parseInt(time), '0');
+          await supabase.from('timer_sessions').insert({
+            user_id: session.user.id,
+            type: timerState.toLowerCase(),
+            duration: parseInt(duration),
+            started_at: new Date().toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error('Failed to save timer session:', error);
       }
       setTimerState('STOPPED');
       stopTimer();
@@ -122,7 +127,7 @@ export default function TimerScreen({ navigation }: BottomTabScreenProps<TabPara
   );
 }
 
-import { useNavigation } from '@react-navigation/native';
+
 
 const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
   const getTimerBgColor = () => {
