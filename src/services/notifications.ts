@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { saveNotificationToken, deleteNotificationToken } from './notificationTokens';
 
 export async function registerForPushNotificationsAsync() {
   let token;
@@ -30,7 +31,14 @@ export async function registerForPushNotificationsAsync() {
     projectId: Constants.expoConfig?.extra?.eas?.projectId,
   });
 
+  if (token) {
+    await saveNotificationToken(token.data);
+  }
   return token;
+}
+
+export async function removeNotificationToken(token: string) {
+  await deleteNotificationToken(token);
 }
 
 export function setupNotifications() {
