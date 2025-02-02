@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { MediaViewer } from "./MediaViewer";
 import { FileText } from "lucide-react";
