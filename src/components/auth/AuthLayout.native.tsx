@@ -27,7 +27,8 @@ export default function AuthLayout() {
   const signInWithGoogle = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
+      const { user } = await GoogleSignin.signIn();
+      const { idToken } = await GoogleSignin.getTokens();
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: idToken,
@@ -86,5 +87,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     color: '#111827',
+  },
+  googleButton: {
+    backgroundColor: '#4285f4',
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

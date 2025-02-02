@@ -24,7 +24,6 @@ export default function Navigation() {
   return (
     <NavigationContainer
       theme={DefaultTheme}
-      independent={true}
     >
       <Stack.Navigator
         initialRouteName="Login"
