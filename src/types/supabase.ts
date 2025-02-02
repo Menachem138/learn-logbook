@@ -1,9 +1,17 @@
 import type { Database } from './supabase.generated';
 
 // Document types
-export type Document = Database['public']['Tables']['documents']['Row'];
-export type DocumentInsert = Database['public']['Tables']['documents']['Insert'];
-export type DocumentUpdate = Database['public']['Tables']['documents']['Update'];
+export interface Document {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+export type DocumentInsert = Omit<Document, 'id' | 'created_at' | 'updated_at'>;
+export type DocumentUpdate = Partial<Omit<Document, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 
 // Journal Entry types
 export type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];

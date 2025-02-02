@@ -1,18 +1,7 @@
 import { Database } from './supabase.generated';
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  description?: string;
-  start_time: string;
-  end_time: string;
-  category: string;
-  is_backup: boolean;
-  completed: boolean;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
+export type CategoryType = Database['public']['Tables']['calendar_events']['Row']['category'];
+export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row'];
 
 export type CalendarEventInsert = Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>;
 export type CalendarEventUpdate = Partial<Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;

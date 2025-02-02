@@ -8,6 +8,7 @@ import TimerScreen from '@/screens/TimerScreen';
 import JournalScreen from '@/screens/JournalScreen';
 import SummaryScreen from '@/screens/SummaryScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
+import { SocialScreen } from '@/screens/SocialScreen';
 import DocumentsScreen from '@/screens/DocumentsScreen';
 import type { TabParamList } from '@/types/navigation';
 
@@ -73,6 +74,16 @@ export default function TabNavigator() {
           tabBarLabel: 'מסמכים',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Social"
+        component={SocialScreen}
+        options={{
+          tabBarLabel: 'חברתי',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size} color={color} />
           ),
         }}
       />

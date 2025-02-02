@@ -13,6 +13,7 @@ export type TabParamList = {
   Journal: undefined;
   Summary: undefined;
   Documents: undefined;
+  Social: undefined;
   Settings: undefined;
 };
 
@@ -20,6 +21,7 @@ export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login
 export type TimerScreenProps = BottomTabScreenProps<TabParamList, 'Timer'>;
 export type JournalScreenProps = BottomTabScreenProps<TabParamList, 'Journal'>;
 export type SummaryScreenProps = BottomTabScreenProps<TabParamList, 'Summary'>;
+export type SocialScreenProps = BottomTabScreenProps<TabParamList, 'Social'>;
 
 declare global {
   namespace ReactNavigation {

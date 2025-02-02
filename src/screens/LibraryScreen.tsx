@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 import { AddLibraryItemModal } from '@/components/Library/AddLibraryItemModal.native';
 import { EditLibraryItemModal } from '@/components/Library/EditLibraryItemModal.native';
 import { PDFViewer } from '@/components/Library/PDFViewer.native';
-import LinearGradient from 'expo-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import type { LibraryItem } from '@/types/supabase.generated';
 

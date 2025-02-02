@@ -4,8 +4,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { supabase } from '@/integrations/supabase/client';
 import Toast from 'react-native-toast-message';
-import type { CalendarEventInsert, CategoryType } from '@/types/calendar';
+import type { CalendarEventInsert } from '@/types/calendar';
+import type { Database } from '@/types/supabase.generated';
 import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+
+type CategoryType = Database['public']['Tables']['calendar_events']['Row']['category'];
 
 interface AddEventModalProps {
   visible: boolean;
