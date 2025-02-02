@@ -53,6 +53,7 @@ declare module 'react-native-toast-message' {
 declare module '@/integrations/supabase/client' {
   import { SupabaseClient } from '@supabase/supabase-js';
   import type { Database } from '@/types/supabase.generated';
+  
   export const supabase: SupabaseClient<Database>;
 }
 
