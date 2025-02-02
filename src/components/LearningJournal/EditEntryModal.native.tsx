@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, Modal, TouchableOpacity, Text, Platform } from 'react-native';
+import { View, TextInput, StyleSheet, Modal, TouchableOpacity, Text, Platform, KeyboardAvoidingView } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import Toast from 'react-native-toast-message';
 
@@ -66,7 +66,10 @@ export function EditEntryModal({ visible, entry, onClose, onSave }: EditEntryMod
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.modalOverlay}
+      >
         <View style={styles.modalContent}>
           <Text style={styles.title}>ערוך רשומה</Text>
           
@@ -97,7 +100,7 @@ export function EditEntryModal({ visible, entry, onClose, onSave }: EditEntryMod
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

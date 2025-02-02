@@ -23,6 +23,7 @@ export default function JournalScreen() {
   const queryClient = useQueryClient();
   const styles = getStyles(theme);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { data: entries = [], isLoading, refetch } = useQuery({
     queryKey: ['journal-entries'],
     queryFn: async () => {
@@ -113,8 +114,12 @@ export default function JournalScreen() {
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
-              refreshing={isLoading}
-              onRefresh={refetch}
+              refreshing={isRefreshing}
+              onRefresh={async () => {
+                setIsRefreshing(true);
+                await refetch();
+                setIsRefreshing(false);
+              }}
               tintColor={theme === 'dark' ? '#fff' : '#000'}
             />
           }
