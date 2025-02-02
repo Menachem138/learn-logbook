@@ -5,13 +5,15 @@ import { useTheme } from '../components/theme/ThemeProvider';
 import { supabase } from '../integrations/supabase/client';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTimer } from '../hooks/useTimer';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { TabParamList } from '../types/navigation';
 
 type TimerState = 'STOPPED' | 'STUDYING' | 'BREAK';
 
-export default function TimerScreen() {
+export default function TimerScreen({ navigation }: BottomTabScreenProps<TabParamList, 'Timer'>) {
   const { theme } = useTheme();
   const [timerState, setTimerState] = useState<TimerState>('STOPPED');
-  const { time, isRunning, startTimer, stopTimer } = useTimer();
+  const { time, isRunning, isPaused, startTimer, pauseTimer, stopTimer } = useTimer();
 
   const styles = getStyles(theme, timerState);
 
@@ -19,15 +21,19 @@ export default function TimerScreen() {
     if (timerState !== 'STUDYING') {
       setTimerState('STUDYING');
       startTimer();
+    } else if (isPaused) {
+      pauseTimer();
     }
-  }, [timerState, startTimer]);
+  }, [timerState, startTimer, isPaused, pauseTimer]);
 
   const handleStartBreak = useCallback(async () => {
     if (timerState !== 'BREAK') {
       setTimerState('BREAK');
       startTimer();
+    } else if (isPaused) {
+      pauseTimer();
     }
-  }, [timerState, startTimer]);
+  }, [timerState, startTimer, isPaused, pauseTimer]);
 
   const handleStop = useCallback(async () => {
     if (timerState !== 'STOPPED') {
@@ -48,7 +54,8 @@ export default function TimerScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>מעקב זמן למידה</Text>
+        <Text style={styles.title}>ברוך הבא</Text>
+        <Text style={styles.subtitle}>מעקב זמן למידה</Text>
         
         <View style={styles.timerDisplay}>
           <Text style={styles.timerText}>{time}</Text>
@@ -88,10 +95,34 @@ export default function TimerScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        <View style={styles.secondaryControls}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => navigation.navigate('Journal')}
+          >
+            <Ionicons name="calendar-outline" size={24} color={theme === 'dark' ? '#fff' : '#374151'} />
+            <Text style={[styles.buttonText, { color: theme === 'dark' ? '#fff' : '#374151' }]}>
+              יומן
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => navigation.navigate('Summary')}
+          >
+            <Ionicons name="document-text-outline" size={24} color={theme === 'dark' ? '#fff' : '#374151'} />
+            <Text style={[styles.buttonText, { color: theme === 'dark' ? '#fff' : '#374151' }]}>
+              סיכום
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
+
+import { useNavigation } from '@react-navigation/native';
 
 const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
   const getTimerBgColor = () => {
@@ -115,11 +146,17 @@ const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
       padding: 16,
     },
     title: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: 'bold',
-      textAlign: 'center',
-      marginBottom: 24,
+      textAlign: 'right',
+      marginBottom: 8,
       color: theme === 'dark' ? '#fff' : '#000',
+    },
+    subtitle: {
+      fontSize: 20,
+      textAlign: 'right',
+      marginBottom: 24,
+      color: theme === 'dark' ? '#9ca3af' : '#6b7280',
     },
     timerDisplay: {
       backgroundColor: getTimerBgColor(),
@@ -129,10 +166,12 @@ const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
       marginBottom: 32,
     },
     timerText: {
-      fontSize: 48,
+      fontSize: 64,
       fontWeight: 'bold',
+      fontFamily: 'monospace',
       fontVariant: ['tabular-nums'],
       color: '#000',
+      letterSpacing: 2,
     },
     controls: {
       flexDirection: 'row',
@@ -151,13 +190,17 @@ const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
     studyButton: {
       backgroundColor: '#fff',
       borderWidth: 1,
-      borderColor: '#E5E7EB',
+      borderColor: theme === 'dark' ? '#374151' : '#E5E7EB',
     },
     breakButton: {
       backgroundColor: '#6B7280',
+      borderWidth: 1,
+      borderColor: theme === 'dark' ? '#4B5563' : '#9CA3AF',
     },
     stopButton: {
-      backgroundColor: '#EF4444',
+      backgroundColor: '#FF6B6B',
+      borderWidth: 1,
+      borderColor: theme === 'dark' ? '#EF4444' : '#FCA5A5',
     },
     buttonText: {
       fontSize: 16,
@@ -166,6 +209,16 @@ const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
     },
     buttonTextDisabled: {
       color: '#9CA3AF',
+    },
+    secondaryControls: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: 32,
+      gap: 24,
+    },
+    secondaryButton: {
+      alignItems: 'center',
+      gap: 4,
     },
   });
 };

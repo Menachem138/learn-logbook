@@ -7,12 +7,13 @@ import TimerScreen from '../screens/TimerScreen';
 import JournalScreen from '../screens/JournalScreen';
 import SummaryScreen from '../screens/SummaryScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import type { TabParamList } from '../types/navigation';
 
 // Enable RTL
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 export default function TabNavigator() {
   const { theme } = useTheme();
