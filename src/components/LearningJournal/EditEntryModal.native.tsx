@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Modal, TouchableOpacity, Text, Platform, KeyboardAvoidingView } from 'react-native';
-import { useTheme } from '../theme/ThemeProvider';
+import { useTheme } from '@components/theme/ThemeProvider';
 import Toast from 'react-native-toast-message';
 
 interface EditEntryModalProps {
