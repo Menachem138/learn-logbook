@@ -3,10 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'r
 import { useTheme } from '@/components/theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-interface TagInputProps {
-  tags: string[];
-  onChange: (tags: string[]) => void;
-}
+import type { TagInputProps } from '@/types/journal';
 
 export default function TagInput({ tags, onChange }: TagInputProps) {
   const { theme } = useTheme();

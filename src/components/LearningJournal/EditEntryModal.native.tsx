@@ -2,35 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Modal, TouchableOpacity, Text, Platform, KeyboardAvoidingView } from 'react-native';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import Toast from 'react-native-toast-message';
+import TagInput from './TagInput.native';
 
-interface EditEntryModalProps {
-  visible: boolean;
-  entry: {
-    id: string;
-    content: string;
-  } | null;
-  onClose: () => void;
-  onSave: (content: string) => Promise<void>;
-}
+import type { EditEntryModalProps } from '@/types/journal';
 
 export function EditEntryModal({ visible, entry, onClose, onSave }: EditEntryModalProps) {
   const { theme } = useTheme();
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const styles = getStyles(theme);
 
   useEffect(() => {
     if (entry) {
+      setTitle(entry.title);
       setContent(entry.content);
+      setTags(entry.tags || []);
     }
   }, [entry]);
 
   const handleSave = async () => {
-    if (!content.trim()) {
+    if (!title.trim() || !content.trim()) {
       Toast.show({
         type: 'error',
         text1: 'שגיאה',
-        text2: 'אנא הכנס תוכן ליומן',
+        text2: 'אנא מלא את כל השדות',
         position: 'bottom',
       });
       return;
@@ -38,7 +35,7 @@ export function EditEntryModal({ visible, entry, onClose, onSave }: EditEntryMod
 
     try {
       setIsSubmitting(true);
-      await onSave(content);
+      await onSave({ title, content, tags });
       onClose();
       Toast.show({
         type: 'success',
@@ -74,13 +71,26 @@ export function EditEntryModal({ visible, entry, onClose, onSave }: EditEntryMod
           <Text style={styles.title}>ערוך רשומה</Text>
           
           <TextInput
-            style={styles.input}
+            style={styles.titleInput}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="כותרת"
+            placeholderTextColor={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+            textAlign="right"
+          />
+          
+          <TextInput
+            style={styles.contentInput}
             value={content}
             onChangeText={setContent}
+            placeholder="תוכן"
+            placeholderTextColor={theme === 'dark' ? '#9ca3af' : '#6b7280'}
             multiline
             textAlign="right"
             textAlignVertical="top"
           />
+          
+          <TagInput tags={tags} onChange={setTags} />
           
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -133,7 +143,16 @@ const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
     color: theme === 'dark' ? '#fff' : '#000',
     fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
   },
-  input: {
+  titleInput: {
+    backgroundColor: theme === 'dark' ? '#374151' : '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    color: theme === 'dark' ? '#fff' : '#000',
+    fontSize: 16,
+    marginBottom: 16,
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  contentInput: {
     backgroundColor: theme === 'dark' ? '#374151' : '#f9fafb',
     borderRadius: 8,
     padding: 12,

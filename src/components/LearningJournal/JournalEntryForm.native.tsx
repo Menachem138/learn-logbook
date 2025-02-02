@@ -5,23 +5,23 @@ import { supabase } from '@/integrations/supabase/client';
 import TagInput from './TagInput.native';
 import Toast from 'react-native-toast-message';
 
-interface JournalEntryFormProps {
-  onEntryAdded: () => void;
-}
+import type { JournalEntryFormProps } from '@/types/journal';
+import type { JournalEntryInsert } from '@/types/supabase';
 
-export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
+export function JournalEntryForm({ onEntryAdded }: { onEntryAdded: () => void }) {
   const { theme } = useTheme();
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const styles = getStyles(theme);
 
-  const addEntry = async (isImportant: boolean = false) => {
-    if (!content.trim()) {
+  const addEntry = async () => {
+    if (!title.trim() || !content.trim()) {
       Toast.show({
         type: 'error',
         text1: 'שגיאה',
-        text2: 'אנא הכנס תוכן ליומן',
+        text2: 'אנא מלא את כל השדות',
         position: 'bottom',
       });
       return;
@@ -40,17 +40,20 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
         return;
       }
 
+      const entry: JournalEntryInsert = {
+        title,
+        content,
+        tags,
+        user_id: session.session.user.id
+      };
+      
       const { error } = await supabase
-        .from('learning_journal')
-        .insert([{
-          content,
-          tags,
-          is_important: isImportant,
-          user_id: session.session.user.id
-        }]);
+        .from('journal_entries')
+        .insert([entry]);
 
       if (error) throw error;
 
+      setTitle('');
       setContent('');
       setTags([]);
       onEntryAdded();
@@ -76,7 +79,16 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.input}
+        style={styles.titleInput}
+        value={title}
+        onChangeText={setTitle}
+        placeholder="כותרת"
+        placeholderTextColor={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+        textAlign="right"
+      />
+      
+      <TextInput
+        style={styles.contentInput}
         value={content}
         onChangeText={setContent}
         placeholder="מה למדת היום?"
@@ -88,25 +100,13 @@ export function JournalEntryForm({ onEntryAdded }: JournalEntryFormProps) {
       
       <TagInput tags={tags} onChange={setTags} />
       
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.primaryButton]}
-          onPress={() => addEntry(false)}
-          disabled={isSubmitting}
-        >
-          <Text style={styles.buttonText}>הוסף רשומה</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
-          onPress={() => addEntry(true)}
-          disabled={isSubmitting}
-        >
-          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
-            הוסף כהערה חשובה
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={[styles.button, styles.primaryButton]}
+        onPress={addEntry}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.buttonText}>הוסף רשומה</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -115,7 +115,15 @@ const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
   container: {
     gap: 16,
   },
-  input: {
+  titleInput: {
+    backgroundColor: theme === 'dark' ? '#374151' : '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    color: theme === 'dark' ? '#fff' : '#000',
+    fontSize: 16,
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  contentInput: {
     backgroundColor: theme === 'dark' ? '#374151' : '#f9fafb',
     borderRadius: 8,
     padding: 12,
