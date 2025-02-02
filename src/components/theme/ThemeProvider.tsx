@@ -13,7 +13,8 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
+  const systemColorScheme = useColorScheme();
+  const [theme, setTheme] = useState<Theme>(systemColorScheme || 'light');
 
   // Load theme from user profile on mount
   useEffect(() => {
@@ -28,17 +29,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         
         if (data?.theme) {
           setTheme(data.theme as Theme);
-          document.documentElement.classList.toggle('dark', data.theme === 'dark');
         }
       }
     }
     loadTheme();
+
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      if (colorScheme) {
+        setTheme(colorScheme as Theme);
+      }
+    });
+
+    return () => subscription.remove();
   }, []);
 
   const toggleTheme = async () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user?.id) {

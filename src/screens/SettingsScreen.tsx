@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../components/theme/ThemeProvider';
 import { useAuth } from '../components/auth/AuthProvider';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function SettingsScreen() {
