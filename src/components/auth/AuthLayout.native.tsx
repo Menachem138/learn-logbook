@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,11 +6,13 @@ import { useNavigation } from '@react-navigation/native';
 import { GoogleSignin, type User } from '@react-native-google-signin/google-signin';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/types/navigation';
+import { useAuth } from './AuthProvider';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function AuthLayout() {
   const navigation = useNavigation<NavigationProp>();
+  const { authenticateWithBiometric } = useAuth();
 
   React.useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -43,7 +45,12 @@ export default function AuthLayout() {
 
       if (error) throw error;
       if (data.session) {
-        navigation.replace('Home');
+        const biometricResult = await authenticateWithBiometric();
+        if (biometricResult) {
+          navigation.replace('Home');
+        } else {
+          Alert.alert('אימות ביומטרי נכשל', 'אנא נסה שוב או השתמש בסיסמה');
+        }
       }
     } catch (error) {
       Alert.alert('שגיאת התחברות', 'אירעה שגיאה בתהליך ההתחברות. אנא נסה שוב.');
