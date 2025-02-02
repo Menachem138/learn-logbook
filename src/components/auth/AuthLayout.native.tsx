@@ -1,22 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigation } from '@react-navigation/native';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, type User } from '@react-native-google-signin/google-signin';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@/types/navigation';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function AuthLayout() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
 
   React.useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigation.navigate('Home');
+        navigation.replace('Home');
       }
     });
 
     GoogleSignin.configure({
-      webClientId: '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com', // Will be replaced with actual client ID
+      offlineAccess: true,
+      webClientId: '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com',
     });
 
     return () => {
@@ -27,8 +32,9 @@ export default function AuthLayout() {
   const signInWithGoogle = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const { user } = await GoogleSignin.signIn();
-      const { idToken } = await GoogleSignin.getTokens();
+      const { user, idToken } = await GoogleSignin.signIn();
+      if (!idToken) throw new Error('No ID token present');
+      
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: idToken,
@@ -36,9 +42,10 @@ export default function AuthLayout() {
 
       if (error) throw error;
       if (data.session) {
-        navigation.navigate('Home');
+        navigation.replace('Home');
       }
     } catch (error) {
+      Alert.alert('שגיאת התחברות', 'אירעה שגיאה בתהליך ההתחברות. אנא נסה שוב.');
       console.error(error);
     }
   };
