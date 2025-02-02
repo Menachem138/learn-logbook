@@ -1,12 +1,7 @@
 import { supabase } from '../integrations/supabase/client';
+import type { Database } from '../integrations/supabase/types';
 
-interface NotificationToken {
-  id: string;
-  user_id: string;
-  expo_token: string;
-  created_at: string;
-  updated_at: string;
-}
+type NotificationToken = Database['public']['Tables']['notification_tokens']['Row'];
 
 export async function saveNotificationToken(expoToken: string) {
   const { data: { user } } = await supabase.auth.getUser();
