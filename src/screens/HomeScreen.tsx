@@ -1,18 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTimer } from '../hooks/useTimer';
+import { useTheme } from '../components/theme/ThemeProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function HomeScreen() {
   const { time, isRunning, isPaused, startTimer, pauseTimer, stopTimer } = useTimer();
+  const { theme, toggleTheme } = useTheme();
+  const styles = getStyles(theme);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>ברוך הבא</Text>
-        <TouchableOpacity>
-          <Ionicons name="moon-outline" size={24} color="#000" />
+        <TouchableOpacity onPress={toggleTheme}>
+          <Ionicons 
+            name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
+            size={24} 
+            color={theme === 'dark' ? '#fff' : '#000'} 
+          />
         </TouchableOpacity>
       </View>
 
@@ -50,10 +57,10 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: theme === 'dark' ? '#1a1a1a' : '#fff',
   },
   header: {
     flexDirection: 'row',
@@ -65,6 +72,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'right',
+    color: theme === 'dark' ? '#fff' : '#000',
   },
   content: {
     flex: 1,
@@ -75,9 +83,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'right',
     marginBottom: 16,
+    color: theme === 'dark' ? '#fff' : '#000',
   },
   timerContainer: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme === 'dark' ? '#2d2d2d' : '#f5f5f5',
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
@@ -87,6 +96,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontFamily: 'monospace',
     fontWeight: 'bold',
+    color: theme === 'dark' ? '#fff' : '#000',
   },
   controls: {
     flexDirection: 'row',

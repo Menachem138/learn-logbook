@@ -1,5 +1,6 @@
 import React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useColorScheme, Appearance } from 'react-native';
 import { supabase } from '@/integrations/supabase/client';
 
 type Theme = 'light' | 'dark';

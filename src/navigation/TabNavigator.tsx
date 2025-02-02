@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { I18nManager } from 'react-native';
+import { useTheme } from '../components/theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import HomeScreen from '../screens/HomeScreen';
 import JournalScreen from '../screens/JournalScreen';
@@ -13,18 +14,21 @@ I18nManager.forceRTL(true);
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
+  const { theme } = useTheme();
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#4285f4',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: theme === 'dark' ? '#60a5fa' : '#4285f4',
+        tabBarInactiveTintColor: theme === 'dark' ? '#9ca3af' : '#6b7280',
         tabBarLabelPosition: 'below-icon',
         tabBarStyle: {
           paddingBottom: 5,
           height: 60,
+          backgroundColor: theme === 'dark' ? '#1a1a1a' : '#fff',
+          borderTopColor: theme === 'dark' ? '#2d2d2d' : '#e5e7eb',
         },
-      }}
+      })}
     >
       <Tab.Screen
         name="Home"
