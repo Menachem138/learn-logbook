@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../components/theme/ThemeProvider';
@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import { AddDocumentModal } from '../components/Documents/AddDocumentModal.native';
 
 interface Document {
   id: string;
@@ -20,6 +21,7 @@ export default function DocumentsScreen() {
   const { theme } = useTheme();
   const queryClient = useQueryClient();
   const styles = getStyles(theme);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents'],
@@ -86,6 +88,19 @@ export default function DocumentsScreen() {
               <Text style={styles.emptyText}>אין מסמכים להצגה</Text>
             </View>
           )}
+        />
+        
+        <TouchableOpacity 
+          style={styles.fab}
+          onPress={() => setIsAddModalVisible(true)}
+        >
+          <Ionicons name="add" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        <AddDocumentModal
+          visible={isAddModalVisible}
+          onClose={() => setIsAddModalVisible(false)}
+          onDocumentAdded={() => queryClient.invalidateQueries({ queryKey: ['documents'] })}
         />
       </View>
     </SafeAreaView>
@@ -182,5 +197,24 @@ const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
     fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#4285f4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
