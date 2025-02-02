@@ -12,6 +12,7 @@ export type TabParamList = {
   Timer: undefined;
   Journal: undefined;
   Summary: undefined;
+  Documents: undefined;
   Settings: undefined;
 };
 

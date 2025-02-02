@@ -2,13 +2,14 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { I18nManager } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme } from '../components/theme/ThemeProvider';
+import { useTheme } from '@/components/theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import TimerScreen from '../screens/TimerScreen';
-import JournalScreen from '../screens/JournalScreen';
-import SummaryScreen from '../screens/SummaryScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import type { TabParamList } from '../types/navigation';
+import TimerScreen from '@/screens/TimerScreen';
+import JournalScreen from '@/screens/JournalScreen';
+import SummaryScreen from '@/screens/SummaryScreen';
+import SettingsScreen from '@/screens/SettingsScreen';
+import DocumentsScreen from '@/screens/DocumentsScreen';
+import type { TabParamList } from '@/types/navigation';
 
 // Enable RTL
 I18nManager.allowRTL(true);
@@ -60,6 +61,16 @@ export default function TabNavigator() {
         component={SummaryScreen}
         options={{
           tabBarLabel: 'סיכום',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="document-text-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Documents"
+        component={DocumentsScreen}
+        options={{
+          tabBarLabel: 'מסמכים',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
           ),
