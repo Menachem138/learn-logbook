@@ -1,5 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { setupNotifications, registerForPushNotificationsAsync } from '@/services/notifications';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import Navigation from './navigation';
@@ -15,6 +17,11 @@ export default function App() {
       await SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    setupNotifications();
+    registerForPushNotificationsAsync();
+  }, []);
 
   if (!fontsLoaded) {
     return null;
