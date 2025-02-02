@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigation } from '@react-navigation/native';
-import { GoogleSignin, type User } from '@react-native-google-signin/google-signin';
+
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/types/navigation';
 import { useAuth } from './AuthProvider';
@@ -14,6 +14,9 @@ export default function AuthLayout() {
   const navigation = useNavigation<NavigationProp>();
   const { authenticateWithBiometric } = useAuth();
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   React.useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
@@ -21,27 +24,16 @@ export default function AuthLayout() {
       }
     });
 
-    GoogleSignin.configure({
-      offlineAccess: true,
-      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
-    });
-
     return () => {
       subscription.unsubscribe();
     };
   }, [navigation]);
 
-  const signInWithGoogle = async () => {
+  const signInWithEmail = async () => {
     try {
-      await GoogleSignin.hasPlayServices();
-      const signInResult = await GoogleSignin.signIn();
-      const idToken = await GoogleSignin.getTokens().then(tokens => tokens.idToken);
-      if (!idToken) throw new Error('No ID token present');
-      
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: idToken,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
       if (error) throw error;
@@ -63,11 +55,28 @@ export default function AuthLayout() {
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.title}>התחברות לקורס קריפטו</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="אימייל"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          textAlign="right"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="סיסמה"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          textAlign="right"
+        />
         <TouchableOpacity 
-          style={styles.googleButton}
-          onPress={signInWithGoogle}
+          style={styles.loginButton}
+          onPress={signInWithEmail}
         >
-          <Text style={styles.buttonText}>התחבר עם Google</Text>
+          <Text style={styles.buttonText}>התחבר</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -104,7 +113,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     color: '#111827',
   },
-  googleButton: {
+  input: {
+    backgroundColor: '#f3f4f6',
+    padding: 12,
+    borderRadius: 4,
+    marginBottom: 12,
+    width: '100%',
+    fontSize: 16,
+  },
+  loginButton: {
     backgroundColor: '#4285f4',
     padding: 12,
     borderRadius: 4,
