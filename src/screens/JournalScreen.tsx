@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/components/theme/ThemeProvider';
@@ -9,14 +10,7 @@ import { JournalEntryForm } from '@/components/LearningJournal/JournalEntryForm.
 import { JournalEntryCard } from '@/components/LearningJournal/JournalEntryCard.native';
 import { EditEntryModal } from '@/components/LearningJournal/EditEntryModal.native';
 
-interface JournalEntry {
-  id: string;
-  content: string;
-  created_at: string;
-  is_important: boolean;
-  tags?: string[];
-  user_id: string;
-}
+import type { JournalEntry, JournalEntryUpdate } from '@/types/supabase';
 
 export default function JournalScreen() {
   const { theme } = useTheme();
@@ -33,7 +27,7 @@ export default function JournalScreen() {
       }
 
       const { data, error } = await supabase
-        .from('learning_journal')
+        .from('journal_entries')
         .select('*')
         .eq('user_id', session.session.user.id)
         .order('created_at', { ascending: false });
@@ -46,7 +40,7 @@ export default function JournalScreen() {
   const deleteEntry = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('learning_journal')
+        .from('journal_entries')
         .delete()
         .eq('id', id);
 
@@ -71,20 +65,32 @@ export default function JournalScreen() {
 
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
 
-  const updateEntry = async (content: string) => {
+  const updateEntry = async (data: JournalEntryUpdate) => {
     if (!editingEntry) return;
 
     try {
       const { error } = await supabase
-        .from('learning_journal')
-        .update({ content })
+        .from('journal_entries')
+        .update(data)
         .eq('id', editingEntry.id);
 
       if (error) throw error;
-      await queryClient.invalidateQueries({ queryKey: ['journal-entries'] });
+      await queryClient.invalidateQueries({ queryKey: ['journal_entries'] });
+      Toast.show({
+        type: 'success',
+        text1: 'הצלחה',
+        text2: 'הרשומה עודכנה בהצלחה',
+        position: 'bottom',
+      });
+      setEditingEntry(null);
     } catch (error) {
       console.error('Error updating entry:', error);
-      throw error;
+      Toast.show({
+        type: 'error',
+        text1: 'שגיאה',
+        text2: 'שגיאה בעדכון הרשומה',
+        position: 'bottom',
+      });
     }
   };
 

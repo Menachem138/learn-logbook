@@ -1,49 +1,24 @@
-import React from 'react';
+import * as React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-interface JournalEntryCardProps {
-  entry: {
-    id: string;
-    content: string;
-    created_at: string;
-    is_important: boolean;
-    tags?: string[];
-  };
-  onEdit: () => void;
-  onDelete: () => void;
-}
+import type { JournalEntryCardProps } from '@/types/journal';
 
 export function JournalEntryCard({ entry, onEdit, onDelete }: JournalEntryCardProps) {
   const { theme } = useTheme();
   const styles = getStyles(theme);
 
   return (
-    <View style={[styles.card, entry.is_important && styles.importantCard]}>
+    <View style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.tagContainer}>
-          {entry.is_important && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>חשוב</Text>
-            </View>
-          )}
-          {entry.tags && entry.tags.length > 0 && (
-            <View style={styles.tagList}>
-              {entry.tags.map((tag) => (
-                <View key={tag} style={styles.tag}>
-                  <Text style={styles.tagText}>{tag}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
+        <Text style={styles.title}>{entry.title}</Text>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={onEdit} style={styles.actionButton}>
-            <Ionicons name="create-outline" size={20} color={theme === 'dark' ? '#fff' : '#374151'} />
+          <TouchableOpacity onPress={() => onEdit(entry)} style={styles.actionButton}>
+            <Ionicons name="create-outline" size={20} color={theme === 'dark' ? '#9ca3af' : '#6b7280'} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={onDelete} style={styles.actionButton}>
-            <Ionicons name="trash-outline" size={20} color={theme === 'dark' ? '#fff' : '#374151'} />
+          <TouchableOpacity onPress={() => onDelete(entry.id)} style={styles.actionButton}>
+            <Ionicons name="trash-outline" size={20} color={theme === 'dark' ? '#ef4444' : '#dc2626'} />
           </TouchableOpacity>
         </View>
       </View>
@@ -72,37 +47,20 @@ const getStyles = (theme: 'light' | 'dark') => StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
-  importantCard: {
-    borderWidth: 2,
-    borderColor: '#fbbf24',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  tagContainer: {
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme === 'dark' ? '#fff' : '#000',
+    textAlign: 'right',
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  badge: {
-    backgroundColor: theme === 'dark' ? '#374151' : '#f3f4f6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  badgeText: {
-    color: theme === 'dark' ? '#fff' : '#374151',
-    fontSize: 12,
+    marginRight: 8,
     fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
-  },
-  tagList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
   },
   tag: {
     backgroundColor: 'transparent',
