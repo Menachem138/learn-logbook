@@ -4,12 +4,20 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     },
     "jsx": "react-native",
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "moduleResolution": "bundler",
-    "types": ["node", "react-native"],
+    "types": [
+      "node",
+      "react-native"
+    ],
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -23,7 +31,10 @@
     "target": "ES2020",
     "module": "ESNext",
     "noEmit": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
     "skipDefaultLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
@@ -49,8 +60,6 @@
   ],
   "include": [
     "src/**/*",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
     "src/types/*.d.ts",
     "src/types/react-native-app.d.ts"
   ]

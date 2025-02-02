@@ -1,19 +1,19 @@
-const { getDefaultConfig } = require('expo/metro-config');
+const { getDefaultConfig } = require('@expo/metro-config');
 
-module.exports = (() => {
-  const config = getDefaultConfig(__dirname);
+const defaultConfig = getDefaultConfig(__dirname);
+const { resolver: { sourceExts, assetExts } } = defaultConfig;
 
-  const { transformer, resolver } = config;
+const config = {
+  ...defaultConfig,
+  transformer: {
+    ...defaultConfig.transformer,
+    babelTransformerPath: require.resolve('react-native-svg-transformer'),
+  },
+  resolver: {
+    ...defaultConfig.resolver,
+    assetExts: assetExts.filter((ext) => ext !== 'svg'),
+    sourceExts: [...sourceExts, 'svg'],
+  },
+};
 
-  config.transformer = {
-    ...transformer,
-    babelTransformerPath: require.resolve('react-native-svg-transformer')
-  };
-  config.resolver = {
-    ...resolver,
-    assetExts: resolver.assetExts.filter((ext) => ext !== 'svg'),
-    sourceExts: [...resolver.sourceExts, 'svg']
-  };
-
-  return config;
-})();
+module.exports = config;
