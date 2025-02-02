@@ -157,14 +157,14 @@ const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
       textAlign: 'right',
       marginBottom: 8,
       color: theme === 'dark' ? '#fff' : '#000',
-      fontFamily: 'System',
+      fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
     },
     subtitle: {
       fontSize: 22,
       textAlign: 'right',
       marginBottom: 32,
       color: theme === 'dark' ? '#9ca3af' : '#6b7280',
-      fontFamily: 'System',
+      fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
     },
     timerDisplay: {
       backgroundColor: getTimerBgColor(),
@@ -184,10 +184,10 @@ const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
     timerText: {
       fontSize: 72,
       fontWeight: '600',
-      fontFamily: 'System',
       fontVariant: ['tabular-nums'],
       color: theme === 'dark' ? '#fff' : '#000',
       letterSpacing: 2,
+      fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
     },
     controls: {
       flexDirection: 'row-reverse',
@@ -228,7 +228,7 @@ const getStyles = (theme: 'light' | 'dark', timerState: TimerState) => {
       fontSize: 18,
       fontWeight: '600',
       color: '#fff',
-      fontFamily: 'System',
+      fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
     },
     buttonTextDisabled: {
       opacity: 0.6,

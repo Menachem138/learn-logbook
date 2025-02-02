@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { I18nManager } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../components/theme/ThemeProvider';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import TimerScreen from '../screens/TimerScreen';
@@ -18,7 +19,9 @@ const Tab = createBottomTabNavigator<TabParamList>();
 export default function TabNavigator() {
   const { theme } = useTheme();
   return (
-    <Tab.Navigator
+    <>
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+      <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: theme === 'dark' ? '#60a5fa' : '#4285f4',
@@ -73,5 +76,6 @@ export default function TabNavigator() {
         }}
       />
     </Tab.Navigator>
+    </>
   );
 }
