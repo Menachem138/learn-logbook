@@ -23,14 +23,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
+    // Development mode - bypass auth
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: bypassing authentication');
+      setSession({ user: { id: 'dev-user' } } as Session);
+      setLoading(false);
+      return;
+    }
+
+    // Production auth logic
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session);
       setSession(session);
       setLoading(false);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
