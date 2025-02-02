@@ -32,7 +32,8 @@ export default function AuthLayout() {
   const signInWithGoogle = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const { user, idToken } = await GoogleSignin.signIn();
+      const signInResult = await GoogleSignin.signIn();
+      const idToken = await GoogleSignin.getTokens().then(tokens => tokens.idToken);
       if (!idToken) throw new Error('No ID token present');
       
       const { data, error } = await supabase.auth.signInWithIdToken({
