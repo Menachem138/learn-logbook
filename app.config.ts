@@ -36,6 +36,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   extra: {
     supabaseUrl: 'https://shjwvwhijgehquuteekv.supabase.co',
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+    eas: {
+      projectId: 'learn-time-app'
+    }
+  },
+  updates: {
+    url: 'https://u.expo.dev/learn-time-app',
+    fallbackToCacheTimeout: 0
+  },
+  runtimeVersion: {
+    policy: 'sdkVersion'
   }
 });
