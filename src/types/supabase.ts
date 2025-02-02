@@ -1,13 +1,15 @@
 import type { Database } from './supabase.generated';
 
-export type Tables = Database['public']['Tables'];
-
 // Document types
-export type Document = Tables['documents']['Row'];
-export type DocumentInsert = Tables['documents']['Insert'];
-export type DocumentUpdate = Tables['documents']['Update'];
+export type Document = Database['public']['Tables']['documents']['Row'];
+export type DocumentInsert = Database['public']['Tables']['documents']['Insert'];
+export type DocumentUpdate = Database['public']['Tables']['documents']['Update'];
 
-// Journal entry types
-export type JournalEntry = Tables['journal_entries']['Row'];
-export type JournalEntryInsert = Omit<Tables['journal_entries']['Insert'], 'created_at' | 'updated_at'>;
-export type JournalEntryUpdate = Partial<Omit<Tables['journal_entries']['Insert'], 'created_at' | 'updated_at'>>;
+// Journal Entry types
+export type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
+export type JournalEntryInsert = Database['public']['Tables']['journal_entries']['Insert'];
+export type JournalEntryUpdate = Database['public']['Tables']['journal_entries']['Update'];
+
+// Helper type for extracting table types
+export type Tables = Database['public']['Tables'];
+export type TableNames = keyof Tables;

@@ -3,9 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Platform, K
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { supabase } from '@/integrations/supabase/client';
 import Toast from 'react-native-toast-message';
-import { Database } from '@/types/supabase.generated';
-
-import { Document } from '@/types/supabase';
+import type { Document } from '../../types/supabase';
 
 interface EditDocumentModalProps {
   visible: boolean;

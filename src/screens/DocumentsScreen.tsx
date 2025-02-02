@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 import { AddDocumentModal } from '@/components/Documents/AddDocumentModal.native';
 import { EditDocumentModal } from '@/components/Documents/EditDocumentModal.native';
 
-import type { Document } from '@/types/supabase';
+import type { Document } from '../types/supabase';
 
 export default function DocumentsScreen() {
   const { theme } = useTheme();
@@ -112,7 +112,7 @@ export default function DocumentsScreen() {
           keyExtractor={(item) => item.id}
           style={styles.list}
           contentContainerStyle={styles.listContent}
-          ListEmptyComponent={() => (
+          ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons 
                 name="document-text-outline" 
@@ -121,7 +121,7 @@ export default function DocumentsScreen() {
               />
               <Text style={styles.emptyText}>אין מסמכים להצגה</Text>
             </View>
-          )}
+          }
         />
         
         <TouchableOpacity 

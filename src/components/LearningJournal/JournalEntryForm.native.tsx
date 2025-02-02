@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { supabase } from '@/integrations/supabase/client';
 import TagInput from './TagInput.native';
 import Toast from 'react-native-toast-message';
 
-import type { JournalEntryFormProps } from '@/types/journal';
-import type { JournalEntryInsert } from '@/types/supabase';
+import type { JournalEntryInsert } from '../../types/supabase';
 
 export function JournalEntryForm({ onEntryAdded }: { onEntryAdded: () => void }) {
   const { theme } = useTheme();
