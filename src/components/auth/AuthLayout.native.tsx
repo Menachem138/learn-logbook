@@ -23,7 +23,8 @@ export default function AuthLayout() {
 
     GoogleSignin.configure({
       offlineAccess: true,
-      webClientId: '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com',
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
     });
 
     return () => {

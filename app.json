@@ -14,14 +14,14 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.learnlogbook.app"
+      "bundleIdentifier": "com.menachem.learnlogbook"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.learnlogbook.app"
+      "package": "com.menachem.learnlogbook"
     },
     "plugins": [
       [
