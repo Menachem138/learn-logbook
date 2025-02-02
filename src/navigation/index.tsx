@@ -22,9 +22,7 @@ export default function Navigation() {
   }, []);
 
   return (
-    <NavigationContainer
-      theme={DefaultTheme}
-    >
+    <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
