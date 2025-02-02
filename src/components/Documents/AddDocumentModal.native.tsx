@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native';
-import { useTheme } from '../theme/ThemeProvider';
-import { supabase } from '../integrations/supabase/client';
+import { useTheme } from '@/components/theme/ThemeProvider';
+import { supabase } from '@/integrations/supabase/client';
 import Toast from 'react-native-toast-message';
 
 interface AddDocumentModalProps {

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../components/theme/ThemeProvider';
+import { useTheme } from '@/components/theme/ThemeProvider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
-import { AddDocumentModal } from '../components/Documents/AddDocumentModal.native';
-import { EditDocumentModal } from '../components/Documents/EditDocumentModal.native';
+import { AddDocumentModal } from '@/components/Documents/AddDocumentModal.native';
+import { EditDocumentModal } from '@/components/Documents/EditDocumentModal.native';
 
 interface Document {
   id: string;
