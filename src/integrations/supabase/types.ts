@@ -77,25 +77,25 @@ export type Database = {
       }
       chat_messages: {
         Row: {
-          id: string
-          user_id: string
           content: string
-          role: 'user' | 'assistant'
           created_at: string
+          id: string
+          role: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
           content: string
-          role: 'user' | 'assistant'
           created_at?: string
+          id?: string
+          role: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
           content?: string
-          role?: 'user' | 'assistant'
           created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -126,7 +126,7 @@ export type Database = {
           id?: string
           mime_type?: string | null
           starred?: boolean | null
-          title: string
+          title?: string
           type: string
           user_id: string
         }
@@ -277,7 +277,7 @@ export type Database = {
           id?: string
           is_starred?: boolean | null
           title?: string
-          type: Database["public"]["Enums"]["library_item_type"]
+          type?: Database["public"]["Enums"]["library_item_type"]
           user_id?: string
         }
         Relationships: []
@@ -370,7 +370,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_answered?: boolean | null
-          type: string
+          type?: string
           user_id: string
         }
         Update: {
@@ -454,7 +454,7 @@ export type Database = {
           id?: string
           total_break_time?: number
           total_study_time?: number
-          updated_at: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -483,7 +483,7 @@ export type Database = {
           duration?: number | null
           ended_at?: string | null
           id?: string
-          started_at: string
+          started_at?: string
           type: string
           user_id: string
         }
@@ -712,10 +712,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+        Update: infer U
+      }
+      ? U
+      : never
     : never
 
 export type Enums<

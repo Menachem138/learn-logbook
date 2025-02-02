@@ -59,23 +59,27 @@ export const useTimerData = () => {
 
       // If we don't have a summary for today yet, create one
       if (!summary) {
+        const now = new Date().toISOString();
         const { error: insertError } = await supabase
           .from('timer_daily_summaries')
           .insert({
             user_id: session.user.id,
             date: todayStr,
             total_study_time: studyTime,
-            total_break_time: breakTime
+            total_break_time: breakTime,
+            updated_at: now
           });
 
         if (insertError) throw insertError;
       } else {
         // Update the existing summary
+        const now = new Date().toISOString();
         const { error: updateError } = await supabase
           .from('timer_daily_summaries')
           .update({
             total_study_time: studyTime,
-            total_break_time: breakTime
+            total_break_time: breakTime,
+            updated_at: now
           })
           .eq('id', summary.id);
 
