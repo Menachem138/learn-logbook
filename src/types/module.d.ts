@@ -1,6 +1,6 @@
 declare module '@/components/theme/ThemeProvider' {
   export function useTheme(): { theme: 'light' | 'dark' };
-  export function ThemeProvider({ children }: { children: React.ReactNode }): JSX.Element;
+  export function ThemeProvider({ children }: { children: React.ReactNode }): React.ReactElement;
 }
 
 declare module '@/integrations/supabase/client' {
