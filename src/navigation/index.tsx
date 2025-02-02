@@ -22,7 +22,7 @@ export default function Navigation() {
   }, []);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer independent={true}>
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
