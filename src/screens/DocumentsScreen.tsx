@@ -9,14 +9,8 @@ import Toast from 'react-native-toast-message';
 import { AddDocumentModal } from '@/components/Documents/AddDocumentModal.native';
 import { EditDocumentModal } from '@/components/Documents/EditDocumentModal.native';
 
-interface Document {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  category: string;
-  user_id: string;
-}
+import { Document } from '@/types/supabase';
+import { Database } from '@/types/supabase.generated';
 
 export default function DocumentsScreen() {
   const { theme } = useTheme();
@@ -40,7 +34,7 @@ export default function DocumentsScreen() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Document[];
+      return data as Database['public']['Tables']['documents']['Row'][];
     },
   });
 

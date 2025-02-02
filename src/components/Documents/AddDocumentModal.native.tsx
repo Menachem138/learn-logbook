@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Platform, K
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { supabase } from '@/integrations/supabase/client';
 import Toast from 'react-native-toast-message';
+import { Database } from '@/types/supabase.generated';
 
 interface AddDocumentModalProps {
   visible: boolean;
@@ -44,12 +45,12 @@ export function AddDocumentModal({ visible, onClose, onDocumentAdded }: AddDocum
 
       const { error } = await supabase
         .from('documents')
-        .insert([{
+        .insert({
           title,
           content,
           category,
           user_id: session.session.user.id
-        }]);
+        });
 
       if (error) throw error;
 
