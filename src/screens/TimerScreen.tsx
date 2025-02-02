@@ -9,8 +9,9 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../types/navigation';
 
 type TimerState = 'STOPPED' | 'STUDYING' | 'BREAK';
+type Props = BottomTabScreenProps<TabParamList, 'Timer'>;
 
-export default function TimerScreen({ navigation }: BottomTabScreenProps<TabParamList, 'Timer'>) {
+const TimerScreen = ({ navigation }: Props): React.ReactElement => {
   const { theme } = useTheme();
   const [timerState, setTimerState] = useState<TimerState>('STOPPED');
   const { time, isRunning, isPaused, startTimer, pauseTimer, stopTimer } = useTimer();
@@ -125,7 +126,9 @@ export default function TimerScreen({ navigation }: BottomTabScreenProps<TabPara
       </View>
     </SafeAreaView>
   );
-}
+};
+
+export default TimerScreen;
 
 
 
