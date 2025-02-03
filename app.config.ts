@@ -1,4 +1,6 @@
-module.exports = {
+import { ExpoConfig } from 'expo/config';
+
+const config: ExpoConfig = {
   name: 'Learn Logbook',
   slug: 'learn-logbook',
   version: '1.0.0',
@@ -36,7 +38,9 @@ module.exports = {
     supabaseUrl: 'https://shjwvwhijgehquuteekv.supabase.co',
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     eas: {
-      projectId: 'new'
+      projectId: 'learn-logbook-mobile'
     }
   }
 };
+
+export default config;
