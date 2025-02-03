@@ -3,8 +3,8 @@ import { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'Learn Logbook',
   slug: 'learn-logbook',
-  version: '1.0.0',
   owner: 'menachems',
+  version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -26,19 +26,21 @@ const config: ExpoConfig = {
     package: 'com.menachem.learnlogbook'
   },
   plugins: [
-    [
-      'expo-notifications',
-      {
-        icon: './assets/notification-icon.png',
-        color: '#ffffff'
-      }
-    ]
+    'expo-notifications'
   ],
+  runtimeVersion: {
+    policy: "sdkVersion"
+  },
+  updates: {
+    url: "https://u.expo.dev/learn-logbook",
+    enabled: true,
+    fallbackToCacheTimeout: 0
+  },
   extra: {
     supabaseUrl: 'https://shjwvwhijgehquuteekv.supabase.co',
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     eas: {
-      projectId: 'learn-logbook-mobile'
+      projectId: 'learn-logbook'
     }
   }
 };
