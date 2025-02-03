@@ -5,6 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Learn Logbook',
   slug: 'learn-logbook',
   version: '1.0.0',
+  owner: 'menachemsamama',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -38,11 +39,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseUrl: 'https://shjwvwhijgehquuteekv.supabase.co',
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     eas: {
-      projectId: 'learn-time-app'
+      projectId: 'learn-logbook-mobile'
     }
   },
   updates: {
-    url: 'https://u.expo.dev/learn-time-app',
+    url: 'https://u.expo.dev/learn-logbook-mobile',
     fallbackToCacheTimeout: 0
   },
   runtimeVersion: {

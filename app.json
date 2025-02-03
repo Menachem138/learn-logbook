@@ -3,6 +3,11 @@
     "name": "Learn Logbook",
     "slug": "learn-logbook",
     "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "learn-logbook-mobile"
+      }
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -11,7 +16,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.menachem.learnlogbook"
