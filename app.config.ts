@@ -29,12 +29,21 @@ const config: ExpoConfig = {
     'expo-notifications'
   ],
   runtimeVersion: {
-    policy: "sdkVersion"
+    policy: "appVersion"
   },
   updates: {
-    url: "https://u.expo.dev/learn-logbook",
     enabled: true,
+    checkAutomatically: "ON_LOAD",
     fallbackToCacheTimeout: 0
+  },
+  extra: {
+    eas: {
+      projectId: "learn-logbook"
+    }
+  },
+  owner: "menachems",
+  developmentClient: {
+    silentLaunch: true
   },
   extra: {
     supabaseUrl: 'https://shjwvwhijgehquuteekv.supabase.co',
