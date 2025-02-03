@@ -1,11 +1,8 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
-
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
+module.exports = {
   name: 'Learn Logbook',
   slug: 'learn-logbook',
   version: '1.0.0',
-  owner: 'menachemsamama',
+  owner: 'menachems',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -17,14 +14,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.learnlogbook.app'
+    bundleIdentifier: 'com.menachem.learnlogbook'
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff'
     },
-    package: 'com.learnlogbook.app'
+    package: 'com.menachem.learnlogbook'
   },
   plugins: [
     [
@@ -39,14 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseUrl: 'https://shjwvwhijgehquuteekv.supabase.co',
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     eas: {
-      projectId: 'learn-logbook-mobile'
+      projectId: 'new'
     }
-  },
-  updates: {
-    url: 'https://u.expo.dev/learn-logbook-mobile',
-    fallbackToCacheTimeout: 0
-  },
-  runtimeVersion: {
-    policy: 'sdkVersion'
   }
-});
+};
