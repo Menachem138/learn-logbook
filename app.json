@@ -8,6 +8,10 @@
         "projectId": "learn-logbook-mobile"
       }
     },
+    "owner": "menachemsamama",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
