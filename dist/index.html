@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cours de Torah - Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="controls">
+        <audio id="audio-player" controls preload="auto" crossorigin="anonymous">
+            <source src="audio.mp3" type="audio/mpeg">
+            <source src="AUDIO-2025-01-27-10-06-43.m4a" type="audio/x-m4a">
+            Votre navigateur ne supporte pas l'élément audio.
+        </audio>
+        <div class="sync-status">
+            <p>Statut de la synchronisation: <span id="sync-indicator">Chargement...</span></p>
+        </div>
+        <div class="audio-error" style="display: none; color: #e74c3c; margin: 10px 0;"></div>
+        <button id="toggle-scroll" class="control-button">Défilement automatique: Activé</button>
+    </div>
+    <div id="content"></div>
+    <script src="script.js"></script>
+</body>
+</html>
