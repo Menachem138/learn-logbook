@@ -1,18 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>learn-logbook</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-    <meta property="og:image" content="/og-image.png" />
-    <script type="module" crossorigin src="/assets/index-puBMEi2l.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DNCPpweY.css">
-  </head>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Cours de Torah - Test</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        .segment { padding: 15px; border-bottom: 1px solid #eee; position: relative; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px; }
+        .segment:hover .edit-button { opacity: 1; }
+        .edit-button { position: absolute; top: 10px; right: 10px; opacity: 0; padding: 5px 10px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.3s ease; }
+        .hebrew { direction: rtl; font-size: 1.2em; margin-bottom: 10px; line-height: 1.5; }
+        .french { color: #666; line-height: 1.4; }
+        .edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 80%; max-width: 600px; }
+        .edit-form { display: flex; flex-direction: column; gap: 15px; }
+        textarea { width: 100%; min-height: 100px; padding: 10px; font-family: inherit; }
+        .button-group { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="content"></div>
+    <script>
+        let segments = [];
+        let activeModal = null;
 
-  <body>
-    <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-  </body>
+        function createEditModal(segment, index) {
+            if (activeModal) activeModal.remove();
+            
+            const modal = document.createElement('div');
+            modal.className = 'edit-modal';
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="edit-form">
+                        <label>Texte hébreu:</label>
+                        <textarea dir="rtl">${segment.hebrew}</textarea>
+                        <label>Traduction française:</label>
+                        <textarea>${segment.french}</textarea>
+                        <div class="button-group">
+                            <button onclick="saveEdit(${index})">Sauvegarder</button>
+                            <button onclick="closeModal()">Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            activeModal = modal;
+        }
+
+        function saveEdit(index) {
+            const modal = activeModal;
+            if (!modal) return;
+            
+            const [hebrewInput, frenchInput] = modal.querySelectorAll('textarea');
+            segments[index].hebrew = hebrewInput.value;
+            segments[index].french = frenchInput.value;
+            
+            localStorage.setItem('edited_segments', JSON.stringify(segments));
+            updateDisplay();
+            closeModal();
+        }
+
+        function closeModal() {
+            if (activeModal) {
+                activeModal.remove();
+                activeModal = null;
+            }
+        }
+
+        function updateDisplay() {
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+            
+            segments.forEach((segment, index) => {
+                const div = document.createElement('div');
+                div.className = 'segment';
+                
+                const button = document.createElement('button');
+                button.className = 'edit-button';
+                button.textContent = 'Éditer';
+                button.onclick = () => createEditModal(segment, index);
+                
+                const hebrew = document.createElement('p');
+                hebrew.className = 'hebrew';
+                hebrew.textContent = segment.hebrew;
+                
+                const french = document.createElement('p');
+                french.className = 'french';
+                french.textContent = segment.french;
+                
+                div.appendChild(button);
+                div.appendChild(hebrew);
+                div.appendChild(french);
+                content.appendChild(div);
+            });
+        }
+
+        const savedSegments = localStorage.getItem('edited_segments');
+        if (savedSegments) {
+            segments = JSON.parse(savedSegments);
+            updateDisplay();
+        } else {
+            fetch('translated_segments.json')
+                .then(response => response.json())
+                .then(data => {
+                    segments = data;
+                    updateDisplay();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
 </html>
