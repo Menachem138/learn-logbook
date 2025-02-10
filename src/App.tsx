@@ -1,10 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
+import { Navigation } from "@/navigation";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const queryClient = new QueryClient();
 
@@ -13,13 +13,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-            </Routes>
+          <SafeAreaProvider>
+            <Navigation />
             <Toaster />
-          </Router>
+          </SafeAreaProvider>
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
