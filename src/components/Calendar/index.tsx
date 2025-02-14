@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,10 +62,16 @@ export function Calendar() {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       
+      // יצירת אובייקט תאריך מקומי ושמירתו ב-ISO string
+      const startTime = new Date(eventData.start_time).toISOString();
+      const endTime = new Date(eventData.end_time).toISOString();
+      
       const { data, error } = await supabase
         .from('calendar_events')
         .insert({
           ...eventData,
+          start_time: startTime,
+          end_time: endTime,
           user_id: userData.user.id,
           is_all_day: false,
         })
@@ -95,13 +102,17 @@ export function Calendar() {
 
   const updateEventMutation = useMutation({
     mutationFn: async (eventData: Event) => {
+      // יצירת אובייקט תאריך מקומי ושמירתו ב-ISO string
+      const startTime = new Date(eventData.start_time).toISOString();
+      const endTime = new Date(eventData.end_time).toISOString();
+      
       const { data, error } = await supabase
         .from('calendar_events')
         .update({
           title: eventData.title,
           description: eventData.description,
-          start_time: eventData.start_time,
-          end_time: eventData.end_time,
+          start_time: startTime,
+          end_time: endTime,
         })
         .eq('id', eventData.id)
         .select()
@@ -183,12 +194,17 @@ export function Calendar() {
   };
 
   const selectedDateEvents = events?.filter(event => {
+    if (!date) return false;
+    
     const eventDate = new Date(event.start_time);
-    return date && 
-      eventDate.getDate() === date.getDate() &&
-      eventDate.getMonth() === date.getMonth() &&
-      eventDate.getFullYear() === date.getFullYear();
-  });
+    const selectedDate = new Date(date);
+    
+    return (
+      eventDate.getFullYear() === selectedDate.getFullYear() &&
+      eventDate.getMonth() === selectedDate.getMonth() &&
+      eventDate.getDate() === selectedDate.getDate()
+    );
+  }).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
   return (
     <Card className="mb-8">
