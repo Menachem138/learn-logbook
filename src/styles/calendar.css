@@ -1,0 +1,41 @@
+
+.custom-calendar {
+  width: 100%;
+  border: none;
+}
+
+.custom-calendar .rdp-months {
+  justify-content: center;
+}
+
+.custom-calendar .rdp-cell {
+  font-size: 1rem;
+}
+
+.custom-calendar .rdp-day_selected {
+  background-color: #000;
+  color: white;
+  font-weight: bold;
+}
+
+.custom-calendar .rdp-day_selected:hover {
+  background-color: #333;
+}
+
+.custom-calendar .rdp-day {
+  border-radius: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.custom-calendar .rdp-day:hover:not(.rdp-day_selected) {
+  background-color: #f3f4f6;
+}
+
+.custom-calendar .rdp-head_cell {
+  font-weight: 600;
+  color: #6b7280;
+}
