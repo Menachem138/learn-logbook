@@ -2,7 +2,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from '@/screens/HomeScreen';
-import { Login } from '@/pages/Login';
+import Login from '@/pages/Login';
 
 const Stack = createNativeStackNavigator();
 
