@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,7 +16,49 @@ export const useTimer = (userId?: string) => {
   const breakTimeRef = useRef<number>(0);
   const currentSessionRef = useRef<string | null>(null);
 
-  const startTimer = useCallback(async (type: 'STUDYING' | 'BREAK') => {
+  const stopTimer = useCallback(async () => {
+    if (!userId) return;
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    const elapsedTime = Date.now() - startTimeRef.current;
+    
+    if (timerState === 'STUDYING') {
+      studyTimeRef.current += elapsedTime;
+    } else if (timerState === 'BREAK') {
+      breakTimeRef.current += elapsedTime;
+    }
+
+    if (currentSessionRef.current) {
+      const { error } = await supabase
+        .from('timer_sessions')
+        .update({ 
+          ended_at: new Date().toISOString(),
+          duration: elapsedTime
+        })
+        .eq('id', currentSessionRef.current);
+
+      if (error) {
+        console.error('Error stopping timer session:', error);
+        toast({
+          title: "שגיאה בשמירת הנתונים",
+          description: "לא ניתן לשמור את זמני הלמידה כרגע",
+          variant: "destructive",
+        });
+      }
+    }
+
+    setTotalStudyTime(studyTimeRef.current);
+    setTotalBreakTime(breakTimeRef.current);
+    setTimerState('STOPPED');
+    setTime(0);
+    currentSessionRef.current = null;
+  }, [userId, timerState, toast]);
+
+  const startTimer = useCallback(async (newState: 'STUDYING' | 'BREAK') => {
     if (!userId) {
       toast({
         title: "התחברות נדרשת",
@@ -27,13 +68,18 @@ export const useTimer = (userId?: string) => {
       return;
     }
 
+    // Stop current timer if running
+    if (timerState !== 'STOPPED') {
+      await stopTimer();
+    }
+
+    // Start new session
     const { data: newSession, error } = await supabase
       .from('timer_sessions')
       .insert({
         user_id: userId,
-        type: type.toLowerCase(),
+        type: newState.toLowerCase(),
         started_at: new Date().toISOString(),
-        duration: 0
       })
       .select()
       .single();
@@ -49,7 +95,7 @@ export const useTimer = (userId?: string) => {
     }
 
     currentSessionRef.current = newSession.id;
-    setTimerState(type);
+    setTimerState(newState);
     startTimeRef.current = Date.now();
     setTime(0);
 
@@ -60,47 +106,7 @@ export const useTimer = (userId?: string) => {
     intervalRef.current = setInterval(() => {
       setTime(prevTime => prevTime + 10);
     }, 10);
-  }, [userId, toast]);
-
-  const stopTimer = useCallback(async () => {
-    if (!userId || !currentSessionRef.current) return;
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    const elapsedTime = Date.now() - startTimeRef.current;
-    
-    if (timerState === 'STUDYING') {
-      studyTimeRef.current += elapsedTime;
-    } else if (timerState === 'BREAK') {
-      breakTimeRef.current += elapsedTime;
-    }
-
-    const { error } = await supabase
-      .from('timer_sessions')
-      .update({ 
-        ended_at: new Date().toISOString(),
-        duration: elapsedTime
-      })
-      .eq('id', currentSessionRef.current);
-
-    if (error) {
-      console.error('Error stopping timer session:', error);
-      toast({
-        title: "שגיאה בשמירת הנתונים",
-        description: "לא ניתן לשמור את זמני הלמידה כרגע",
-        variant: "destructive",
-      });
-    }
-
-    setTotalStudyTime(studyTimeRef.current);
-    setTotalBreakTime(breakTimeRef.current);
-    setTimerState('STOPPED');
-    setTime(0);
-    currentSessionRef.current = null;
-  }, [userId, timerState, toast]);
+  }, [userId, timerState, stopTimer, toast]);
 
   useEffect(() => {
     return () => {

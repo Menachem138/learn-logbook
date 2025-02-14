@@ -354,39 +354,6 @@ export type Database = {
         }
         Relationships: []
       }
-      push_notifications: {
-        Row: {
-          body: string
-          created_at: string | null
-          device_token: string
-          id: string
-          notification_type: string
-          scheduled_for: string
-          title: string
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string | null
-          device_token: string
-          id?: string
-          notification_type: string
-          scheduled_for: string
-          title: string
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string | null
-          device_token?: string
-          id?: string
-          notification_type?: string
-          scheduled_for?: string
-          title?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       questions: {
         Row: {
           answer: string | null
@@ -476,61 +443,58 @@ export type Database = {
           created_at: string
           date: string
           id: string
-          sessions_completed: number | null
-          total_break_time: number | null
-          total_study_time: number | null
+          total_break_time: number
+          total_study_time: number
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
           date: string
           id?: string
-          sessions_completed?: number | null
-          total_break_time?: number | null
-          total_study_time?: number | null
+          total_break_time?: number
+          total_study_time?: number
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
           date?: string
           id?: string
-          sessions_completed?: number | null
-          total_break_time?: number | null
-          total_study_time?: number | null
+          total_break_time?: number
+          total_study_time?: number
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
       timer_sessions: {
         Row: {
           created_at: string
-          duration: number
+          duration: number | null
           ended_at: string | null
           id: string
           started_at: string
           type: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
-          duration?: number
+          duration?: number | null
           ended_at?: string | null
           id?: string
-          started_at: string
+          started_at?: string
           type: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
-          duration?: number
+          duration?: number | null
           ended_at?: string | null
           id?: string
           started_at?: string
           type?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
