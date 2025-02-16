@@ -1,16 +1,16 @@
+
 import { useState } from 'react';
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { Plus, Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { EventForm } from './EventForm';
 import { EventList } from './EventList';
+import { CalendarHeader } from './CalendarHeader';
 
 type Event = {
   id: string;
@@ -62,6 +62,7 @@ export function Calendar() {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       
+      // יצירת אובייקט תאריך מקומי ושמירתו ב-ISO string
       const startTime = new Date(eventData.start_time).toISOString();
       const endTime = new Date(eventData.end_time).toISOString();
       
@@ -101,6 +102,7 @@ export function Calendar() {
 
   const updateEventMutation = useMutation({
     mutationFn: async (eventData: Event) => {
+      // יצירת אובייקט תאריך מקומי ושמירתו ב-ISO string
       const startTime = new Date(eventData.start_time).toISOString();
       const endTime = new Date(eventData.end_time).toISOString();
       
@@ -205,52 +207,45 @@ export function Calendar() {
   }).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-3xl p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-medium">לוח שנה</h1>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Heart className="w-5 h-5" />
-          </Button>
-        </div>
-        <CalendarUI
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          locale={he}
-          className="custom-calendar"
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>לוח שנה</CardTitle>
+        <CalendarHeader
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onAddEvent={() => setIsAddEventOpen(true)}
         />
-      </div>
-
-      <div className="bg-white rounded-3xl p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-medium">היום</h2>
-          <Button
-            onClick={() => setIsAddEventOpen(true)}
-            variant="ghost"
-            size="icon"
-            className="rounded-full bg-white shadow-sm hover:bg-gray-50"
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
-        </div>
-        
-        {isLoading ? (
-          <p>טוען אירועים...</p>
-        ) : (
-          <EventList
-            events={selectedDateEvents || []}
-            onEdit={(event) => {
-              setSelectedEvent(event);
-              setIsEditEventOpen(true);
-            }}
-            onDelete={handleDeleteEvent}
+      </CardHeader>
+      <CardContent className="flex flex-col md:flex-row gap-8">
+        <div className="flex-1">
+          <CalendarUI
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            locale={he}
           />
-        )}
-      </div>
+        </div>
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold mb-4">
+            {date ? format(date, 'EEEE, d בMMMM', { locale: he }) : 'בחר תאריך'}
+          </h3>
+          {isLoading ? (
+            <p>טוען אירועים...</p>
+          ) : (
+            <EventList
+              events={selectedDateEvents || []}
+              onEdit={(event) => {
+                setSelectedEvent(event);
+                setIsEditEventOpen(true);
+              }}
+              onDelete={handleDeleteEvent}
+            />
+          )}
+        </div>
+      </CardContent>
 
       <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-        <DialogContent className="rounded-3xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>הוסף אירוע חדש</DialogTitle>
           </DialogHeader>
@@ -264,7 +259,7 @@ export function Calendar() {
       </Dialog>
 
       <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
-        <DialogContent className="rounded-3xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>ערוך אירוע</DialogTitle>
           </DialogHeader>
@@ -278,6 +273,6 @@ export function Calendar() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 }
