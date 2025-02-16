@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { format, parseISO } from 'date-fns';
 
 type EventFormProps = {
   event: {
@@ -21,17 +22,8 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
     if (!dateString) return '';
     
     try {
-      // המרת התאריך לאובייקט Date
-      const date = new Date(dateString);
-      
-      // פורמט התאריך לפורמט של input datetime-local
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
+      const date = parseISO(dateString);
+      return format(date, "yyyy-MM-dd'T'HH:mm");
     } catch (error) {
       console.error('Error formatting date:', error);
       return '';
@@ -48,16 +40,8 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
       // המרת התאריך שנבחר לאובייקט Date
       const selectedDate = new Date(value);
       
-      // יצירת תאריך UTC במדויק לפי השעה שנבחרה
-      const utcDate = new Date(Date.UTC(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        selectedDate.getHours(),
-        selectedDate.getMinutes()
-      ));
-
-      onChange(field, utcDate.toISOString());
+      // שמירת השעה כפי שהיא, ללא המרות
+      onChange(field, selectedDate.toISOString());
     } catch (error) {
       console.error('Error handling date change:', error);
     }
