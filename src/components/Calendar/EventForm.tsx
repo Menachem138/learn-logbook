@@ -20,8 +20,22 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return '';
     
-    const date = new Date(dateString);
-    return new Date(date.getTime()).toISOString().slice(0, 16);
+    try {
+      // המרת התאריך לאובייקט Date
+      const date = new Date(dateString);
+      
+      // פורמט התאריך לפורמט של input datetime-local
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
   };
 
   const handleDateChange = (field: string, value: string) => {
@@ -30,9 +44,23 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
       return;
     }
 
-    // שמירת התאריך בדיוק כפי שנבחר, ללא המרות
-    const date = new Date(value);
-    onChange(field, date.toISOString());
+    try {
+      // המרת התאריך שנבחר לאובייקט Date
+      const selectedDate = new Date(value);
+      
+      // יצירת תאריך UTC במדויק לפי השעה שנבחרה
+      const utcDate = new Date(Date.UTC(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        selectedDate.getHours(),
+        selectedDate.getMinutes()
+      ));
+
+      onChange(field, utcDate.toISOString());
+    } catch (error) {
+      console.error('Error handling date change:', error);
+    }
   };
 
   return (
