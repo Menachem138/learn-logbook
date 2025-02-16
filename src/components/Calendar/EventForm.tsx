@@ -20,11 +20,8 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return '';
     
-    // המרת התאריך לתאריך מקומי
     const date = new Date(dateString);
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-    return localDate.toISOString().slice(0, 16);
+    return new Date(date.getTime()).toISOString().slice(0, 16);
   };
 
   const handleDateChange = (field: string, value: string) => {
@@ -33,10 +30,9 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
       return;
     }
 
-    // המרת התאריך שנבחר ל-UTC
-    const localDate = new Date(value);
-    const utcDate = new Date(localDate.getTime() + (localDate.getTimezoneOffset() * 60 * 1000));
-    onChange(field, utcDate.toISOString());
+    // שמירת התאריך בדיוק כפי שנבחר, ללא המרות
+    const date = new Date(value);
+    onChange(field, date.toISOString());
   };
 
   return (

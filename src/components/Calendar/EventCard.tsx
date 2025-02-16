@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from 'lucide-react';
@@ -25,7 +25,7 @@ type EventCardProps = {
 
 export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
   const formatLocalTime = (dateString: string) => {
-    const date = parseISO(dateString);
+    const date = new Date(dateString);
     return format(date, 'HH:mm');
   };
 
