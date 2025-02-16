@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,17 +60,11 @@ export function Calendar() {
     mutationFn: async (eventData: NewEvent) => {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
-      
-      // יצירת אובייקט תאריך מקומי ושמירתו ב-ISO string
-      const startTime = new Date(eventData.start_time).toISOString();
-      const endTime = new Date(eventData.end_time).toISOString();
-      
+
       const { data, error } = await supabase
         .from('calendar_events')
         .insert({
           ...eventData,
-          start_time: startTime,
-          end_time: endTime,
           user_id: userData.user.id,
           is_all_day: false,
         })
@@ -102,17 +95,13 @@ export function Calendar() {
 
   const updateEventMutation = useMutation({
     mutationFn: async (eventData: Event) => {
-      // יצירת אובייקט תאריך מקומי ושמירתו ב-ISO string
-      const startTime = new Date(eventData.start_time).toISOString();
-      const endTime = new Date(eventData.end_time).toISOString();
-      
       const { data, error } = await supabase
         .from('calendar_events')
         .update({
           title: eventData.title,
           description: eventData.description,
-          start_time: startTime,
-          end_time: endTime,
+          start_time: eventData.start_time,
+          end_time: eventData.end_time,
         })
         .eq('id', eventData.id)
         .select()

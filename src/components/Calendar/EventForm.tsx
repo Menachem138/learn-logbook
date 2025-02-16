@@ -17,12 +17,26 @@ type EventFormProps = {
 };
 
 export function EventForm({ event, onSubmit, onChange, submitText }: EventFormProps) {
-  // המרת תאריך ל-local ISO string כדי להציג אותו נכון בשדות התאריך
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return '';
+    
+    // המרת התאריך לתאריך מקומי
     const date = new Date(dateString);
-    // יצירת מחרוזת תאריך בפורמט המתאים ל-input type="datetime-local"
-    return date.toISOString().slice(0, 16);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+    return localDate.toISOString().slice(0, 16);
+  };
+
+  const handleDateChange = (field: string, value: string) => {
+    if (!value) {
+      onChange(field, '');
+      return;
+    }
+
+    // המרת התאריך שנבחר ל-UTC
+    const localDate = new Date(value);
+    const utcDate = new Date(localDate.getTime() + (localDate.getTimezoneOffset() * 60 * 1000));
+    onChange(field, utcDate.toISOString());
   };
 
   return (
@@ -49,7 +63,7 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
           id="start_time"
           type="datetime-local"
           value={formatDateForInput(event.start_time)}
-          onChange={(e) => onChange('start_time', e.target.value)}
+          onChange={(e) => handleDateChange('start_time', e.target.value)}
         />
       </div>
       <div>
@@ -58,7 +72,7 @@ export function EventForm({ event, onSubmit, onChange, submitText }: EventFormPr
           id="end_time"
           type="datetime-local"
           value={formatDateForInput(event.end_time)}
-          onChange={(e) => onChange('end_time', e.target.value)}
+          onChange={(e) => handleDateChange('end_time', e.target.value)}
         />
       </div>
       <Button type="submit" className="w-full">

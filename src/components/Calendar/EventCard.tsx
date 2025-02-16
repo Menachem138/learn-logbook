@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from 'lucide-react';
@@ -23,6 +24,11 @@ type EventCardProps = {
 };
 
 export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
+  const formatLocalTime = (dateString: string) => {
+    const date = parseISO(dateString);
+    return format(date, 'HH:mm');
+  };
+
   return (
     <Card>
       <CardContent className="pt-4">
@@ -31,7 +37,7 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
             <h4 className="font-semibold">{event.title}</h4>
             <p className="text-sm text-gray-500">{event.description}</p>
             <p className="text-sm text-gray-500">
-              {format(new Date(event.start_time), 'HH:mm')} - {format(new Date(event.end_time), 'HH:mm')}
+              {formatLocalTime(event.start_time)} - {formatLocalTime(event.end_time)}
             </p>
           </div>
           <div className="flex gap-2">
