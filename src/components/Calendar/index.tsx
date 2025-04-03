@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
@@ -29,7 +28,7 @@ const defaultTask = {
   due_date: new Date().toISOString(),
   priority: 'medium' as const,
   is_completed: false,
-  user_id: '' // Add the missing user_id property
+  user_id: ''
 };
 
 export function Calendar() {
@@ -41,7 +40,6 @@ export function Calendar() {
   const [isEditMode, setIsEditMode] = useState(false);
   const queryClient = useQueryClient();
 
-  // Query to fetch tasks
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
@@ -68,7 +66,6 @@ export function Calendar() {
     }
   });
 
-  // Mutations for tasks
   const createTaskMutation = useMutation({
     mutationFn: async (task: Omit<Task, 'id' | 'user_id'>) => {
       const { data: session } = await supabase.auth.getSession();
@@ -116,7 +113,7 @@ export function Calendar() {
       setIsTaskModalOpen(false);
     },
     onError: (error) => {
-      toast.error(`שגיאה בעדכון המשימה: ${error.message}`);
+      toast.error(`שגיאה בעדכון ��משימה: ${error.message}`);
     }
   });
 
@@ -160,12 +157,11 @@ export function Calendar() {
     }
   });
 
-  // Functions to handle task operations
   const handleAddTask = () => {
     setCurrentTask({
       ...defaultTask,
       due_date: selectedDate.toISOString(),
-      user_id: '' // Include empty user_id for the form
+      user_id: ''
     });
     setIsEditMode(false);
     setIsTaskModalOpen(true);
@@ -192,8 +188,6 @@ export function Calendar() {
     if (isEditMode) {
       updateTaskMutation.mutate(currentTask);
     } else {
-      // We only need to omit the id and user_id when creating a task
-      // as the server will assign these values
       const { id, user_id, ...newTask } = currentTask;
       createTaskMutation.mutate(newTask as Omit<Task, 'id' | 'user_id'>);
     }
@@ -203,17 +197,14 @@ export function Calendar() {
     setCurrentTask(prev => ({ ...prev, [field]: value }));
   };
 
-  // Calendar days generation
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Filter tasks for selected date
   const tasksForSelectedDate = tasks.filter(task => 
     isSameDay(parseISO(task.due_date), selectedDate)
   );
 
-  // Check if a date has tasks
   const hasTasksOnDate = (date: Date) => {
     return tasks.some(task => isSameDay(parseISO(task.due_date), date));
   };
@@ -225,24 +216,20 @@ export function Calendar() {
         <h3 className="text-lg text-muted-foreground mb-4">נהל את המשימות והאירועים שלך</h3>
       </div>
 
-      {/* Calendar Component */}
       <div className="space-y-6">
         <CalendarHeader
-          currentMonth={currentMonth}
           onPrevMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1))}
           onNextMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1))}
+          currentMonthDate={currentMonth}
         />
 
-        {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-1">
-          {/* Day names */}
           {['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'].map(day => (
             <div key={day} className="h-10 flex items-center justify-center font-medium">
               {day}
             </div>
           ))}
 
-          {/* Calendar days */}
           {monthDays.map(day => {
             const isToday = isSameDay(day, new Date());
             const isSelected = isSameDay(day, selectedDate);
@@ -272,7 +259,6 @@ export function Calendar() {
           })}
         </div>
 
-        {/* Tasks Section */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <Button 
@@ -309,7 +295,6 @@ export function Calendar() {
         </div>
       </div>
 
-      {/* Task Form Modal */}
       <Dialog open={isTaskModalOpen} onOpenChange={setIsTaskModalOpen}>
         <DialogContent>
           <DialogHeader>
