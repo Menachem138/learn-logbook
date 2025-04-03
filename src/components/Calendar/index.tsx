@@ -1,31 +1,16 @@
-import { useState } from 'react';
-import { Calendar as CalendarUI } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import React, { useState, useEffect } from 'react';
+import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
+import { CalendarHeader } from './CalendarHeader';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
-import { he } from 'date-fns/locale';
-import { EventForm } from './EventForm';
-import { TaskForm } from './TaskForm';
-import { EventList } from './EventList';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { TaskCard } from './TaskCard';
-import { CalendarHeader } from './CalendarHeader';
-
-type Event = {
-  id: string;
-  title: string;
-  description: string | null;
-  start_time: string;
-  end_time: string;
-  is_all_day: boolean;
-  user_id: string;
-  created_at?: string | null;
-  updated_at?: string | null;
-};
+import { TaskForm } from './TaskForm';
 
 type Task = {
   id: string;
@@ -37,235 +22,102 @@ type Task = {
   user_id: string;
 };
 
-type ViewMode = 'day' | 'week' | 'month';
-
-type NewEvent = Omit<Event, 'id' | 'user_id' | 'is_all_day' | 'created_at' | 'updated_at'>;
-type NewTask = Omit<Task, 'id' | 'user_id' | 'is_completed'>;
+const defaultTask = {
+  id: '',
+  title: '',
+  description: '',
+  due_date: new Date().toISOString(),
+  priority: 'medium' as const,
+  is_completed: false,
+  user_id: '' // Add the missing user_id property
+};
 
 export function Calendar() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('day');
-  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
-  const [isEditEventOpen, setIsEditEventOpen] = useState(false);
-  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
-  const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [newEvent, setNewEvent] = useState<NewEvent>({
-    title: '',
-    description: '',
-    start_time: '',
-    end_time: '',
-  });
-  const [newTask, setNewTask] = useState<NewTask>({
-    title: '',
-    description: '',
-    due_date: '',
-    priority: 'medium',
-  });
-
-  const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [currentTask, setCurrentTask] = useState<Task>(defaultTask);
+  const [isEditMode, setIsEditMode] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: events, isLoading: isLoadingEvents } = useQuery({
-    queryKey: ['calendar-events'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('calendar_events')
-        .select('*')
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
-      return data as Event[];
-    },
-  });
-
-  const { data: tasks, isLoading: isLoadingTasks } = useQuery({
+  // Query to fetch tasks
+  const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user) {
+        toast.error('יש להתחבר כדי לצפות במשימות');
+        return [];
+      }
+      
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
+        .eq('user_id', session.session.user.id)
         .order('due_date', { ascending: true });
-
-      if (error) throw error;
+        
+      if (error) {
+        toast.error('שגיאה בטעינת המשימות');
+        console.error(error);
+        return [];
+      }
+      
       return data as Task[];
-    },
+    }
   });
 
-  // Event mutations
-  const addEventMutation = useMutation({
-    mutationFn: async (eventData: NewEvent) => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-
-      const { data, error } = await supabase
-        .from('calendar_events')
-        .insert({
-          ...eventData,
-          user_id: userData.user.id,
-          is_all_day: false,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      toast({
-        title: "אירוע נוסף בהצלחה",
-        description: "האירוע נוסף ללוח השנה שלך",
-      });
-      setIsAddEventOpen(false);
-      setNewEvent({ title: '', description: '', start_time: '', end_time: '' });
-    },
-    onError: (error) => {
-      toast({
-        title: "שגיאה",
-        description: "לא הצלחנו להוסיף את האירוע",
-        variant: "destructive",
-      });
-      console.error('Error adding event:', error);
-    },
-  });
-
-  const updateEventMutation = useMutation({
-    mutationFn: async (eventData: Event) => {
-      const { data, error } = await supabase
-        .from('calendar_events')
-        .update({
-          title: eventData.title,
-          description: eventData.description,
-          start_time: eventData.start_time,
-          end_time: eventData.end_time,
-        })
-        .eq('id', eventData.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      toast({
-        title: "אירוע עודכן בהצלחה",
-        description: "האירוע עודכן בלוח השנה שלך",
-      });
-      setIsEditEventOpen(false);
-      setSelectedEvent(null);
-    },
-    onError: (error) => {
-      toast({
-        title: "שגיאה",
-        description: "לא הצלחנו לעדכן את האירוע",
-        variant: "destructive",
-      });
-      console.error('Error updating event:', error);
-    },
-  });
-
-  const deleteEventMutation = useMutation({
-    mutationFn: async (eventId: string) => {
-      const { error } = await supabase
-        .from('calendar_events')
-        .delete()
-        .eq('id', eventId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      toast({
-        title: "אירוע נמחק בהצלחה",
-        description: "האירוע הוסר מלוח השנה שלך",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "שגיאה",
-        description: "לא הצלחנו למחוק את האירוע",
-        variant: "destructive",
-      });
-      console.error('Error deleting event:', error);
-    },
-  });
-
-  // Task mutations
-  const addTaskMutation = useMutation({
-    mutationFn: async (taskData: NewTask) => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-
+  // Mutations for tasks
+  const createTaskMutation = useMutation({
+    mutationFn: async (task: Omit<Task, 'id' | 'user_id'>) => {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user) {
+        throw new Error('יש להתחבר כדי להוסיף משימה');
+      }
+      
       const { data, error } = await supabase
         .from('tasks')
-        .insert({
-          ...taskData,
-          user_id: userData.user.id,
-          is_completed: false,
-        })
+        .insert([{ ...task, user_id: session.session.user.id }])
         .select()
         .single();
-
+        
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast({
-        title: "משימה נוספה בהצלחה",
-        description: "המשימה נוספה ללוח המשימות שלך",
-      });
-      setIsAddTaskOpen(false);
-      setNewTask({ title: '', description: '', due_date: '', priority: 'medium' });
+      toast.success('המשימה נוספה בהצלחה');
+      setIsTaskModalOpen(false);
     },
     onError: (error) => {
-      toast({
-        title: "שגיאה",
-        description: "לא הצלחנו להוסיף את המשימה",
-        variant: "destructive",
-      });
-      console.error('Error adding task:', error);
-    },
+      toast.error(`שגיאה בהוספת משימה: ${error.message}`);
+    }
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: async (taskData: Task) => {
+    mutationFn: async (task: Task) => {
+      const { id, user_id, ...updateData } = task;
+      
       const { data, error } = await supabase
         .from('tasks')
-        .update({
-          title: taskData.title,
-          description: taskData.description,
-          due_date: taskData.due_date,
-          priority: taskData.priority,
-          is_completed: taskData.is_completed,
-        })
-        .eq('id', taskData.id)
+        .update(updateData)
+        .eq('id', id)
         .select()
         .single();
-
+        
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast({
-        title: "משימה עודכנה בהצלחה",
-        description: "המשימה עודכנה בלוח המשימות שלך",
-      });
-      setIsEditTaskOpen(false);
-      setSelectedTask(null);
+      toast.success('המשימה עודכנה בהצלחה');
+      setIsTaskModalOpen(false);
     },
     onError: (error) => {
-      toast({
-        title: "שגיאה",
-        description: "לא הצלחנו לעדכן את המשימה",
-        variant: "destructive",
-      });
-      console.error('Error updating task:', error);
-    },
+      toast.error(`שגיאה בעדכון המשימה: ${error.message}`);
+    }
   });
 
   const deleteTaskMutation = useMutation({
@@ -274,269 +126,203 @@ export function Calendar() {
         .from('tasks')
         .delete()
         .eq('id', taskId);
-
+        
       if (error) throw error;
+      return taskId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast({
-        title: "משימה נמחקה בהצלחה",
-        description: "המשימה הוסרה מלוח המשימות שלך",
-      });
+      toast.success('המשימה נמחקה בהצלחה');
     },
     onError: (error) => {
-      toast({
-        title: "שגיאה",
-        description: "לא הצלחנו למחוק את המשימה",
-        variant: "destructive",
-      });
-      console.error('Error deleting task:', error);
-    },
+      toast.error(`שגיאה במחיקת המשימה: ${error.message}`);
+    }
   });
 
-  const handleAddEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEvent.title || !newEvent.start_time || !newEvent.end_time) {
-      toast({
-        title: "שגיאה",
-        description: "נא למלא את כל השדות הנדרשים",
-        variant: "destructive",
-      });
-      return;
+  const toggleTaskCompleteMutation = useMutation({
+    mutationFn: async ({ taskId, isCompleted }: { taskId: string; isCompleted: boolean }) => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({ is_completed: isCompleted })
+        .eq('id', taskId)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('סטטוס המשימה עודכן בהצלחה');
+    },
+    onError: (error) => {
+      toast.error(`שגיאה בעדכון סטטוס המשימה: ${error.message}`);
     }
+  });
 
-    addEventMutation.mutate(newEvent);
+  // Functions to handle task operations
+  const handleAddTask = () => {
+    setCurrentTask({
+      ...defaultTask,
+      due_date: selectedDate.toISOString(),
+      user_id: '' // Include empty user_id for the form
+    });
+    setIsEditMode(false);
+    setIsTaskModalOpen(true);
   };
 
-  const handleEditEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedEvent) return;
-
-    updateEventMutation.mutate(selectedEvent);
-  };
-
-  const handleDeleteEvent = (eventId: string) => {
-    if (window.confirm('האם אתה בטוח שברצונך למחוק אירוע זה?')) {
-      deleteEventMutation.mutate(eventId);
-    }
-  };
-
-  const handleAddTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTask.title || !newTask.due_date) {
-      toast({
-        title: "שגיאה",
-        description: "נא למלא את כל השדות הנדרשים",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    addTaskMutation.mutate(newTask);
-  };
-
-  const handleEditTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTask) return;
-
-    updateTaskMutation.mutate(selectedTask);
+  const handleEditTask = (task: Task) => {
+    setCurrentTask(task);
+    setIsEditMode(true);
+    setIsTaskModalOpen(true);
   };
 
   const handleDeleteTask = (taskId: string) => {
-    if (window.confirm('האם אתה בטוח שברצונך למחוק משימה זו?')) {
+    if (window.confirm('האם אתה בטוח שברצונך למחוק את המשימה?')) {
       deleteTaskMutation.mutate(taskId);
     }
   };
 
   const handleToggleComplete = (taskId: string, isCompleted: boolean) => {
-    const task = tasks?.find(t => t.id === taskId);
-    if (task) {
-      updateTaskMutation.mutate({ ...task, is_completed: isCompleted });
+    toggleTaskCompleteMutation.mutate({ taskId, isCompleted });
+  };
+
+  const handleTaskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isEditMode) {
+      updateTaskMutation.mutate(currentTask);
+    } else {
+      // We only need to omit the id and user_id when creating a task
+      // as the server will assign these values
+      const { id, user_id, ...newTask } = currentTask;
+      createTaskMutation.mutate(newTask as Omit<Task, 'id' | 'user_id'>);
     }
   };
 
-  const selectedDateEvents = events?.filter(event => {
-    if (!date) return false;
-    
-    const eventDate = new Date(event.start_time);
-    const selectedDate = new Date(date);
-    
-    return (
-      eventDate.getFullYear() === selectedDate.getFullYear() &&
-      eventDate.getMonth() === selectedDate.getMonth() &&
-      eventDate.getDate() === selectedDate.getDate()
-    );
-  }).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  const handleTaskChange = (field: string, value: any) => {
+    setCurrentTask(prev => ({ ...prev, [field]: value }));
+  };
 
-  const selectedDateTasks = tasks?.filter(task => {
-    if (!date) return false;
-    
-    const taskDate = new Date(task.due_date);
-    const selectedDate = new Date(date);
-    
-    return (
-      taskDate.getFullYear() === selectedDate.getFullYear() &&
-      taskDate.getMonth() === selectedDate.getMonth() &&
-      taskDate.getDate() === selectedDate.getDate()
-    );
-  }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  // Calendar days generation
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(monthStart);
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Filter tasks for selected date
+  const tasksForSelectedDate = tasks.filter(task => 
+    isSameDay(parseISO(task.due_date), selectedDate)
+  );
+
+  // Check if a date has tasks
+  const hasTasksOnDate = (date: Date) => {
+    return tasks.some(task => isSameDay(parseISO(task.due_date), date));
+  };
 
   return (
-    <Card className="mb-8">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>לוח שנה ומשימות</CardTitle>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => {
-                if (date) {
-                  setNewTask(prev => ({
-                    ...prev,
-                    due_date: date.toISOString()
-                  }));
-                }
-                setIsAddTaskOpen(true);
-              }}
-              variant="outline"
-            >
-              <Plus className="h-4 w-4 ml-2" />
-              משימה חדשה
-            </Button>
-            <Button
-              onClick={() => {
-                if (date) {
-                  setNewEvent(prev => ({
-                    ...prev,
-                    start_time: date.toISOString(),
-                    end_time: date.toISOString()
-                  }));
-                }
-                setIsAddEventOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4 ml-2" />
-              אירוע חדש
-            </Button>
-          </div>
-        </div>
+    <div className="space-y-4 bg-white rounded-lg p-6 shadow-sm" dir="rtl">
+      <div>
+        <h2 className="text-2xl font-bold mb-2">לוח שנה ומשימות</h2>
+        <h3 className="text-lg text-muted-foreground mb-4">נהל את המשימות והאירועים שלך</h3>
+      </div>
+
+      {/* Calendar Component */}
+      <div className="space-y-6">
         <CalendarHeader
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          onAddEvent={() => setIsAddEventOpen(true)}
+          currentMonth={currentMonth}
+          onPrevMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1))}
+          onNextMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1))}
         />
-      </CardHeader>
-      <CardContent className="flex flex-col md:flex-row gap-8">
-        <div className="flex-1">
-          <CalendarUI
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            locale={he}
-          />
-        </div>
-        <div className="flex-1 space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">
-              {date ? format(date, 'EEEE, d בMMMM', { locale: he }) : 'בחר תאריך'}
-            </h3>
-            {isLoadingEvents ? (
-              <p>טוען אירועים...</p>
-            ) : (
-              <EventList
-                events={selectedDateEvents || []}
-                onEdit={(event) => {
-                  setSelectedEvent(event);
-                  setIsEditEventOpen(true);
-                }}
-                onDelete={handleDeleteEvent}
-              />
-            )}
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-4">משימות</h3>
-            {isLoadingTasks ? (
-              <p>טוען משימות...</p>
-            ) : selectedDateTasks && selectedDateTasks.length > 0 ? (
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                {selectedDateTasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onEdit={(task) => {
-                      setSelectedTask(task);
-                      setIsEditTaskOpen(true);
-                    }}
-                    onDelete={handleDeleteTask}
-                    onToggleComplete={handleToggleComplete}
-                  />
-                ))}
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {/* Day names */}
+          {['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'].map(day => (
+            <div key={day} className="h-10 flex items-center justify-center font-medium">
+              {day}
+            </div>
+          ))}
+
+          {/* Calendar days */}
+          {monthDays.map(day => {
+            const isToday = isSameDay(day, new Date());
+            const isSelected = isSameDay(day, selectedDate);
+            const hasTasks = hasTasksOnDate(day);
+            
+            return (
+              <div
+                key={day.toString()}
+                className={`
+                  h-20 p-1 border rounded-md cursor-pointer transition-colors
+                  ${!isSameMonth(day, currentMonth) ? 'text-gray-300' : ''}
+                  ${isToday ? 'bg-blue-50 border-blue-200' : ''}
+                  ${isSelected ? 'bg-blue-100 border-blue-400' : ''}
+                `}
+                onClick={() => setSelectedDate(day)}
+              >
+                <div className="flex justify-between items-start h-full">
+                  <span className={`text-sm font-medium ${isToday ? 'text-blue-600' : ''}`}>
+                    {format(day, 'd')}
+                  </span>
+                  {hasTasks && (
+                    <span className="h-2 w-2 rounded-full bg-red-500 mt-1"></span>
+                  )}
+                </div>
               </div>
-            ) : (
-              <p className="text-gray-500">אין משימות ביום זה</p>
-            )}
-          </div>
+            );
+          })}
         </div>
-      </CardContent>
 
-      <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>הוסף אירוע חדש</DialogTitle>
-          </DialogHeader>
-          <EventForm
-            event={newEvent}
-            onSubmit={handleAddEvent}
-            onChange={(field, value) => setNewEvent({ ...newEvent, [field]: value })}
-            submitText="הוסף אירוע"
-          />
-        </DialogContent>
-      </Dialog>
+        {/* Tasks Section */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Button 
+              onClick={handleAddTask}
+              className="flex items-center gap-2"
+            >
+              <Plus size={16} />
+              הוסף משימה
+            </Button>
+            <h3 className="text-xl font-semibold">
+              משימות ליום {format(selectedDate, 'dd/MM/yyyy')}
+            </h3>
+          </div>
 
-      <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>ערוך אירוע</DialogTitle>
-          </DialogHeader>
-          {selectedEvent && (
-            <EventForm
-              event={selectedEvent}
-              onSubmit={handleEditEvent}
-              onChange={(field, value) => setSelectedEvent({ ...selectedEvent, [field]: value })}
-              submitText="שמור שינויים"
-            />
+          {isLoading ? (
+            <div className="text-center py-10">טוען משימות...</div>
+          ) : tasksForSelectedDate.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              אין משימות ליום זה. לחץ על "הוסף משימה" כדי ליצור משימה חדשה.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {tasksForSelectedDate.map(task => (
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  onEdit={handleEditTask}
+                  onDelete={handleDeleteTask}
+                  onToggleComplete={handleToggleComplete}
+                />
+              ))}
+            </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
-      <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
+      {/* Task Form Modal */}
+      <Dialog open={isTaskModalOpen} onOpenChange={setIsTaskModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>הוסף משימה חדשה</DialogTitle>
+            <DialogTitle>{isEditMode ? 'ערוך משימה' : 'הוסף משימה חדשה'}</DialogTitle>
           </DialogHeader>
           <TaskForm
-            task={newTask}
-            onSubmit={handleAddTask}
-            onChange={(field, value) => setNewTask({ ...newTask, [field]: value })}
-            submitText="הוסף משימה"
+            task={currentTask}
+            onSubmit={handleTaskSubmit}
+            onChange={handleTaskChange}
+            submitText={isEditMode ? 'שמור שינויים' : 'הוסף משימה'}
           />
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isEditTaskOpen} onOpenChange={setIsEditTaskOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>ערוך משימה</DialogTitle>
-          </DialogHeader>
-          {selectedTask && (
-            <TaskForm
-              task={selectedTask}
-              onSubmit={handleEditTask}
-              onChange={(field, value) => setSelectedTask({ ...selectedTask, [field]: value })}
-              submitText="שמור שינויים"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </Card>
+    </div>
   );
 }
