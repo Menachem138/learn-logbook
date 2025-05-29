@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
@@ -17,7 +18,7 @@ type Task = {
   description: string | null;
   due_date: string;
   priority: 'urgent' | 'medium' | 'low';
-  is_completed: boolean;
+  completed: boolean;
   user_id: string;
 };
 
@@ -27,7 +28,7 @@ const defaultTask = {
   description: '',
   due_date: new Date().toISOString(),
   priority: 'medium' as const,
-  is_completed: false,
+  completed: false,
   user_id: ''
 };
 
@@ -113,7 +114,7 @@ export function Calendar() {
       setIsTaskModalOpen(false);
     },
     onError: (error) => {
-      toast.error(`שגיאה בעדכון ��משימה: ${error.message}`);
+      toast.error(`שגיאה בעדכון המשימה: ${error.message}`);
     }
   });
 
@@ -137,10 +138,10 @@ export function Calendar() {
   });
 
   const toggleTaskCompleteMutation = useMutation({
-    mutationFn: async ({ taskId, isCompleted }: { taskId: string; isCompleted: boolean }) => {
+    mutationFn: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
       const { data, error } = await supabase
         .from('tasks')
-        .update({ is_completed: isCompleted })
+        .update({ completed: completed })
         .eq('id', taskId)
         .select()
         .single();
@@ -179,8 +180,8 @@ export function Calendar() {
     }
   };
 
-  const handleToggleComplete = (taskId: string, isCompleted: boolean) => {
-    toggleTaskCompleteMutation.mutate({ taskId, isCompleted });
+  const handleToggleComplete = (taskId: string, completed: boolean) => {
+    toggleTaskCompleteMutation.mutate({ taskId, completed });
   };
 
   const handleTaskSubmit = (e: React.FormEvent) => {
