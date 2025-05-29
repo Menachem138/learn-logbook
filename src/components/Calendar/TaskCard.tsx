@@ -12,14 +12,15 @@ type Task = {
   description: string | null;
   due_date: string;
   priority: 'urgent' | 'medium' | 'low';
-  is_completed: boolean;
+  completed: boolean;
+  user_id: string;
 };
 
 type TaskCardProps = {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
-  onToggleComplete: (taskId: string, isCompleted: boolean) => void;
+  onToggleComplete: (taskId: string, completed: boolean) => void;
 };
 
 const priorityColors = {
@@ -34,11 +35,11 @@ export function TaskCard({ task, onEdit, onDelete, onToggleComplete }: TaskCardP
   };
 
   return (
-    <Card className={`relative ${task.is_completed ? 'opacity-60' : ''}`}>
+    <Card className={`relative ${task.completed ? 'opacity-60' : ''}`}>
       <CardContent className="pt-4">
         <div className="flex justify-between items-start">
           <div className="space-y-2">
-            <h4 className={`font-semibold ${task.is_completed ? 'line-through' : ''}`}>
+            <h4 className={`font-semibold ${task.completed ? 'line-through' : ''}`}>
               {task.title}
             </h4>
             {task.description && (
@@ -57,9 +58,9 @@ export function TaskCard({ task, onEdit, onDelete, onToggleComplete }: TaskCardP
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onToggleComplete(task.id, !task.is_completed)}
+              onClick={() => onToggleComplete(task.id, !task.completed)}
             >
-              <Check className={`h-4 w-4 ${task.is_completed ? 'text-green-500' : ''}`} />
+              <Check className={`h-4 w-4 ${task.completed ? 'text-green-500' : ''}`} />
             </Button>
             <Button
               variant="ghost"
