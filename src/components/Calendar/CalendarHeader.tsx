@@ -1,45 +1,39 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Grid, List } from 'lucide-react';
-
-type ViewMode = 'day' | 'week' | 'month';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { format } from 'date-fns';
 
 type CalendarHeaderProps = {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-  onAddEvent: () => void;
+  onPrevMonth: () => void;
+  onNextMonth: () => void;
+  currentMonthDate: Date;
 };
 
-export function CalendarHeader({ viewMode, onViewModeChange, onAddEvent }: CalendarHeaderProps) {
+export function CalendarHeader({ onPrevMonth, onNextMonth, currentMonthDate }: CalendarHeaderProps) {
   return (
     <div className="flex justify-between items-center mb-4">
-      <div className="flex gap-2">
-        <Button
-          variant={viewMode === 'day' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => onViewModeChange('day')}
-        >
-          <List className="h-4 w-4 mr-2" />
-          יום
-        </Button>
-        <Button
-          variant={viewMode === 'week' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => onViewModeChange('week')}
-        >
-          <Grid className="h-4 w-4 mr-2" />
-          שבוע
-        </Button>
-        <Button
-          variant={viewMode === 'month' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => onViewModeChange('month')}
-        >
-          <CalendarIcon className="h-4 w-4 mr-2" />
-          חודש
-        </Button>
-      </div>
-      <Button onClick={onAddEvent}>הוסף אירוע</Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onPrevMonth}
+        className="h-8 w-8"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      
+      <h2 className="text-xl font-semibold">
+        {format(currentMonthDate, 'MMMM yyyy')}
+      </h2>
+      
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onNextMonth}
+        className="h-8 w-8"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
